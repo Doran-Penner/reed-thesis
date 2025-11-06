@@ -1,7 +1,7 @@
 { pkgs, inputs, ... }:
 
 let
-  chroma_code = pkgs.rustPlatform.buildRustPackage rec {
+  chroma_code = pkgs.rustPlatform.buildRustPackage {
     pname = "chromacode";
     version = "1.1.0";
 
@@ -18,6 +18,7 @@ pkgs.mkShell {
     pkgs.quarto
     chroma_code
     tree-sitter
+    pkgs.nix-output-monitor
   ];
 
   name = "sam's thesis shell";

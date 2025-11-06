@@ -10,7 +10,7 @@
 }:
 
 let
-  chroma_code = pkgs.rustPlatform.buildRustPackage rec {
+  chroma_code = pkgs.rustPlatform.buildRustPackage {
     pname = "chromacode";
     version = "1.1.0";
 
