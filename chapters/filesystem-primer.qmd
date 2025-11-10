@@ -1,9 +1,0 @@
-# File system Primer {#sec-filesystem-primer}
-
-The filesystem is a very complex beast, but we can mostly ignore these complexities.
-
-File paths are made up of a series of *path components* --- think folder names. To build a complete path, we join path components with a *path separator*. On most operating systems, the path separator is `/`, while on Windows it is `\`.
-
-Like concurrency, we run into issues when trying to write to a file twice at the same time. This may or may not be caught by the operating system, so we must be careful to avoid this situation.
-
-We can also jump around within a file, so we do not need to save files to disk linearly from start to finish.

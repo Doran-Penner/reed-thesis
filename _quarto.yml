@@ -4,31 +4,20 @@ project:
   post-render: ./template/prelims/cleanup.bash
 
 book:
-  title: "Bit by Bit: Implementing the BitTorrent peer-to-peer file-sharing protocol"
-  author: "Sam Gauck"
-  date: "May 2025"
+  title: "Content-addressed Replicated Data Types"
+  author: "Doran Penner"
+  date: "May 2026"
   date-format: "MMMM YYYY"
   chapters:
-    # All books must have an index.qmd file. See https://github.com/quarto-dev/quarto-cli/issues/2556
-    # If the file is empty, it produces an empty chapter.
-    # Therefore, we put our introduction in index.qmd
-    # (it's actually a symlink to chapters/intro.qmd)
     - index.qmd
-    - chapters/bencode.qmd
-    - chapters/metainfo-files.qmd
-    - chapters/trackers.qmd
-    - chapters/peer-wire-protocol.qmd
-    - chapters/extensions.qmd
   appendices:
-    # - chapters/networking-primer.qmd
-    # - chapters/concurrency-primer.qmd
-    # - chapters/filesystem-primer.qmd
     - chapters/git-revisions.qmd
 
 bibliography: bibliography.bib
-# biblio-style: ieee # TODO: deal with in the future if it matters
-nocite: |
-  @*
+# for changing citation style or including all bibtex entries
+# biblio-style: ieee
+# nocite: |
+#   @*
 
 filters:
   - template/treesitter-highlighting.lua
@@ -38,25 +27,16 @@ filters:
 lof: true
 lot: true
 abbrs:
-  TCP: Transmission Control Protocol
-  UDP: User Datagram Protocol
-  IP: Internet Protocol
-  JSON: JavaScript Object Notation
-  ASCII: American Standard Code for Information Interchange
-  UTF-8: Unicode Transformation Format 8
-  URL: Uniform Resource Locator
-  SHA1: Secure Hashing Algorithm 1
+  CRDT: Conflict-free Replicated Data Type
 spectra:
-  dictionary: |
-    A list of key-value pairs, unordered unless specified otherwise. Also known as an "associative array" or "map."
-  hashes: |
+  hash: |
     A *hash function* is a one-way function, which means it is easy to compute the output from the input but (ideally) computationally infeasible to compute the input from the output. Hash functions take an arbitrary input (of arbitrary length) and produce a fixed-length output that is deterministic based on the input but very hard to link back to it. They are commonly used to verify that a large input is unmodified. You hash (verb) an input to produce a hash (noun).
-  hexadecimal: |
-    Base 16. Each digit is a power of 16 instead of a power of 10; for example, $12_{16} = 1 \times 16^1 + 2 \times 16^0 = 16 + 2 = 18_{10}$. Hexadecimal format is usually used to represent binary data since one byte is represented by exactly two hexadecimal digits.
 
-division: Mathematical and Natural Sciences
-department: Computer Science
-advisor: Erica Blum
+division: Mathematics and Computer Science
+thedivisionof: The Established Interdisciplinary Committee for
+department: Mathematics and Computer Science
+advisor: James Fix
+altadvisor: Marcus Robinson
 
 fontsize: 12pt
 

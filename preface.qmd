@@ -1,1 +1,1 @@
-![*Prometheus* [@munroe_prometheus_2013]](figures/prometheus.png){#fig-preface-prometheus fig-scap='xkcd 1228: *Prometheus*'}
+nah I'm post-face

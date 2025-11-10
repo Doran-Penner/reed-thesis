@@ -1,9 +1,0 @@
-# Concurrency Primer {#sec-concurrency-primer}
-
-Concurrently executing code is extremely powerful (allowing multiple things to happen at the same time), but it comes with numerous potential problems, so programmers must be careful.
-
-The two relevant concerns for my thesis are data races and deadlocks.
-
-Data races occur when two concurrently executing pieces of code try to write to data at the same time (or when one piece of code reads at the same time another piece writes). Without careful synchronization, data can end up in a corrupted or unexpected state.
-
-Deadlocks occur when synchronization is done poorly. Multiple pieces of concurrently executing code try to wait for sole access to some data, but they wait on each other infinitely.
