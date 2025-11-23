@@ -13,7 +13,7 @@ book:
   appendices:
     - chapters/git-revisions.qmd
 
-bibliography: bibliography.bib
+bibliography: extras/bibliography.bib
 # for changing citation style or including all bibtex entries
 # biblio-style: ieee
 # nocite: |

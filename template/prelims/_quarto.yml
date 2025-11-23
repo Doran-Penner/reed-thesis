@@ -1,11 +1,11 @@
 project:
   render:
-    - ../../acknowledgements.qmd
-    - ../../preface.qmd
-    - ../../abstract.qmd
-    - ../../dedication.qmd
+    - ../../extras/acknowledgements.qmd
+    - ../../extras/preface.qmd
+    - ../../extras/abstract.qmd
+    - ../../extras/dedication.qmd
 
-bibliography: bibliography.bib
+bibliography: extras/bibliography.bib
 
 format:
   latex:

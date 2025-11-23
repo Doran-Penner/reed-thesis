@@ -12,7 +12,7 @@ So... am I done? Should probably do all of the next section, then history rewrit
 ### File cleanup
 - [ ] Formatter
 - [ ] Nix file changes
-- [ ] Move the abstract etc to folders
+- [x] Move the abstract etc to folders
 - [ ] Direnv
 - [ ] License?
 - [ ] Whatever github/keep-tex/etc workflow I want for feedback
