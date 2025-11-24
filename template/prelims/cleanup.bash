@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-rm -f {acknowledgements,preface,abstract,dedication}.{tex,html}
+rm -f extras/{acknowledgements,preface,abstract,dedication}.{tex,html}

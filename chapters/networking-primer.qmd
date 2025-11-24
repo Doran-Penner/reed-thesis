@@ -1,5 +1,0 @@
-# Computer Networking Primer {#sec-networking-primer}
-
-Networking between computers is defined by a series of layers. For the purposes of this thesis, most of the layers are not relevant.
-
-What is relevant for us are three layers in the middle: IP, TCP, and HTTP. IP specifies how computers should find each other. TCP builds on top of IP and provides a reliable, ordered, uncorrupted stream of data. HTTP builds on top of TCP and provides methods for requesting specific paths on a different computer.

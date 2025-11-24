@@ -1,5 +1,0 @@
-# Visualization
-
-I don't know exactly what I want this chapter to look like. It should probably explain what I did with the visualization, what you can do with it, how to use it, etc. It should also have screenshots.
-
-This chapter should also maybe be the start of a new part, because all previous chapters were talking about the BitTorrent protocol (even though they also talked about me implementing it) and this is talking about my visualization.

@@ -466,8 +466,8 @@ $include-before$
 
 $endfor$
 
-\IfFileExists{./acknowledgements.tex}{\chapter*{Acknowledgements}\input{acknowledgements.tex}}{}
-\IfFileExists{./preface.tex}{\chapter*{Preface}\input{preface.tex}}{}
+\IfFileExists{./extras/acknowledgements.tex}{\chapter*{Acknowledgements}\input{extras/acknowledgements.tex}}{}
+\IfFileExists{./extras/preface.tex}{\chapter*{Preface}\input{extras/preface.tex}}{}
 	
 % Only add a list of abbreviations if there are any abbreviations
 $if(abbrs)$
@@ -499,8 +499,8 @@ $if(spectra)$
 \end{table}
 $endif$
 
-\IfFileExists{./abstract.tex}{\chapter*{Abstract}\input{abstract.tex}}{}
-\IfFileExists{./dedication.tex}{\chapter*{Dedication}\input{dedication.tex}}{}
+\IfFileExists{./extras/abstract.tex}{\chapter*{Abstract}\input{extras/abstract.tex}}{}
+\IfFileExists{./extras/dedication.tex}{\chapter*{Dedication}\input{extras/dedication.tex}}{}
 
 \renewcommand{\footrulewidth}{0.4pt}
 \fancyfoot[LE]{\it Built off of \href{https://github.com/Samasaur1/thesis/tree/\commitRevRaw}{\commitShortRev}}

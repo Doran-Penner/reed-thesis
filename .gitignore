@@ -2,3 +2,4 @@ result*
 /.quarto/
 /_book
 quarto-thesis.tex
+.direnv/
