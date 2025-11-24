@@ -10,12 +10,12 @@ What to do first? Some maintenance before I even start writing.
 So... am I done? Should probably do all of the next section, then history rewrite as needed.
 
 ### File cleanup
-- [ ] Formatter
-- [ ] Nix file changes
+- [x] Formatter
+- [x] Nix file changes
 - [x] Move the abstract etc to folders
-- [ ] Direnv
-- [ ] License?
-- [ ] Whatever github/keep-tex/etc workflow I want for feedback
+- [x] Direnv
+- [x] License?
+- [x] Whatever github/keep-tex/etc workflow I want for feedback
 
 ### Sam's future work stuff
 - Pick a style (from <https://www.zotero.org/styles>). I'm using biblatex instead of citeproc (so the bibliography can go in the right place), so the style repository may not apply.
@@ -43,7 +43,7 @@ title: content-addressable replicated data types (teehee)
 
 ### background (crdt)
 
-what is the problem and what are desirable things? p2p stuff, fault tolerance, cap theorem, etc; availability, partition tolerance, problem of conflicts
+what is the problem and what are desirable things? p2p stuff, distributed systems, fault tolerance, cap theorem, etc; availability, partition tolerance, problem of conflicts
 
 what is a crdt? How it gets around the cap problem, the value it gives for p2p and distributed systems
 
