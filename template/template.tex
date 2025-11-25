@@ -320,7 +320,9 @@ $if(pagestyle)$
 $endif$
 $pandoc.tex()$
 
+\ifdefined\usetikzlibrary
 \usetikzlibrary{positioning,calc,arrows,shapes,arrows.meta}
+\fi
 
 $if(lang)$
 \ifLuaTeX

@@ -1,4 +1,3 @@
 # Introduction
 
-<!-- FIXME the build breaks when I remove this image -->
-![](figures/intro-bittorrent-process-overview-tracker.tex)
+hi
