@@ -1,4 +1,5 @@
 # Introduction
 
 <!-- FIXME the build breaks when I remove this image -->
+<!-- unless I also remove line 323 of template/template.tex -->
 ![](figures/intro-bittorrent-process-overview-tracker.tex)
