@@ -1,3 +1,15 @@
 # Introduction
 
-hi
+Welcome! Here is where I introduce what I'm doing.
+
+## Distributed systems
+
+We conceptually cover the problem space of distributed systems, consistency, and motivate with some real-world examples like collaborative document editing.
+
+## What I did
+
+Not sure yet! Some MST-like structures for other data types, perhaps. And what if the payloads aren't exactly CRDTs, or they need to be manually "flattened" into a final form? (These notes are for me btw.)
+
+## Other info
+
+...not sure what else to put in the intro, but we'll have a better idea once more has been written.

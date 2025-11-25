@@ -10,14 +10,17 @@ book:
   date-format: "MMMM YYYY"
   chapters:
     - index.qmd
+    - chapters/distributed.qmd
+    - chapters/crdt-intro.qmd
+    - chapters/merkle-things.qmd
   appendices:
     - chapters/git-revisions.qmd
 
 bibliography: extras/bibliography.bib
 # for changing citation style or including all bibtex entries
 # biblio-style: ieee
-# nocite: |
-#   @*
+nocite: |
+  @*
 
 filters:
   - template/treesitter-highlighting.lua

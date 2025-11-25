@@ -1,1 +1,1 @@
-This stuff is cool
+I did some stuff with CRDTs and content addressing.

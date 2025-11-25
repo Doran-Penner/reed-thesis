@@ -1,0 +1,3 @@
+# Merkle things
+
+todo: fill this out. MST, Merkle-DAG, what we get from them. Keep following the `TODO.md`!
