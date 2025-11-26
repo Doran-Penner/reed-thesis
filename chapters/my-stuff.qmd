@@ -1,0 +1,3 @@
+# My work
+
+WIP! Need to figure out how to progress from all the ideas in @sec-merkle. But I am confident I can do stuff from that.

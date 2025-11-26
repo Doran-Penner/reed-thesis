@@ -13,6 +13,7 @@ book:
     - chapters/distributed.qmd
     - chapters/crdt-intro.qmd
     - chapters/merkle-things.qmd
+    - chapters/my-stuff.qmd
   appendices:
     - chapters/git-revisions.qmd
 
@@ -27,13 +28,26 @@ filters:
   - quarto
   - template/remove-appendix-part.lua
 
-lof: true
-lot: true
+# lof: true
+# lot: true
 abbrs:
-  CRDT: Conflict-free Replicated Data Type
+  CRDT: Conflict-free replicated data type
+  DAG: Directed acyclic graph
 spectra:
   hash: |
-    A *hash function* is a one-way function, which means it is easy to compute the output from the input but (ideally) computationally infeasible to compute the input from the output. Hash functions take an arbitrary input (of arbitrary length) and produce a fixed-length output that is deterministic based on the input but very hard to link back to it. They are commonly used to verify that a large input is unmodified. You hash (verb) an input to produce a hash (noun).
+    A *hash function* is a one-way function, which means it is easy to compute
+    the output from the input but (ideally) computationally infeasible to
+    compute the input from the output. Hash functions take an arbitrary
+    input (of arbitrary length) and produce a fixed-length output that is
+    deterministic based on the input but very hard to link back to it. They are
+    commonly used to verify that a large input is unmodified. You hash (verb) an
+    input to produce a hash (noun).
+  graph: |
+    A *graph* in math is a collection of things and lines between those things.
+    The "things" themselves can be called nodes, vertices, or sometimes objects;
+    the lines are called edges. This paper will mainly focus on *directed
+    graphs*, which is when the edges have a direction from one vertex to the
+    other.
 
 division: Mathematics and Computer Science
 thedivisionof: The Established Interdisciplinary Committee for
