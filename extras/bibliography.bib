@@ -126,3 +126,64 @@
 	keywords = {multiprocess systems, distributed systems, computer networks,
 	            clock synchronization},
 }
+
+@inproceedings{mst,
+	TITLE = {{Merkle Search Trees: Efficient State-Based CRDTs in Open Networks}
+	         },
+	AUTHOR = {Auvolat, Alex and Ta{\"i}ani, Fran{\c c}ois},
+	URL = {https://inria.hal.science/hal-02303490},
+	BOOKTITLE = {{SRDS 2019 - 38th IEEE International Symposium on Reliable
+	             Distributed Systems}},
+	ADDRESS = {Lyon, France},
+	PUBLISHER = {{IEEE}},
+	PAGES = {1-10},
+	YEAR = {2019},
+	MONTH = Oct,
+	DOI = {10.1109/SRDS.2019.00032},
+	KEYWORDS = {georeplicated systems ; anti-entropy ; IoT ; Merkle trees ;
+	            peer-to-peer ; search trees ; CRDT},
+	PDF = {https://inria.hal.science/hal-02303490v1/file/paper%20%281%29.pdf},
+	HAL_ID = {hal-02303490},
+	HAL_VERSION = {v1},
+}
+
+@misc{merkle-dag,
+	title = {Merkle-CRDTs: Merkle-DAGs meet CRDTs},
+	author = {Hector Sanjuan and Samuli Poyhtari and Pedro Teixeira and Ioannis
+	          Psaras},
+	year = {2020},
+	eprint = {2004.00107},
+	archivePrefix = {arXiv},
+	primaryClass = {cs.NI},
+	url = {https://arxiv.org/abs/2004.00107},
+}
+
+@inproceedings{byzantine-crdt,
+	author = {Kleppmann, Martin},
+	title = {Making CRDTs Byzantine fault tolerant},
+	year = {2022},
+	isbn = {9781450392563},
+	publisher = {Association for Computing Machinery},
+	address = {New York, NY, USA},
+	url = {https://doi.org/10.1145/3517209.3524042},
+	doi = {10.1145/3517209.3524042},
+	abstract = {It is often claimed that Conflict-free Replicated Data Types
+	            (CRDTs) ensure consistency of replicated data in peer-to-peer
+	            systems. However, peer-to-peer systems usually consist of
+	            untrusted nodes that may deviate from the specified protocol
+	            (i.e. exhibit Byzantine faults), and most existing CRDT
+	            algorithms cannot guarantee consistency in the presence of such
+	            faults. This paper shows how to adapt existing non-Byzantine CRDT
+	            algorithms and make them Byzantine fault-tolerant. The proposed
+	            scheme can tolerate any number of Byzantine nodes (making it
+	            immune to Sybil attacks), guarantees Strong Eventual Consistency,
+	            and requires only modest changes to existing CRDT algorithms.},
+	booktitle = {Proceedings of the 9th Workshop on Principles and Practice of
+	             Consistency for Distributed Data},
+	pages = {8–15},
+	numpages = {8},
+	keywords = {optimistic replication, eventual consistency, CRDTs, Byzantine
+	            fault tolerance},
+	location = {Rennes, France},
+	series = {PaPoC '22},
+}
