@@ -1,4 +1,4 @@
-# Merkle things merkle {#sec-merkle}
+# Merkle things {#sec-merkle}
 
 Soooo much explanation in this chapter. These papers are the foundations of my actual work, and I'll be building directly on them; I want the reader to have a very clear understanding of what's happening here.
 
