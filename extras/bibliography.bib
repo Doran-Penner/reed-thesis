@@ -1,417 +1,189 @@
-
-@misc{bep0003,
-	title = {The {BitTorrent} Protocol Specification},
-	url = {https://www.bittorrent.org/beps/bep_0003.html},
-	number = {3},
-	author = {Cohen, Bram},
-	urldate = {2025-03-21},
-	date = {2008-01-10},
-	keywords = {bep},
-	file = {BEP0003:/Users/sam/Zotero/storage/52RLQ4J5/bep_0003.html:text/html},
+@techreport{shapiro-overview-full,
+	TITLE = {{A comprehensive study of Convergent and Commutative Replicated
+	         Data Types}},
+	AUTHOR = {Shapiro, Marc and Pregui{\c c}a, Nuno and Baquero, Carlos and
+	          Zawirski, Marek},
+	URL = {https://inria.hal.science/inria-00555588},
+	TYPE = {Research Report},
+	NUMBER = {RR-7506},
+	PAGES = {50},
+	INSTITUTION = {{Inria -- Centre Paris-Rocquencourt ; INRIA}},
+	YEAR = {2011},
+	MONTH = Jan,
+	KEYWORDS = {distributed systems ; Data replication ; commutative operations
+	            ; distributed algorithms ; replicated data types ; optimistic
+	            replication ; eventual consistency},
+	PDF = {https://inria.hal.science/inria-00555588v1/file/techreport.pdf},
+	HAL_ID = {inria-00555588},
+	HAL_VERSION = {v1},
 }
 
-@misc{bep0052,
-	title = {The {BitTorrent} Protocol Specification v2},
-	url = {https://www.bittorrent.org/beps/bep_0052.html},
-	number = {52},
-	author = {Cohen, Bram},
-	urldate = {2025-03-23},
-	date = {2008-01-10},
-	keywords = {bep},
-	file = {BEP0052:/Users/sam/Zotero/storage/5NVT33HM/bep_0052.html:text/html},
+@article{kleppmann-move-op,
+	author = {Kleppmann, Martin and Mulligan, Dominic P. and Gomes, Victor B. F.
+	          and Beresford, Alastair R.},
+	journal = {IEEE Transactions on Parallel and Distributed Systems},
+	title = {A Highly-Available Move Operation for Replicated Trees},
+	year = {2022},
+	volume = {33},
+	number = {7},
+	pages = {1711-1724},
+	keywords = {Internet;Synchronization;Computer bugs;XML;Software;Drives;Data
+	            models;Conflict-free replicated data types (CRDTs);formal
+	            verification;distributed filesystems;distributed collaboration},
+	doi = {10.1109/TPDS.2021.3118603},
 }
 
-@misc{bep0012,
-	title = {Multitracker Metadata Extension},
-	url = {https://www.bittorrent.org/beps/bep_0012.html},
-	number = {12},
-	author = {Hoffman, John},
-	urldate = {2025-03-23},
-	date = {2008-02-07},
-	keywords = {bep},
-	file = {BEP0012:/Users/sam/Zotero/storage/HWVIFKH9/bep_0012.html:text/html},
+@conference{coast,
+	author = {Aäron Munsters and Angel Luis Scull Pupo and Jens Nicolay},
+	title = {COAST: A Conflict-free Replicated Abstract Syntax Tree},
+	booktitle = {Proceedings of the 17th International Conference on Software
+	             Technologies - ICSOFT},
+	year = {2022},
+	pages = {187-196},
+	publisher = {SciTePress},
+	organization = {INSTICC},
+	doi = {10.5220/0011278800003266},
+	isbn = {978-989-758-588-3},
+	issn = {2184-2833},
 }
 
-@report{gauck_implementing_2022,
-	title = {Implementing {BitTorrent}},
-	url = {https://sam.gauck.com/BitTorrent.pdf},
-	institution = {Reed College},
-	author = {Gauck, Sam},
-	urldate = {2025-03-23},
-	date = {2022-05-24},
-	langid = {english},
-	file = {PDF:/Users/sam/Zotero/storage/ZYQNDDWX/Gauck - CS 396 Final Project Implementing BitTorrent.pdf:application/pdf},
+@misc{ethereum-merkle,
+	title = {Towards Stateless Clients in Ethereum: Benchmarking Verkle Trees
+	         and Binary Merkle Trees with SNARKs},
+	author = {Jan Oberst},
+	year = {2025},
+	eprint = {2504.14069},
+	archivePrefix = {arXiv},
+	primaryClass = {cs.CR},
+	url = {https://arxiv.org/abs/2504.14069},
 }
 
-@misc{bep0023,
-	title = {Tracker Returns Compact Peer Lists},
-	url = {https://www.bittorrent.org/beps/bep_0023.html},
-	number = {23},
-	author = {Harrison, David},
-	urldate = {2025-04-01},
-	date = {2008-05-12},
-	keywords = {bep},
-	file = {BEP0023:/Users/sam/Zotero/storage/EAFBIDXC/bep_0023.html:text/html},
-}
-
-@misc{bep0015,
-	title = {{UDP} Tracker Protocol for {BitTorrent}},
-	url = {https://www.bittorrent.org/beps/bep_0015.html},
-	number = {15},
-	author = {van der Spek, Olaf},
-	urldate = {2025-04-01},
-	date = {2008-02-13},
-	keywords = {bep},
-	file = {BEP0015:/Users/sam/Zotero/storage/MTE6G6H2/bep_0015.html:text/html},
-}
-
-@misc{bep0009,
-	title = {Extension for Peers to Send Metadata Files},
-	url = {https://www.bittorrent.org/beps/bep_0009.html},
-	number = {9},
-	author = {Hazel, Greg and Norberg, Arvid},
-	urldate = {2025-04-01},
-	date = {2008-01-31},
-	keywords = {bep},
-	file = {BEP0009:/Users/sam/Zotero/storage/L999UU74/bep_0009.html:text/html},
-}
-
-@misc{bep0006,
-	title = {Fast Extension},
-	url = {https://www.bittorrent.org/beps/bep_0006.html},
+@article{dynamo,
+	author = {DeCandia, Giuseppe and Hastorun, Deniz and Jampani, Madan and
+	          Kakulapati, Gunavardhan and Lakshman, Avinash and Pilchin, Alex and
+	          Sivasubramanian, Swaminathan and Vosshall, Peter and Vogels, Werner
+	          },
+	title = {Dynamo: amazon's highly available key-value store},
+	year = {2007},
+	issue_date = {December 2007},
+	publisher = {Association for Computing Machinery},
+	address = {New York, NY, USA},
+	volume = {41},
 	number = {6},
-	author = {Harrison, David and Cohen, Bram},
-	urldate = {2025-04-01},
-	date = {2008-02-01},
-	keywords = {bep},
-	file = {BEP0006:/Users/sam/Zotero/storage/TMWEFXX7/bep_0006.html:text/html},
+	issn = {0163-5980},
+	url = {https://doi.org/10.1145/1323293.1294281},
+	doi = {10.1145/1323293.1294281},
+	abstract = {Reliability at massive scale is one of the biggest challenges we
+	            face at Amazon.com, one of the largest e-commerce operations in
+	            the world; even the slightest outage has significant financial
+	            consequences and impacts customer trust. The Amazon.com platform,
+	            which provides services for many web sites worldwide, is
+	            implemented on top of an infrastructure of tens of thousands of
+	            servers and network components located in many datacenters around
+	            the world. At this scale, small and large components fail
+	            continuously and the way persistent state is managed in the face
+	            of these failures drives the reliability and scalability of the
+	            software systems.This paper presents the design and
+	            implementation of Dynamo, a highly available key-value storage
+	            system that some of Amazon's core services use to provide an "
+	            always-on" experience. To achieve this level of availability,
+	            Dynamo sacrifices consistency under certain failure scenarios. It
+	            makes extensive use of object versioning and application-assisted
+	            conflict resolution in a manner that provides a novel interface
+	            for developers to use.},
+	journal = {SIGOPS Oper. Syst. Rev.},
+	month = oct,
+	pages = {205–220},
+	numpages = {16},
+	keywords = {performance, reliability, scalability},
 }
 
-@online{noauthor_bittorrent_2017,
-	title = {Bittorrent Protocol Specification v1.0},
-	url = {https://wiki.theory.org/BitTorrentSpecification},
-	shorttitle = {{BitTorrentSpecification}},
-	titleaddon = {Theory.org},
-	type = {Wiki},
-	urldate = {2025-04-02},
-	date = {2017-02-01},
-	file = {BitTorrentSpecification - TheoryOrg:/Users/sam/Zotero/storage/NV9VXRYT/BitTorrentSpecification.html:text/html},
+@article{lamport-clock,
+	author = {Lamport, Leslie},
+	title = {Time, clocks, and the ordering of events in a distributed system},
+	year = {1978},
+	issue_date = {July 1978},
+	publisher = {Association for Computing Machinery},
+	address = {New York, NY, USA},
+	volume = {21},
+	number = {7},
+	issn = {0001-0782},
+	url = {https://doi.org/10.1145/359545.359563},
+	doi = {10.1145/359545.359563},
+	abstract = {The concept of one event happening before another in a
+	            distributed system is examined, and is shown to define a partial
+	            ordering of the events. A distributed algorithm is given for
+	            synchronizing a system of logical clocks which can be used to
+	            totally order the events. The use of the total ordering is
+	            illustrated with a method for solving synchronization problems.
+	            The algorithm is then specialized for synchronizing physical
+	            clocks, and a bound is derived on how far out of synchrony the
+	            clocks can become.},
+	journal = {Commun. ACM},
+	month = jul,
+	pages = {558–565},
+	numpages = {8},
+	keywords = {multiprocess systems, distributed systems, computer networks,
+	            clock synchronization},
 }
 
-@misc{bep0027,
-	title = {Private Torrents},
-	url = {https://bittorrent.org/beps/bep_0027.html},
-	number = {27},
-	author = {Harrison, David},
-	urldate = {2025-04-02},
-	date = {2008-08-03},
-	keywords = {bep},
-	file = {BEP0027:/Users/sam/Zotero/storage/X6WIJ859/bep_0027.html:text/html},
+@inproceedings{mst,
+	TITLE = {{Merkle Search Trees: Efficient State-Based CRDTs in Open Networks}
+	         },
+	AUTHOR = {Auvolat, Alex and Ta{\"i}ani, Fran{\c c}ois},
+	URL = {https://inria.hal.science/hal-02303490},
+	BOOKTITLE = {{SRDS 2019 - 38th IEEE International Symposium on Reliable
+	             Distributed Systems}},
+	ADDRESS = {Lyon, France},
+	PUBLISHER = {{IEEE}},
+	PAGES = {1-10},
+	YEAR = {2019},
+	MONTH = Oct,
+	DOI = {10.1109/SRDS.2019.00032},
+	KEYWORDS = {georeplicated systems ; anti-entropy ; IoT ; Merkle trees ;
+	            peer-to-peer ; search trees ; CRDT},
+	PDF = {https://inria.hal.science/hal-02303490v1/file/paper%20%281%29.pdf},
+	HAL_ID = {hal-02303490},
+	HAL_VERSION = {v1},
 }
 
-@misc{bep0005,
-	title = {{DHT} Protocol},
-	url = {https://bittorrent.org/beps/bep_0005.html},
-	number = {5},
-	author = {Loewenstern, Andrew and Norberg, Arvid},
-	urldate = {2025-04-02},
-	date = {2008-01-31},
-	keywords = {bep},
-	file = {BEP0005:/Users/sam/Zotero/storage/7FLG2XB7/bep_0005.html:text/html},
+@misc{merkle-dag,
+	title = {Merkle-CRDTs: Merkle-DAGs meet CRDTs},
+	author = {Hector Sanjuan and Samuli Poyhtari and Pedro Teixeira and Ioannis
+	          Psaras},
+	year = {2020},
+	eprint = {2004.00107},
+	archivePrefix = {arXiv},
+	primaryClass = {cs.NI},
+	url = {https://arxiv.org/abs/2004.00107},
 }
 
-@misc{bep0017,
-	title = {{HTTP} Seeding},
-	url = {https://bittorrent.org/beps/bep_0017.html},
-	number = {17},
-	author = {Hoffman, John and {DeHackEd}},
-	urldate = {2025-04-02},
-	date = {2008-02-07},
-	keywords = {bep},
-	file = {BEP0017:/Users/sam/Zotero/storage/8ZAJS5ZN/bep_0017.html:text/html},
-}
-
-@misc{bep0019,
-	title = {{WebSeed} - {HTTP}/{FTP} Seeding ({GetRight} style)},
-	url = {https://bittorrent.org/beps/bep_0019.html},
-	number = {19},
-	author = {Burford, Michael},
-	urldate = {2025-04-02},
-	date = {2008-02-21},
-	keywords = {bep},
-	file = {BEP0019:/Users/sam/Zotero/storage/QY3RRNY4/bep_0019.html:text/html},
-}
-
-@software{noauthor_flight-schoolmessagepack_2025,
-	title = {Flight-School/{MessagePack}},
-	rights = {{MIT}},
-	url = {https://github.com/Flight-School/MessagePack},
-	abstract = {A {MessagePack} encoder and decoder for Codable types},
-	publisher = {Flight School},
-	urldate = {2025-04-03},
-	date = {2025-03-29},
-	note = {original-date: 2018-04-23T16:52:55Z},
-}
-
-@book{zmuda_flight_2018,
-	title = {Flight School Guide to Swift Codable},
-	isbn = {978-1-949080-04-9},
-	url = {https://flight.school/books/codable/},
-	abstract = {Make better apps with less code more quickly using Swift Codable. Available in print and digital formats.},
-	author = {Zmuda, Mattt},
-	urldate = {2025-04-03},
-	date = {2018-04-20},
-	langid = {english},
-	file = {PDF:/Users/sam/Zotero/storage/EWVLGUV4/Zmuda - ISBN Flight School An imprint of Read Evaluate Press, LLC Portland, Oregon httpsreadeval.press.pdf:application/pdf},
-}
-
-@online{noauthor_codingkey_nodate,
-	title = {{CodingKey}},
-	url = {https://developer.apple.com/documentation/swift/codingkey},
-	abstract = {A type that can be used as a key for encoding and decoding.},
-	titleaddon = {Apple Developer Documentation},
-	urldate = {2025-04-04},
-	langid = {american},
-	file = {Snapshot:/Users/sam/Zotero/storage/GYSDXN5Z/codingkey.html:text/html},
-}
-
-@misc{bep0020,
-	title = {Peer {ID} Conventions},
-	url = {https://www.bittorrent.org/beps/bep_0020.html},
-	number = {20},
-	author = {Harrison, David},
-	urldate = {2025-04-05},
-	date = {2008-02},
-	keywords = {bep},
-	file = {BEP0020:/Users/sam/Zotero/storage/UNSYZK82/bep_0020.html:text/html},
-}
-
-@misc{bep0010,
-	title = {Extension Protocol},
-	url = {https://www.bittorrent.org/beps/bep_0010.html},
-	number = {10},
-	author = {Norberg, Arvid and Strigeus, Ludvig and Hazel, Greg},
-	urldate = {2025-04-05},
-	date = {2008-01-31},
-	keywords = {bep},
-	file = {BEP0010:/Users/sam/Zotero/storage/2D4YZA3D/bep_0010.html:text/html},
-}
-
-@misc{bep0014,
-	title = {Local Service Discovery},
-	url = {https://www.bittorrent.org/beps/bep_0014.html},
-	number = {14},
-	author = {{The 8472}},
-	urldate = {2025-04-05},
-	date = {2015-10-29},
-	keywords = {bep},
-	file = {BEP0014:/Users/sam/Zotero/storage/FPVQ8FE6/bep_0014.html:text/html},
-}
-
-@misc{bep0011,
-	title = {Peer Exchange ({PEX})},
-	url = {https://www.bittorrent.org/beps/bep_0011.html},
-	number = {11},
-	author = {{The 8472}},
-	urldate = {2025-04-05},
-	date = {2015-10-29},
-	keywords = {bep},
-	file = {BEP0011:/Users/sam/Zotero/storage/IRLGAEEB/bep_0011.html:text/html},
-}
-
-@misc{bep0041,
-	title = {{UDP} Tracker Protocol Extensions},
-	url = {https://bittorrent.org/beps/bep_0041.html},
-	number = {41},
-	author = {Toren, Michael},
-	urldate = {2025-04-05},
-	date = {2013-11-05},
-	keywords = {bep},
-	file = {BEP0041:/Users/sam/Zotero/storage/UYFHBRBI/bep_0041.html:text/html},
-}
-
-@misc{bep0040,
-	title = {Canonical Peer Priority},
-	url = {https://bittorrent.org/beps/bep_0040.html},
-	number = {40},
-	author = {Norberg, Arvid and Brown, Chris},
-	urldate = {2025-04-05},
-	date = {2012-11-08},
-	keywords = {bep},
-	file = {BEP0040:/Users/sam/Zotero/storage/B39B8ZVR/bep_0040.html:text/html},
-}
-
-@misc{bep0021,
-	title = {Extension for partial seeds},
-	url = {https://bittorrent.org/beps/bep_0021.html},
-	number = {21},
-	author = {Norberg, Arvid and Hazel, Greg and Grunthal, Aaron},
-	urldate = {2025-04-05},
-	date = {2008-05-08},
-	keywords = {bep},
-	file = {BEP021:/Users/sam/Zotero/storage/5PCWZKBL/bep_0021.html:text/html},
-}
-
-@online{noauthor_string_nodate,
-	title = {String},
-	url = {https://developer.apple.com/documentation/swift/string},
-	abstract = {A Unicode string value that is a collection of characters.},
-	titleaddon = {Apple Developer Documentation},
-	urldate = {2025-04-11},
-	langid = {american},
-	file = {Snapshot:/Users/sam/Zotero/storage/SHR93DZL/string.html:text/html},
-}
-
-@inproceedings{freedman_sloppy_2003,
-	location = {Berlin, Heidelberg},
-	title = {Sloppy Hashing and Self-Organizing Clusters},
-	isbn = {978-3-540-45172-3},
-	url = {https://www.cs.princeton.edu/~mfreed/docs/coral-iptps03.pdf},
-	doi = {10.1007/978-3-540-45172-3_4},
-	abstract = {We are building Coral, a peer-to-peer content distribution system. Coral creates self-organizing clusters of nodes that fetch information from each other to avoid communicating with more distant or heavily-loaded servers. Coral indexes data, but does not store it. The actual content resides where it is used, such as in nodes’ local web caches. Thus, replication happens exactly in proportion to demand. We present two novel mechanisms that let Coral achieve scalability and high performance. First, a new abstraction called a distributed sloppy hash table ({DSHT}) lets nodes locate nearby copies of a file, regardless of its popularity, without causing hot spots in the indexing infrastructure. Second, based on the {DSHT} interface, we introduce a decentralized clustering algorithm by which nodes can find each other and form clusters of varying network diameters.},
-	pages = {45--55},
-	booktitle = {Peer-to-Peer Systems {II}},
-	publisher = {Springer},
-	author = {Freedman, Michael J. and Maziéres, David},
-	editor = {Kaashoek, M. Frans and Stoica, Ion},
-	urldate = {2025-04-17},
-	date = {2003},
-	langid = {english},
-	file = {PDF:/Users/sam/Zotero/storage/QATNQ728/Freedman and Maziéres - 2003 - Sloppy Hashing and Self-Organizing Clusters.pdf:application/pdf},
-}
-
-@misc{bep0004,
-	title = {Assigned Numbers},
-	url = {https://www.bittorrent.org/beps/bep_0004.html},
-	number = {4},
-	author = {Harrison, David},
-	urldate = {2025-04-17},
-	date = {2008-01-10},
-	file = {BEP0004:/Users/sam/Zotero/storage/Y4YMWM4A/bep_0004.html:text/html},
-}
-
-@misc{bep0024,
-	title = {Tracker Returns External {IP}},
-	url = {https://www.bittorrent.org/beps/bep_0024.html},
-	number = {24},
-	author = {Harrison, David},
-	urldate = {2025-04-17},
-	date = {2008-05-12},
-	file = {BEP0024:/Users/sam/Zotero/storage/LBAKPEIA/bep_0024.html:text/html},
-}
-
-@incollection{goos_kademlia_2002,
-	location = {Berlin, Heidelberg},
-	title = {Kademlia: A Peer-to-Peer Information System Based on the {XOR} Metric},
-	volume = {2429},
-	isbn = {978-3-540-44179-3 978-3-540-45748-0},
-	url = {http://link.springer.com/10.1007/3-540-45748-8_5},
-	shorttitle = {Kademlia},
-	pages = {53--65},
-	booktitle = {Peer-to-Peer Systems},
-	publisher = {Springer Berlin Heidelberg},
-	author = {Maymounkov, Petar and Mazières, David},
-	editor = {Druschel, Peter and Kaashoek, Frans and Rowstron, Antony},
-	editorb = {Goos, Gerhard and Hartmanis, Juris and Van Leeuwen, Jan},
-	editorbtype = {redactor},
-	urldate = {2025-04-18},
-	date = {2002},
-	doi = {10.1007/3-540-45748-8_5},
-	note = {Series Title: Lecture Notes in Computer Science},
-}
-
-@inproceedings{maymounkov_kademlia_2002,
-	location = {Berlin, Heidelberg},
-	title = {Kademlia: A Peer-to-Peer Information System Based on the {XOR} Metric},
-	isbn = {978-3-540-45748-0},
-	doi = {10.1007/3-540-45748-8_5},
-	shorttitle = {Kademlia},
-	abstract = {We describe a peer-to-peer distributed hash table with provable consistency and performance in a fault-prone environment. Our system routes queries and locates nodes using a novel {XOR}-based metric topology that simplifies the algorithm and facilitates our proof. The topology has the property that every message exchanged conveys or reinforces useful contact information. The system exploits this information to send parallel, asynchronous query messages that tolerate node failures without imposing timeout delays on users.},
-	pages = {53--65},
-	booktitle = {Peer-to-Peer Systems},
-	publisher = {Springer},
-	author = {Maymounkov, Petar and Mazières, David},
-	editor = {Druschel, Peter and Kaashoek, Frans and Rowstron, Antony},
-	urldate = {2025-04-18},
-	date = {2002},
-	langid = {english},
-}
-
-@misc{bep0048,
-	title = {Tracker Protocol Extension: Scrape},
-	url = {https://www.bittorrent.org/beps/bep_0048.html},
-	number = {48},
-	author = {Zelinskie, Jimmy},
-	urldate = {2025-04-18},
-	date = {2016-09-08},
-	file = {BEP0048:/Users/sam/Zotero/storage/FL4UNBYV/bep_0048.html:text/html},
-}
-
-@online{munroe_steal_2008,
-	title = {Steal This Comic},
-	url = {https://xkcd.com/488/},
-	titleaddon = {xkcd},
-	type = {Webcomic},
-	author = {Munroe, Randall},
-	urldate = {2025-04-22},
-	date = {2008-10-13},
-	file = {Snapshot:/Users/sam/Zotero/storage/4DUJDQEK/488.html:text/html},
-}
-
-@online{munroe_pirate_2009,
-	title = {Pirate Bay},
-	url = {https://xkcd.com/553/},
-	titleaddon = {xkcd},
-	type = {Webcomic},
-	author = {Munroe, Randall},
-	urldate = {2025-04-22},
-	date = {2009-03-09},
-	file = {Snapshot:/Users/sam/Zotero/storage/YMCG2NP7/553.html:text/html},
-}
-
-@online{munroe_prometheus_2013,
-	title = {Prometheus},
-	url = {https://xkcd.com/1228/},
-	titleaddon = {xkcd},
-	type = {Webcomic},
-	author = {Munroe, Randall},
-	urldate = {2025-04-22},
-	date = {2013-06-21},
-	file = {Snapshot:/Users/sam/Zotero/storage/6UBJZ2Q8/1228.html:text/html},
-}
-
-@report{berners-lee_uniform_2005,
-	title = {Uniform Resource Identifier ({URI}): Generic Syntax},
-	url = {https://datatracker.ietf.org/doc/rfc3986},
-	shorttitle = {Uniform Resource Identifier ({URI})},
-	abstract = {A Uniform Resource Identifier ({URI}) is a compact sequence of characters that identifies an abstract or physical resource. This specification defines the generic {URI} syntax and a process for resolving {URI} references that might be in relative form, along with guidelines and security considerations for the use of {URIs} on the Internet. The {URI} syntax defines a grammar that is a superset of all valid {URIs}, allowing an implementation to parse the common components of a {URI} reference without knowing the scheme-specific requirements of every possible identifier. This specification does not define a generative grammar for {URIs}; that task is performed by the individual specifications of each {URI} scheme. [{STANDARDS}-{TRACK}]},
-	number = {{RFC} 3986},
-	institution = {Internet Engineering Task Force},
-	type = {Request for Comments},
-	author = {Berners-Lee, Tim and Fielding, Roy T. and Masinter, Larry M.},
-	urldate = {2025-04-30},
-	date = {2005-01},
-	doi = {10.17487/RFC3986},
-	note = {Num Pages: 61},
-	file = {Full Text PDF:/Users/sam/Zotero/storage/CXD672ZK/Berners-Lee et al. - 2005 - Uniform Resource Identifier (URI) Generic Syntax.pdf:application/pdf},
-}
-
-@unpublished{gibson_wonderful_2024,
-	location = {Reed College},
-	title = {The Wonderful World of Digital Piracy},
-	url = {https://www.aidangibson.com/piracy.pdf},
-	author = {Gibson, Aidan},
-	urldate = {2025-05-01},
-	date = {2024-01-15},
-	file = {piracy.pdf:/Users/sam/Zotero/storage/J3HAW8L6/piracy.pdf:application/pdf},
-}
-
-@misc{bep0016,
-	title = {Superseeding},
-	url = {https://www.bittorrent.org/beps/bep_0016.html},
-	number = {16},
-	author = {Hoffman, John},
-	urldate = {2025-05-16},
-	date = {2008-02-25},
-	file = {bep_0016.rst_post:/Users/sam/Zotero/storage/4UGEPMGJ/bep_0016.html:text/html},
+@inproceedings{byzantine-crdt,
+	author = {Kleppmann, Martin},
+	title = {Making CRDTs Byzantine fault tolerant},
+	year = {2022},
+	isbn = {9781450392563},
+	publisher = {Association for Computing Machinery},
+	address = {New York, NY, USA},
+	url = {https://doi.org/10.1145/3517209.3524042},
+	doi = {10.1145/3517209.3524042},
+	abstract = {It is often claimed that Conflict-free Replicated Data Types
+	            (CRDTs) ensure consistency of replicated data in peer-to-peer
+	            systems. However, peer-to-peer systems usually consist of
+	            untrusted nodes that may deviate from the specified protocol
+	            (i.e. exhibit Byzantine faults), and most existing CRDT
+	            algorithms cannot guarantee consistency in the presence of such
+	            faults. This paper shows how to adapt existing non-Byzantine CRDT
+	            algorithms and make them Byzantine fault-tolerant. The proposed
+	            scheme can tolerate any number of Byzantine nodes (making it
+	            immune to Sybil attacks), guarantees Strong Eventual Consistency,
+	            and requires only modest changes to existing CRDT algorithms.},
+	booktitle = {Proceedings of the 9th Workshop on Principles and Practice of
+	             Consistency for Distributed Data},
+	pages = {8–15},
+	numpages = {8},
+	keywords = {optimistic replication, eventual consistency, CRDTs, Byzantine
+	            fault tolerance},
+	location = {Rennes, France},
+	series = {PaPoC '22},
 }

@@ -1,0 +1,35 @@
+# CRDTs
+
+Here we explain what a CRDT is.
+
+## The goal
+
+eventual consistency and optimistic replication to dodge the CAP problem.
+
+## State-based
+
+Join semilattice (don't need to use that term), least upper bound on everything.
+
+Examples!
+
+## Op-based
+
+Commutative operations mean we can just pass the operations around.
+
+Examples!
+
+## Compare and contrast
+
+More examples and comparisons, lean heavily on 2011 paper. Focus on difficulties with both: op needs strong comms and/or infinite history, state needs to keep growing somehow.
+
+Somehow mention delta-crdts and variations on the two classic types of crdt.
+
+## Problems
+
+(Maybe this part goes in the above section, but whatever)
+
+Both common versions have tradeoffs in terms of space, communication, expressiveness
+
+What about a tree? Briefly explain the tree move, talk about the issues that that faces.
+
+Note it is difficult (perhaps impossible) to always resolve things in a way that the end-user desires. And more complicated data types have more complicated semantics.
