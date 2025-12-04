@@ -1,0 +1,69 @@
+# Background
+
+General background on distributed systems, cap theorem, lamport, crdts, and so on.
+
+Note: should CRDTs go here or in the "specific" background? Or their own section somewhere in-between?
+
+## Distributed systems
+
+What is the problem and what are we trying to do? What are some common themes and issues?
+
+### CAP theorem
+
+Explain it, also maybe some issues/disputes with the common understanding.
+
+### Time is unreliable
+
+Time issues, partial order, lamport clocks.
+
+### Other stuff
+
+Should I talk about hashing and other "misc" background here? Could turn this into a general background chapter, with two rough sections (misc background and distributed systems). Or that can be explained when it comes up.
+
+## CRDTs
+
+Here we explain what a CRDT is.
+
+### The goal
+
+eventual consistency and optimistic replication to dodge the CAP problem.
+
+### State-based
+
+Join semilattice (don't need to use that term), least upper bound on everything.
+
+Examples!
+
+### Op-based
+
+Commutative operations mean we can just pass the operations around.
+
+Examples!
+
+### Compare and contrast
+
+More examples and comparisons, lean heavily on 2011 paper. Focus on difficulties with both: op needs strong comms and/or infinite history, state needs to keep growing somehow.
+
+Somehow mention delta-crdts and variations on the two classic types of crdt.
+
+### Problems
+
+(Maybe this part goes in the above section, but whatever)
+
+Both common versions have tradeoffs in terms of space, communication, expressiveness
+
+What about a tree? Briefly explain the tree move, talk about the issues that that faces.
+
+Note it is difficult (perhaps impossible) to always resolve things in a way that the end-user desires. And more complicated data types have more complicated semantics.
+
+## Data structures
+
+Maybe explain B-tree here? Maybe blend this with below? Anyways.
+
+## Hashing and content addressing
+
+TODO use notes
+
+### Merkle background
+
+Maybe explain Merkle trees? Or is this where I should explain hashing? I'm not sure.
