@@ -6,11 +6,11 @@
 
 ## Distributed systems
 
-A distributed computer system is one in which multiple computers are connected via some network. Each device (sometimes called a _node_ since we view this as a graph) has its own processing, storage, and so on, and can also send messages over the network to other machines. The challenge of distributed systems is designing programs that run on multiple machines and achieve some overarching goal (e.g. compute sum of a large collection of numbers) with the complications introduced by the network.
+A distributed computer system is one in which multiple computers are connected via some network. Each device (sometimes called a _node_ since we can view the network as a graph) has its own processing, storage, and so on, and can also send messages over the network to other machines. The challenge of distributed systems is designing programs that run on multiple machines and achieve some overarching goal (e.g. compute sum of a large collection of numbers) with the complications introduced by the network.
 
 We will focus on _peer-to-peer_ networks in which all machines are equal in some sense. That doesn't mean they necessarily all get the same amount of usage or have the same computational power; rather, there is no difference in the abstract model. This is in contrast to client-server architecture which explicitly delegates some machines to run different programs and act differently than others.
 
-Peer-to-peer systems have many challenges that need to be worked around! Network connections between machines can falter, resulting in dropped, corrupted, out-of-order, and duplicate messages; nodes can often join or leave the network arbitrarily (either due to choice or network outage); and there is no inherent source of truth, as opposed to client-server models where we can designate one machine to always have the final word.
+Peer-to-peer systems have many challenges that need to be worked around! Network connections between machines can falter, resulting in dropped, corrupted, out-of-order, and duplicate messages; nodes can often join or leave the network arbitrarily, either due to choice or network outage; and there is no inherent source of truth, as opposed to client-server models where we can designate one machine to always have the final word.
 <!-- transition somehow? -->
 
 ### Lamport's partial order
@@ -20,7 +20,7 @@ One challenge of distributed systems is that time is unreliable. On a single pro
 
 To solve this, Leslie Lamport observed that events in a distributed system form a partial order.
 <!-- Do I need to explain what that is? -->
-On a single machine, there is a total order of operations --- it does $a$, then $b$, then $c$. And another machine may do operations $x$ and $y$. Then the two machines send messages back and forth, which we'll call event $t$. We can confidently say that $a$ happened before $b$, $b$ before $c$, and $c$ before $t$; similarly, $x$ happened before both $y$ and $t$. But there is no inherent way to determine whether $b$ happened before $x$.
+On a single machine, there is a total order of operations --- it does $a$, then $b$, then $c$. And another machine may do operations $x$ and $y$. Then the two machines send messages back and forth, which we'll call event $t$. We can confidently say that $a$ happened before $b$, $b$ before $c$, and $c$ before $t$; similarly, $x$ happened before both $y$ and $t$. But there is no inherent way to determine whether $b$ happened sometime before $x$.
 <!-- TODO add visuals -->
 
 <!-- Should I have more formalism here and actually define the partial order? I feel like that comes right after the visual if I need it. Also do I need to explain the way we create a total ordering via Lamport time or no? -->
@@ -29,20 +29,36 @@ On a single machine, there is a total order of operations --- it does $a$, then 
 
 <!-- I'm saying "distributed systems" a lot -->
 
-Now that we've discussed one issue with distributed systems, let's cover three desirable properties of data in our system.
-<!-- TODO follow my slides pretty closely -->
+Now that we've discussed one issue with distributed systems, say there's some data (maybe a bank account balance) somehow managed in the network. Let's cover three desirable properties of the data in our system.
+
+- **Consistency**: every query of the data returns the most up-to-date version or an error. (So we don't get stale data.)
+- **Availability**: every query of the data returns something, regardless of if it's correct. (So we're not hanging forever waiting for a response.)
+- **Partition tolerance**: the system still works with arbitrary partitions of the network. (So we don't crash when one node becomes unreachable.)
+
+Unfortunately, we cannot have all three of these. This is known as the _CAP theorem_. Let's work through why it's not possible.
+
+If we can assume that everyone is always connected, the problem is reduced to that of multiprocessor consistency and cache coherence. These are not easy problems, but we have known solutions to them that ensure both availability and consistency. But if the connection between processors is faulty, the problem becomes harder.
+
+Now say that our system can still operate with network partitions. If the authoritative copy of the data is stored on another machine that's offline right now, what should a query return? It could hang or give an error until the data owner is back online, giving us consistency at the cost of availability; or it could return the most recent version that we have, meaning we have availability but lose consistency since the other node could've made changes since we last checked.
+
+This is described as if there's only one "owner" of the data, but the proof still works as long as there's at least one other node (besides the current node) that can modify the data. If anyone else can make changes, we don't know if we have the most up-to-date version without communicating; and since we sometimes can't communicate, we need to choose: stall until the network is up again, or work with old data.
+
+For this thesis, we will sacrifice some consistency and say that all nodes can have their own versions of the data. Instead of getting perfect consistency, we will settle for _strong eventual consistency_: given enough communication between nodes (when the network is up), all nodes eventually agree upon the final version.
+<!-- TODO anything else? I feel like there's duplication with the next section. -->
 
 ## CRDTs
 
-Here we explain what a CRDT is.
+A solution to the CAP impossibility is a _conflict-free replicated data type_, or CRDT. That is
 
-### The goal
+- a _data type_, e.g. number, list, or tree;
+- that is _replicated_, where there are multiple copies of the data on different machines;
+- and _conflict-free_, meaning that there is some way of combining copies that always succeeds.
 
-eventual consistency and optimistic replication to dodge the CAP problem.
+This is how we achieve strong eventual consistency. We get availability and partition tolerance by having a local copy of the data, and design our systems such that the different copies will converge to the same value with communication. There are two common ways to ensure this --- either by focusing on the state of the data or the operations we do to it.
 
 ### State-based
 
-Join semilattice (don't need to use that term), least upper bound on everything.
+Join semilattice, least upper bound on everything.
 
 Examples!
 
@@ -52,15 +68,17 @@ Commutative operations mean we can just pass the operations around.
 
 Examples!
 
+### More complex examples
+
+Full set
+
+<!-- Maybe blend this with the next section? -->
+
 ### Compare and contrast
 
 More examples and comparisons, lean heavily on 2011 paper. Focus on difficulties with both: op needs strong comms and/or infinite history, state needs to keep growing somehow.
 
 Somehow mention delta-crdts and variations on the two classic types of crdt.
-
-### Problems
-
-(Maybe this part goes in the above section, but whatever)
 
 Both common versions have tradeoffs in terms of space, communication, expressiveness
 
@@ -76,6 +94,4 @@ Maybe explain B-tree here? Maybe blend this with below? Anyways.
 
 TODO use notes
 
-### Merkle background
-
-Maybe explain Merkle trees? Or is this where I should explain hashing? I'm not sure.
+<!-- Do I need to explain actual Merkle trees? -->
