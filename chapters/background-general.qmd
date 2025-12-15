@@ -1,24 +1,36 @@
 # Background
 
-General background on distributed systems, cap theorem, lamport, crdts, and so on.
+<!-- General background on distributed systems, cap theorem, lamport, crdts, and so on. -->
 
-Note: should CRDTs go here or in the "specific" background? Or their own section somewhere in-between?
+<!-- Note: should CRDTs go here or in the "specific" background? Or their own section somewhere in-between? -->
 
 ## Distributed systems
 
-What is the problem and what are we trying to do? What are some common themes and issues?
+A distributed computer system is one in which multiple computers are connected via some network. Each device (sometimes called a _node_ since we view this as a graph) has its own processing, storage, and so on, and can also send messages over the network to other machines. The challenge of distributed systems is designing programs that run on multiple machines and achieve some overarching goal (e.g. compute sum of a large collection of numbers) with the complications introduced by the network.
+
+We will focus on _peer-to-peer_ networks in which all machines are equal in some sense. That doesn't mean they necessarily all get the same amount of usage or have the same computational power; rather, there is no difference in the abstract model. This is in contrast to client-server architecture which explicitly delegates some machines to run different programs and act differently than others.
+
+Peer-to-peer systems have many challenges that need to be worked around! Network connections between machines can falter, resulting in dropped, corrupted, out-of-order, and duplicate messages; nodes can often join or leave the network arbitrarily (either due to choice or network outage); and there is no inherent source of truth, as opposed to client-server models where we can designate one machine to always have the final word.
+<!-- transition somehow? -->
+
+### Lamport's partial order
+<!-- gonna need to make citations at some point -->
+
+One challenge of distributed systems is that time is unreliable. On a single processor, there is a relatively clear ordering of events (the order in which the single processor did things). But different machines may or may not have physical clocks, and those clocks may or may not be accurate. Even if they are accurate to human standards, operations on the order of microseconds apart on different machines cannot be easily disentangled into a clear path of what happened first.
+
+To solve this, Leslie Lamport observed that events in a distributed system form a partial order.
+<!-- Do I need to explain what that is? -->
+On a single machine, there is a total order of operations --- it does $a$, then $b$, then $c$. And another machine may do operations $x$ and $y$. Then the two machines send messages back and forth, which we'll call event $t$. We can confidently say that $a$ happened before $b$, $b$ before $c$, and $c$ before $t$; similarly, $x$ happened before both $y$ and $t$. But there is no inherent way to determine whether $b$ happened before $x$.
+<!-- TODO add visuals -->
+
+<!-- Should I have more formalism here and actually define the partial order? I feel like that comes right after the visual if I need it. Also do I need to explain the way we create a total ordering via Lamport time or no? -->
 
 ### CAP theorem
 
-Explain it, also maybe some issues/disputes with the common understanding.
+<!-- I'm saying "distributed systems" a lot -->
 
-### Time is unreliable
-
-Time issues, partial order, lamport clocks.
-
-### Other stuff
-
-Should I talk about hashing and other "misc" background here? Could turn this into a general background chapter, with two rough sections (misc background and distributed systems). Or that can be explained when it comes up.
+Now that we've discussed one issue with distributed systems, let's cover three desirable properties of data in our system.
+<!-- TODO follow my slides pretty closely -->
 
 ## CRDTs
 

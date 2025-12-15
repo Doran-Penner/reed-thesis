@@ -1,6 +1,6 @@
 # Introduction
 
-Quick intro and overview of the thesis before we get into proper background.
+Quick intro and overview of the thesis before we get into proper background. Look, I did stuff! Blah blah blah, quick overview, what I learned and contributed. Anything else useful to know, e.g. how advanced I expect my reader to be.
 
 ## Distributed systems
 

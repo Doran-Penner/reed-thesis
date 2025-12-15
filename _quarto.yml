@@ -18,6 +18,7 @@ book:
     # and can work out the splitting details later
     - index.qmd
     - chapters/background-general.qmd
+    # does CRDT intro go in general or specific? It's kinda between
     - chapters/background-specific.qmd
     - chapters/my-stuff.qmd
   appendices:
