@@ -80,7 +80,20 @@ A simple operation-based CRDT is a number counter with addition (for example a b
 
 ### More complex examples
 
-Full set
+We've shown two ways to create a grow-only set. What about a "full" set? Only considering two operations, $\mathsf{add}$ and $\mathsf{remove}$ which operate on one item at a time, we immediately encounter a problem: these are not commutative. To illustrate this, consider the three operations $\mathsf{add}(7), \mathsf{add}(7), \mathsf{remove}(7)$. Since sets have no duplicates, the second $\mathsf{add}$ does nothing, and then the $\mathsf{remove}$ removes the $7$, yielding no overall change. But if we $\mathsf{add}(7), \mathsf{remove}(7), \mathsf{add}(7)$, the $\mathsf{add}$ at the end means there is overall a $7$ added to the set.
+
+How can we fix this? It turns out that there is no real way to make a perfect set CRDT due to the above issue. However, we can create reasonable approximations with varying ways to resolve the non-commutativity.
+
+One solution is storing two grow-only sets (2P-set), one called the tombstone set. Once an item is added to the tombstone set, it's treated as no longer in the overall set. So they user-facing set equals $A ~\backslash~ T$, where $A$ is the added set and $T$ is the tombstone set. This is easy to implement, since it's just two grow-only sets; however, it doesn't allow for re-adding elements which have already been removed. This could be alleviated to the $n$th degree by having $n$ pairs of added/removed sets in a hierarchy, but that is simply not practical or very useful most of the time.
+
+Another solution is to have an operation-based counter on each item. Internally the set stores an integer for each item observed, and shows the user all items whose counter is greater than zero.
+For operations, it'll translate $\mathsf{add}(7)$ into incrementing the counter on $7$ by one. Similarly, $\mathsf{remove}(7)$ will subtract as many as needed from the $7$ counter to bring it to $0$.
+This will not always give desirable, set-like semantics --- a remove operation could feasibly make an item counter negative, meaning an $\mathsf{add}$ wouldn't actually add something to the final represented set. This could be fixed by changing the underlying operation to increment more, but it'll still provide a sometimes-unintuitive experience. It _is_ a set CRDT though!
+
+Yet another way of getting around the problem is to attach unique identifiers to all items when $\mathsf{add}$ing. We mix this with a 2P-set.
+This means $\mathsf{add}(7)$ internally adds $7_\alpha$ to the added set; then $\mathsf{remove}(7)$ will put all observed $7_*$ items into the tombstone set.
+With this system, the only underlying operations that don't commute are adding and removing the same item with the same identifier; if we ensure that an application only removes items that it has seen, then all the real-world scenarios commute.
+<!-- I don't love how that all came out but whatever. Draft fearlessly! -->
 
 <!-- Maybe blend this with the next section? -->
 

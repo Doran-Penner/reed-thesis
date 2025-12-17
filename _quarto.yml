@@ -42,6 +42,7 @@ abbrs:
   DAG: Directed acyclic graph
   CAP: Consistency, availability, partition-tolerance
   MST: Merkle search tree
+  LUB: Least upper bound
 # spectra:
 #   hash: |
 #     A *hash function* is a one-way function, which means it is easy to compute
