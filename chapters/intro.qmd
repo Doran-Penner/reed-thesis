@@ -17,3 +17,5 @@ Not sure yet! Some MST-like structures for other data types, perhaps. And what i
 ## Other info
 
 ...not sure what else to put in the intro, but we'll have a better idea once more has been written.
+
+Note: (idk where to put this but) we are not focusing on explicit consensus protocols or anything like that. So no blockchain-style agreeing on the "true" ordering of events.

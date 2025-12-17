@@ -58,9 +58,17 @@ This is how we achieve strong eventual consistency. We get availability and part
 
 ### State-based
 
-Join semilattice, least upper bound on everything.
+State-based CRDTs combine two states to a least upper bound. For the possible states $S$, there must be an operation $\sqcup : S \times S \to S$ which has certain properties for all possible states $x, y, z \in S$:
 
-Examples!
+1. Associative: $(x \sqcup y) \sqcup z = x \sqcup (y \sqcup z)$.
+2. Commutative: $x \sqcup y = y \sqcup x.$
+3. Idempotent: $x \sqcup x = x$.
+
+This forms a join-semilattice over $S$.
+When these conditions are met, both nodes can take the least upper bound of their state and the other. Since it's idempotent, self-merging won't change anything; since it's commutative, the order doesn't matter; and since it's associative, merging three or more states will come out to be the same no matter which we do first.
+Thus we have a CRDT!
+
+<!-- TODO Examples! -->
 
 ### Op-based
 
