@@ -66,15 +66,17 @@ State-based CRDTs combine two states to a least upper bound. For the possible st
 
 This forms a join-semilattice over $S$.
 When these conditions are met, both nodes can take the least upper bound of their state and the other. Since it's idempotent, self-merging won't change anything; since it's commutative, the order doesn't matter; and since it's associative, merging three or more states will come out to be the same no matter which we do first.
-Thus we have a CRDT!
+Thus we get strong eventual consistency! So if we can prove that a data type has such an operation, then we have a CRDT.
 
-<!-- TODO Examples! -->
+<!-- Should I justify these examples? -->
+For a simple example, we can easily make a max-number value with state-based power. If our LUB is the maximum of two real numbers, then our states $S = \mathbb{R}$. We can verify that this satisfies all the properties: the maximum of any number with itself is itself, and the maximum function does not care about order of inputs or application.
+We can also easily make a grow-only set by setting $\sqcup = \cup$ (set union) over all sets. Set union is associative, idempotent, and commutative, meaning this is another CRDT.
 
 ### Op-based
 
-Commutative operations mean we can just pass the operations around.
+Operation-based CRDTs achieve strong eventual consistency by requiring that all operations done on the data are commutative: that is, you can apply a collection of operations $a, b, c, \dots$ in any order and the outcome will be the same. When this is the case, nodes share changes by sending out the operations they did as soon as they happened; when a node receives an operation, it simply applies that to its data. Since we have commutativity, node $A$ doing operation $a$ and then receiving & applying operation $b$ gives the same output as node $B$ doing operation $b$ and then applying the recieved operation $a$.
 
-Examples!
+A simple operation-based CRDT is a number counter with addition (for example a bank account that can be added to or subtracted from). Addition over $\mathbb{R}$ is commutative, so we can represent all operations as $\mathsf{add}(r)$ for some $r \in \mathbb{R}$ and send $r$ to peer nodes. We can also represent a grow-only set using operations: the $\mathsf{add}(s)$ operation which adds an item to a set commutes with all other set additions.
 
 ### More complex examples
 
