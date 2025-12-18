@@ -1,0 +1,126 @@
+# Background
+
+<!-- General background on distributed systems, cap theorem, lamport, crdts, and so on. -->
+
+<!-- Note: should CRDTs go here or in the "specific" background? Or their own section somewhere in-between? -->
+
+## Distributed systems
+
+A distributed computer system is one in which multiple computers are connected via some network. Each device (sometimes called a _node_ since we can view the network as a graph) has its own processing, storage, and so on, and can also send messages over the network to other machines. The challenge of distributed systems is designing programs that run on multiple machines and achieve some overarching goal (e.g. compute sum of a large collection of numbers) with the complications introduced by the network.
+
+We will focus on _peer-to-peer_ networks in which all machines are equal in some sense. That doesn't mean they necessarily all get the same amount of usage or have the same computational power; rather, there is no difference in the abstract model. This is in contrast to client-server architecture which explicitly delegates some machines to run different programs and act differently than others.
+
+Peer-to-peer systems have many challenges that need to be worked around! Network connections between machines can falter, resulting in dropped, corrupted, out-of-order, and duplicate messages; nodes can often join or leave the network arbitrarily, either due to choice or network outage; and there is no inherent source of truth, as opposed to client-server models where we can designate one machine to always have the final word.
+<!-- transition somehow? -->
+
+### Lamport's partial order
+<!-- gonna need to make citations at some point -->
+
+One challenge of distributed systems is that time is unreliable. On a single processor, there is a relatively clear ordering of events (the order in which the single processor did things). But different machines may or may not have physical clocks, and those clocks may or may not be accurate. Even if they are accurate to human standards, operations on the order of microseconds apart on different machines cannot be easily disentangled into a clear path of what happened first.
+
+To solve this, Leslie Lamport observed that events in a distributed system form a partial order.
+<!-- Do I need to explain what that is? -->
+On a single machine, there is a total order of operations --- it does $a$, then $b$, then $c$. And another machine may do operations $x$ and $y$. Then the two machines send messages back and forth, which we'll call event $t$. We can confidently say that $a$ happened before $b$, $b$ before $c$, and $c$ before $t$; similarly, $x$ happened before both $y$ and $t$. But there is no inherent way to determine whether $b$ happened sometime before $x$.
+<!-- TODO add visuals -->
+
+<!-- Should I have more formalism here and actually define the partial order? I feel like that comes right after the visual if I need it. Also do I need to explain the way we create a total ordering via Lamport time or no? -->
+
+### CAP theorem
+
+<!-- I'm saying "distributed systems" a lot -->
+
+Now that we've discussed one issue with distributed systems, say there's some data (maybe a bank account balance) somehow managed in the network. Let's cover three desirable properties of the data in our system.
+
+- **Consistency**: every query of the data returns the most up-to-date version or an error. (So we don't get stale data.)
+- **Availability**: every query of the data returns something, regardless of if it's correct. (So we're not hanging forever waiting for a response.)
+- **Partition tolerance**: the system still works with arbitrary partitions of the network. (So we don't crash when one node becomes unreachable.)
+
+Unfortunately, we cannot have all three of these. This is known as the _CAP theorem_. Let's work through why it's not possible.
+
+If we can assume that everyone is always connected, the problem is reduced to that of multiprocessor consistency and cache coherence. These are not easy problems, but we have known solutions to them that ensure both availability and consistency. But if the connection between processors is faulty, the problem becomes harder.
+
+Now say that our system can still operate with network partitions. If the authoritative copy of the data is stored on another machine that's offline right now, what should a query return? It could hang or give an error until the data owner is back online, giving us consistency at the cost of availability; or it could return the most recent version that we have, meaning we have availability but lose consistency since the other node could've made changes since we last checked.
+
+This is described as if there's only one "owner" of the data, but the proof still works as long as there's at least one other node (besides the current node) that can modify the data. If anyone else can make changes, we don't know if we have the most up-to-date version without communicating; and since we sometimes can't communicate, we need to choose: stall until the network is up again, or work with old data.
+
+For this thesis, we will sacrifice some consistency and say that all nodes can have their own versions of the data. Instead of getting perfect consistency, we will settle for _strong eventual consistency_: given enough communication between nodes (when the network is up), all nodes eventually agree upon the final version.
+<!-- TODO anything else? I feel like there's duplication with the next section. -->
+
+## CRDTs
+
+A solution to the CAP impossibility is a _conflict-free replicated data type_, or CRDT. That is
+
+- a _data type_, e.g. number, list, or tree;
+- that is _replicated_, where there are multiple copies of the data on different machines;
+- and _conflict-free_, meaning that there is some way of combining copies that always succeeds.
+
+This is how we achieve strong eventual consistency. We get availability and partition tolerance by having a local copy of the data, and design our systems such that the different copies will converge to the same value with communication. There are two common ways to ensure this --- either by focusing on the state of the data or the operations we do to it.
+
+### State-based
+
+State-based CRDTs combine two states to a least upper bound. For the possible states $S$, there must be an operation $\sqcup : S \times S \to S$ which has certain properties for all possible states $x, y, z \in S$:
+
+1. Associative: $(x \sqcup y) \sqcup z = x \sqcup (y \sqcup z)$.
+2. Commutative: $x \sqcup y = y \sqcup x.$
+3. Idempotent: $x \sqcup x = x$.
+
+This forms a join-semilattice over $S$.
+When these conditions are met, both nodes can take the least upper bound of their state and the other. Since it's idempotent, self-merging won't change anything; since it's commutative, the order doesn't matter; and since it's associative, merging three or more states will come out to be the same no matter which we do first.
+Thus we get strong eventual consistency! So if we can prove that a data type has such an operation, then we have a CRDT.
+
+<!-- Should I justify these examples? -->
+For a simple example, we can easily make a max-number value with state-based power. If our LUB is the maximum of two real numbers, then our states $S = \mathbb{R}$. We can verify that this satisfies all the properties: the maximum of any number with itself is itself, and the maximum function does not care about order of inputs or application.
+We can also easily make a grow-only set by setting $\sqcup = \cup$ (set union) over all sets. Set union is associative, idempotent, and commutative, meaning this is another CRDT.
+
+### Op-based
+
+Operation-based CRDTs achieve strong eventual consistency by requiring that all operations done on the data are commutative: that is, you can apply a collection of operations $a, b, c, \dots$ in any order and the outcome will be the same. When this is the case, nodes share changes by sending out the operations they did as soon as they happened; when a node receives an operation, it simply applies that to its data. Since we have commutativity, node $A$ doing operation $a$ and then receiving & applying operation $b$ gives the same output as node $B$ doing operation $b$ and then applying the recieved operation $a$.
+
+A simple operation-based CRDT is a number counter with addition (for example a bank account that can be added to or subtracted from). Addition over $\mathbb{R}$ is commutative, so we can represent all operations as $\mathsf{add}(r)$ for some $r \in \mathbb{R}$ and send $r$ to peer nodes. We can also represent a grow-only set using operations: the $\mathsf{add}(s)$ operation which adds an item to a set commutes with all other set additions.
+
+### More complex examples
+
+We've shown two ways to create a grow-only set. What about a "full" set? Only considering two operations, $\mathsf{add}$ and $\mathsf{remove}$ which operate on one item at a time, we immediately encounter a problem: these are not commutative. To illustrate this, consider the three operations $\mathsf{add}(7), \mathsf{add}(7), \mathsf{remove}(7)$. Since sets have no duplicates, the second $\mathsf{add}$ does nothing, and then the $\mathsf{remove}$ removes the $7$, yielding no overall change. But if we $\mathsf{add}(7), \mathsf{remove}(7), \mathsf{add}(7)$, the $\mathsf{add}$ at the end means there is overall a $7$ added to the set.
+
+How can we fix this? It turns out that there is no real way to make a perfect set CRDT due to the above issue. However, we can create reasonable approximations with varying ways to resolve the non-commutativity.
+
+One solution is storing two grow-only sets (2P-set), one called the tombstone set. Once an item is added to the tombstone set, it's treated as no longer in the overall set. So they user-facing set equals $A ~\backslash~ T$, where $A$ is the added set and $T$ is the tombstone set. This is easy to implement, since it's just two grow-only sets; however, it doesn't allow for re-adding elements which have already been removed. This could be alleviated to the $n$th degree by having $n$ pairs of added/removed sets in a hierarchy, but that is simply not practical or very useful most of the time.
+
+Another solution is to have an operation-based counter on each item. Internally the set stores an integer for each item observed, and shows the user all items whose counter is greater than zero.
+For operations, it'll translate $\mathsf{add}(7)$ into incrementing the counter on $7$ by one. Similarly, $\mathsf{remove}(7)$ will subtract as many as needed from the $7$ counter to bring it to $0$.
+This will not always give desirable, set-like semantics --- a remove operation could feasibly make an item counter negative, meaning an $\mathsf{add}$ wouldn't actually add something to the final represented set. This could be fixed by changing the underlying operation to increment more, but it'll still provide a sometimes-unintuitive experience. It _is_ a set CRDT though!
+
+Yet another way of getting around the problem is to attach unique identifiers to all items when $\mathsf{add}$ing. We mix this with a 2P-set.
+This means $\mathsf{add}(7)$ internally adds $7_\alpha$ to the added set; then $\mathsf{remove}(7)$ will put all observed $7_*$ items into the tombstone set.
+With this system, the only underlying operations that don't commute are adding and removing the same item with the same identifier; if we ensure that an application only removes items that it has seen, then all the real-world scenarios commute.
+<!-- I don't love how that all came out but whatever. Draft fearlessly! -->
+
+<!-- Maybe blend this with the next section? -->
+
+### Compare and contrast
+
+TODO: compare and contrast state- vs op-based. Focus on issues with both:
+<!-- More examples and comparisons, lean heavily on 2011 paper. -->
+op needs strong comms and/or infinite history, state needs to keep growing somehow.
+Somehow mention delta-crdts and variations on the two classic types of crdt.
+
+<!-- Both common versions have tradeoffs in terms of space, communication, expressiveness -->
+
+What about a tree? Briefly explain the tree move, talk about the issues that that faces. What about other data structures? More complex structures tend to have harder semantics for CRDTs to handle.
+
+<!-- Note it is difficult (perhaps impossible) to always resolve things in a way that the end-user desires. And more complicated data types have more complicated semantics. -->
+
+## Data structures
+
+Maybe explain B-tree here? Maybe blend this with below?
+
+## Hashing and content addressing
+
+A _hash function_ is a function that takes variable-length input and gives fixed-length output. Its output seems random to the human eye, and is hard to predict or backsolve: given the hash, there's no good way to figure out what input it came from (besides just trying a ton of things).
+
+There are _collisions_ in a hash function --- two different inputs that hash to the same output. For our purposes, we're going to ignore that! We'll assume that a hash is a unique identifier of data. All of this stuff also works when we factor in collisions, but don't worry about it.
+
+<!-- TODO example images for this (and likely the others too) -->
+A _hash table_ is a big array that we can index with hashes. _Content addressing_ is when we store data in a hash table at its hash index. This lets us get a special kind of pointer to any data. But normal computer pointers reference a location in memory that is specific to the program being run. A "hash pointer" is defined by the data it points to and will always be the same no matter what machine we're on.
+
+<!-- Do I need to explain actual Merkle trees? -->

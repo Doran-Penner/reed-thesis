@@ -1,10 +1,14 @@
 # Introduction
 
-Welcome! Here is where I introduce what I'm doing.
+Quick intro and overview of the thesis before we get into proper background. Look, I did stuff! Blah blah blah, quick overview, what I learned and contributed. Anything else useful to know, e.g. how advanced I expect my reader to be.
 
 ## Distributed systems
 
 We conceptually cover the problem space of distributed systems, consistency, and motivate with some real-world examples like collaborative document editing.
+
+## CRDTs and stuff
+
+Their use (motivated by above), cool things that MST did, and some things that could be improved (motivating my work).
 
 ## What I did
 
@@ -13,3 +17,10 @@ Not sure yet! Some MST-like structures for other data types, perhaps. And what i
 ## Other info
 
 ...not sure what else to put in the intro, but we'll have a better idea once more has been written.
+
+Note: (idk where to put this but) we are not focusing on explicit consensus protocols or anything like that. So no blockchain-style agreeing on the "true" ordering of events.
+
+Assumptions of the reader (up to change):
+
+- introductory formal math (basic set theory, what $\mathbb{R}$ is, formal proofs)
+- introductory computer science? (what does this mean)

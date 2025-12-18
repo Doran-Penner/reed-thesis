@@ -1,14 +1,8 @@
-# Merkle things {#sec-merkle}
+# Existing content-addressed CRDTs
 
-Soooo much explanation in this chapter. These papers are the foundations of my actual work, and I'll be building directly on them; I want the reader to have a very clear understanding of what's happening here.
-
-## Merkle background
-
-Maybe explain Merkle trees? Or is this where I should explain hashing? I'm not sure.
+More specific background, e.g. MST and MerDag.
 
 ## Merkle Search Tree
-
-(Should I explain a B-tree? If so, where?)
 
 Anyways, explain the Merkle Search Tree paper. (Maybe use Dolt's version and prove those properties?) Do a ton of explaining and walk-through. Drive the main point: it's a key-value search tree that efficiently stores diffs. Talk about how this relates to state-based CRDTs, delta-CRDTs, and a nice way to represent it all if we use this content-addressing thing.
 
