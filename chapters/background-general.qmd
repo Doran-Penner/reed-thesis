@@ -99,22 +99,28 @@ With this system, the only underlying operations that don't commute are adding a
 
 ### Compare and contrast
 
-More examples and comparisons, lean heavily on 2011 paper. Focus on difficulties with both: op needs strong comms and/or infinite history, state needs to keep growing somehow.
-
+TODO: compare and contrast state- vs op-based. Focus on issues with both:
+<!-- More examples and comparisons, lean heavily on 2011 paper. -->
+op needs strong comms and/or infinite history, state needs to keep growing somehow.
 Somehow mention delta-crdts and variations on the two classic types of crdt.
 
-Both common versions have tradeoffs in terms of space, communication, expressiveness
+<!-- Both common versions have tradeoffs in terms of space, communication, expressiveness -->
 
-What about a tree? Briefly explain the tree move, talk about the issues that that faces.
+What about a tree? Briefly explain the tree move, talk about the issues that that faces. What about other data structures? More complex structures tend to have harder semantics for CRDTs to handle.
 
-Note it is difficult (perhaps impossible) to always resolve things in a way that the end-user desires. And more complicated data types have more complicated semantics.
+<!-- Note it is difficult (perhaps impossible) to always resolve things in a way that the end-user desires. And more complicated data types have more complicated semantics. -->
 
 ## Data structures
 
-Maybe explain B-tree here? Maybe blend this with below? Anyways.
+Maybe explain B-tree here? Maybe blend this with below?
 
 ## Hashing and content addressing
 
-TODO use notes
+A _hash function_ is a function that takes variable-length input and gives fixed-length output. Its output seems random to the human eye, and is hard to predict or backsolve: given the hash, there's no good way to figure out what input it came from (besides just trying a ton of things).
+
+There are _collisions_ in a hash function --- two different inputs that hash to the same output. For our purposes, we're going to ignore that! We'll assume that a hash is a unique identifier of data. All of this stuff also works when we factor in collisions, but don't worry about it.
+
+<!-- TODO example images for this (and likely the others too) -->
+A _hash table_ is a big array that we can index with hashes. _Content addressing_ is when we store data in a hash table at its hash index. This lets us get a special kind of pointer to any data. But normal computer pointers reference a location in memory that is specific to the program being run. A "hash pointer" is defined by the data it points to and will always be the same no matter what machine we're on.
 
 <!-- Do I need to explain actual Merkle trees? -->
