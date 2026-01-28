@@ -14,6 +14,10 @@ Their use (motivated by above), cool things that MST did, and some things that c
 
 Not sure yet! Some MST-like structures for other data types, perhaps. And what if the payloads aren't exactly CRDTs, or they need to be manually "flattened" into a final form? (These notes are for me btw.)
 
+## Terminology
+
+Idk if this is the right place to put it but I want a place to specify that e.g. node, machine, computer, user, etc all refer to the same thing
+
 ## Other info
 
 ...not sure what else to put in the intro, but we'll have a better idea once more has been written.

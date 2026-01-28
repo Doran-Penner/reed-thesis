@@ -116,7 +116,7 @@ Maybe explain B-tree here? Maybe blend this with below?
 
 ## Hashing and content addressing
 
-A _hash function_ is a function that takes variable-length input and gives fixed-length output. Its output seems random to the human eye, and is hard to predict or backsolve: given the hash, there's no good way to figure out what input it came from (besides just trying a ton of things).
+A _hash function_ is a function that takes variable-length input and gives fixed-length output. Its output seems random and is hard to predict or backsolve: given the hash, there's no good way to figure out what input it came from (besides just trying a ton of things).
 
 There are _collisions_ in a hash function --- two different inputs that hash to the same output. For our purposes, we're going to ignore that! We'll assume that a hash is a unique identifier of data. All of this stuff also works when we factor in collisions, but don't worry about it.
 

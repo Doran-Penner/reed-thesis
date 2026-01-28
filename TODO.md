@@ -1,6 +1,9 @@
+
 ## misc
 
 improve that bibliography
+
+uhhhhh gotta add citations for my background
 
 ## Writing outline
 
