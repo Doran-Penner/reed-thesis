@@ -1,4 +1,10 @@
 
+## new semester!
+
+idk what to do with the old sections but that's a future problem. For right now (Feb 2) I need to do an outline description of MST and _why we care about it_. Well... why is that?
+
+### MST
+
 ## misc
 
 improve that bibliography
