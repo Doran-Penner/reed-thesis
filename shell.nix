@@ -19,6 +19,7 @@ pkgs.mkShell {
     chroma_code
     tree-sitter
     pkgs.nix-output-monitor
+    pkgs.ffmpeg
   ];
 
   name = "sam's thesis shell";

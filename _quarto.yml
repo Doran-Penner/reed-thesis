@@ -19,7 +19,8 @@ book:
     - index.qmd
     - chapters/background-general.qmd
     # does CRDT intro go in general or specific? It's kinda between
-    - chapters/background-specific.qmd
+    - chapters/mst.qmd
+    - chapters/mer-dag.qmd
     - chapters/my-stuff.qmd
   appendices:
     - chapters/git-revisions.qmd
