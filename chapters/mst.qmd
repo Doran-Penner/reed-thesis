@@ -51,7 +51,9 @@ TODO talk about other merkle tree uses. It's really just a nice example of hashi
 
 ### Content-defined Chunking
 
-TODO
+TODO this is the very rough outline, will make words fancier later
+
+Say we want to break up some data into blocks that won't usually shift too much with small changes. Fixed-length chunking doesn't work for this. (Explanation.) Instead, we choose whether to chunk deterministically but random-seeming. It's a hash function! It looks at a block of data and decides whether a boundary should be drawn (i.e. if the hash output is greater than some threshold). If yes, restart the window after the boundary; otherwise just increase the input size a bit. This is great, but super inefficient because we might be re-hashing mostly-same data over and over again. Fortunately, we have some cool functions called rolling hash functions which can efficiently "add" and "subtract" items as the window moves forward.
 
 ## Old(?) notes and stuff
 I wanna keep it around, but right now I just gotta write anew.
