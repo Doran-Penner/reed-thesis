@@ -4,6 +4,22 @@
 
 <!-- Note: should CRDTs go here or in the "specific" background? Or their own section somewhere in-between? -->
 
+Time to rewrite this! (At least the first section, based on Jim feedback.) I should give a better explanation of distributed systems and peer-to-peer/decentralized networks.
+
+Jim says a distributed system is about providing a monolithic service when you have distributed resources. e.g. a distributed hash table. Do I agree with this? I definitely think it is _a_ usage. But are there others? Does Git provide a single shared service? Does email?
+Hm. I think email does: it's a system for sending and receiving text between people via some identity. Note that it's still a client-server setup --- it just has the "server" system across many computers.
+I think you'd use a CRDT for some high-level service. Say the service is "a shared document that everyone can edit." Then you use some kind of CRDT to do that. It gets a bit messier because you can also just choose to keep it local... but that can be cast as just shrinking the current definition of "everyone." Overall it's still about a kind of background magic cohesion. But a CRDT itself is not quite a service; it's a way to make a service work.
+
+Good decentralized (but still client-server) examples: email and some big company. Maybe Netflix? Big streaming service, acts like a centralized thing. Excellent. Also Dynamo if desired.
+
+Peer-to-peer networks are distributed systems in which all nodes are equal in some sense. There is no central organization or server; everyone's machines are contributing. To explain this, use examples of torrenting and blockchain and maybe something else.
+Perhaps can make a note that "pure" p2p means everyone is running the exact same software, but in practice sometimes different nodes have different tasks. Still no idea of a more central "server" but there are different jobs. Idk maybe.
+Another way of describing it: a peer-to-peer network is what happens if you take a (decentralized) client-server architecture and ran all the server stuff on the client devices. Thus there is no client-server divide; there's just a bunch of nodes that serve and are also clients.
+
+Good peer-to-peer examples: torrenting... what else is there? Blockchain. Lots of other stuff is kinda niche. Does ATProto count? Hm, it's still kinda CRDT-like in that it's a building block.
+
+Also should talk a bit about the network/connection and rough infrastructure. Not a fully connected graph (everything talks directly to everything), but there is usually (ideally) a path between any two nodes. Could be organized in some kind of tree hierarchy; who knows. And nodes can connect and disconnect at any time for any reason, either individually or at the same time.
+
 ## Distributed systems
 
 A distributed computer system is one in which multiple computers are connected via some network. Each device (sometimes called a _node_ since we can view the network as a graph) has its own processing, storage, and so on, and can also send messages over the network to other machines. The challenge of distributed systems is designing programs that run on multiple machines and achieve some overarching goal (e.g. compute sum of a large collection of numbers) with the complications introduced by the network.

@@ -71,6 +71,13 @@ A Merkle Search Tree is a combo Merkle tree and B-tree that uses content-defined
 Once chunks have been determined, those are the leaves of the tree --- the places where actual the actual key-value data live. Now we take a hash of each chunk (which will act as a pointer to that block) and concatenate them into another large stream. Then we do the whole chunk-and-hash step again, and again, and again, until there is only one block at the top (the chunker didn't draw any lines in the middle of the hash stream). That's the root of the tree!
 By annotating the edges with metadata on what value ranges are in those subtrees, we get a searchable tree (like a B-tree) that can efficiently find keys in logarithmic time. Using hashes as pointers for all of this (like a Merkle tree) means the entire structure is self-verifying and not dependent on the machine or environment it's on. And content-defined chunking gives a unique MST representation for a given set of items that will still be (probabilistically) balanced.
 
+### Comparison of similar structures
+(Currently informal thoughts)
+
+There are so many parallel inventions of the same thing. Read the blog posts for more fun info. Generally, most constructions are like Dolt's prolly tree; MST is a bit of an outlier. In terms of design, the prolly tree is more like "start with a Merkle tree and then do CDC to get unicity and then annotate with keys for searchability." (There are the non-searchtree inventions which don't do that last step.) On the other hand, MST is like "start with a search tree and then use hashing to deterministically decide item height, also backsolve & annotate with block pointers." I find that the prolly tree approach is a bit more intuitive and has the hash structure built in which I like. But really you can do anything! DoltHub uses prolly trees. BlueSky uses MST. It's whatever. We're using prolly tree.
+
+Perhaps here is the best naming. The thing that Inria did is a Merkle Search Tree. Content-defined Merkle Trees are exactly that --- a Merkle tree with content-defined chunking, but no search keys. And a Prolly Tree is when you add search keys on top of that.
+
 ## Old(?) notes and stuff
 I wanna keep it around, but right now I just gotta write anew.
 
