@@ -1,10 +1,10 @@
-# Merkle Search Trees
+# Prolly Trees
 
 ## Notes
 
-Currently iterating through MST explanation.
+Currently iterating through prolly explanation.
 
-![Dependencies for explaining the MST: content-defined chunking, Merkle trees, and B-trees are the first level.](../figures/tmp-mst-explain-graph.jpg)
+![Dependencies for explaining the prolly tree: content-defined chunking, Merkle trees, and B-trees are the first level.](../figures/tmp-mst-explain-graph.jpg)
 
 ## Actual writing
 
@@ -20,20 +20,20 @@ A B-tree can be seen as a generalization of a binary search tree with nicer prop
 <!-- NOTE should I actually provide proof? Not really important for what I'm trying to explain, so probably no. Will come back to this later -->
 Additionally, the larger block size is more efficient than a binary tree in most computers because modern devices load large blocks of data at a time no matter what. Having wider blocks shortens the tree height, which has no asymptotic effect but significantly improves practical performance.
 
-For our purposes, B-trees are search trees that are self-balancing and efficient block sizes. A Merkle Search Tree is like a B-tree with some additional measures for comparing trees.
+For our purposes, B-trees are search trees that are self-balancing and efficient block sizes. A Prolly Tree is like a B-tree with some additional measures for comparing trees.
 
 ### Merkle Trees
 
-A merkle tree is a tree of hash pointers to other hash nodes, ending in leaves of actual data that is verified by the hashes.
+A Merkle tree is a tree of hash pointers to other hash nodes, ending in leaves of actual data that is verified by the hashes.
 
-To construct a merkle tree, start with some data (e.g. a series of files). For each data block $x_i$, compute its hash $h_i = H(x_i)$ with some hash function $H$. Then construct a binary tree from the bottom up, recursively hashing pairs of hashes. For example, the parent of $h_1$ and $h_2$ (denoted $h_{1,2}$) stores $H(h_1||h_2)$, the hash of $h_1$ concatenated with $h_2$. And then its parent $h_{1,2,3,4} = H(h_{1,2}||h_{3,4})$, and so on. Eventually this leads to one root pointer, with possibly some padding at the end of the data stream to get to a power of two.
+To construct a Merkle tree, start with some data (e.g. a series of files). For each data block $x_i$, compute its hash $h_i = H(x_i)$ with some hash function $H$. Then construct a binary tree from the bottom up, recursively hashing pairs of hashes. For example, the parent of $h_1$ and $h_2$ (denoted $h_{1,2}$) stores $H(h_1||h_2)$, the hash of $h_1$ concatenated with $h_2$. And then its parent $h_{1,2,3,4} = H(h_{1,2}||h_{3,4})$, and so on. Eventually this leads to one root pointer, with possibly some padding at the end of the data stream to get to a power of two.
 
 <!-- By Azaghal - Own work, CC0, https://commons.wikimedia.org/w/index.php?curid=18157888 -->
 ![Merkle tree diagram.](../figures/tmp-wikipedia-merkle-tree.png)
 
 Merkle trees use hashes to verify data integrity. Say a server is storing some files $f_1, \dots, f_n$ for a client. The client only stores the root hash of this Merkle tree (constructed when the files were first given to the server), and the server can store the whole tree or recompute it on the fly. Now the client requests $f_3$ and wants to know if the file is the same as when first sent. By requesting $h_4$, $h_{1,2}$, $h_{5,6,7,8}$, and so on, the client can recompute the branch of the Merkle tree from bottom up until it gets to the root. If the computed root hash equals the old, stored-by-client hash, we know that (with very high probability) the file sent to the client is the exact same as when the client first sent it to the server. This only requires communication between the client and the server that is logarithmic in the number of files stored, and constant storage for the client (just store the original root hash).
 
-For our purposes, Merkle trees illustrate a very useful feature of hashing: a mostly-unique, stable identifier of some content. This is verifiable and directly tied to the referenced content --- if the hash of the content does not equal the hash pointer, something has gone wrong. In the MST, this lets us store easily-comparable references to data. If the root hashes of two Merkle Search Trees are equal, the tree data is almost certainly the same; if they are not equal, then the trees differ in some way. And we can follow this same logic down the tree to compare subtrees.
+For our purposes, Merkle trees illustrate a very useful feature of hashing: a mostly-unique, stable identifier of some content. This is verifiable and directly tied to the referenced content --- if the hash of the content does not equal the hash pointer, something has gone wrong. In the prolly tree, this lets us store easily-comparable references to data. If the root hashes of two Prolly Trees are equal, the tree data is almost certainly the same; if they are not equal, then the trees differ in some way. And we can follow this same logic down the tree to compare subtrees.
 
 ### Content-defined Chunking
 
@@ -58,18 +58,20 @@ In practice, this naive approach is inefficient because we are potentially re-ha
 <!-- https://joshleeb.com/posts/content-defined-chunking.html -->
 ![Rolling hash functions.](../figures/tmp-rolling-hash.png)
 
-Content-defined chunking is a very useful tool in general for data deduplication. But it's especially important when you expect to have a lot of very similar data. In a Merkle Search Tree, content-defined chunking is the final piece of the puzzle. For each search item, instead of fixed block sizes (like in a B-tree), we use CDC to decide chunks of the keys. This is far more efficient for storing multiple versions of a tree, and on average changing the data in one part of the tree won't much affect the chunking of another part of the tree.
+Content-defined chunking is a very useful tool in general for data deduplication. But it's especially important when you expect to have a lot of very similar data. In a Prolly Tree, content-defined chunking is the final piece of the puzzle. For each search item, instead of fixed block sizes (like in a B-tree), we use CDC to decide chunks of the keys. This is far more efficient for storing multiple versions of a tree, and on average changing the data in one part of the tree won't much affect the chunking of another part of the tree.
 
-### MST overview
+### Prolly tree overview
 ![Dolt's version of an MST, called a prolly tree.](../figures/tmp-dolt-prolly.jpg)
 
 <!-- NOTE there are many different versions of MSTs. I am gonna focus on the dolthub version and can talk about others later if needed. If Jim or Marcus disagree then I'll deal with it then. -->
-There are many different constructions of a Merkle Search Tree and many different names for the same idea; we'll use the design from DoltHub. See discussion for more about the diffferent kinds.
+There are many different constructions of a Prolly Tree and many different names for the same idea; we'll use the design from DoltHub. See discussion for more about the diffferent kinds.
+
+TODO re-do all this stuff (using "Prolly Tree")
 
 A Merkle Search Tree is a combo Merkle tree and B-tree that uses content-defined chunking to determine block boundaries. To begin, a content-defined chunker is applied to the key-value pairs in sequence. Once the output of the function gets below some threshold, we draw a chunk line and restart the chunking after that line.
 <!-- image good, scribble something on the board or steal dolt's -->
 Once chunks have been determined, those are the leaves of the tree --- the places where actual the actual key-value data live. Now we take a hash of each chunk (which will act as a pointer to that block) and concatenate them into another large stream. Then we do the whole chunk-and-hash step again, and again, and again, until there is only one block at the top (the chunker didn't draw any lines in the middle of the hash stream). That's the root of the tree!
-By annotating the edges with metadata on what value ranges are in those subtrees, we get a searchable tree (like a B-tree) that can efficiently find keys in logarithmic time. Using hashes as pointers for all of this (like a Merkle tree) means the entire structure is self-verifying and not dependent on the machine or environment it's on. And content-defined chunking gives a unique MST representation for a given set of items that will still be (probabilistically) balanced.
+By annotating the edges with metadata on what value ranges are in those subtrees, we get a searchable tree (like a B-tree) that can efficiently find keys in logarithmic time. Using hashes as pointers for all of this (like a Merkle tree) means the entire structure is self-verifying and not dependent on the machine or environment it's on. And content-defined chunking gives a unique prolly tree representation for a given set of items that will still be (probabilistically) balanced.
 
 ### Comparison of similar structures
 (Currently informal thoughts)
