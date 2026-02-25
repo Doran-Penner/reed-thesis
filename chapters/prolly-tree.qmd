@@ -1,14 +1,22 @@
 # Prolly Trees
 
-## Notes
+## Notes/todos
 
-Currently iterating through prolly explanation.
+Don't need to actually explain B-trees. Should talk about (desirable properties of) search trees in general, and can mention B-trees as an example of a search tree that has these properties.
 
-![Dependencies for explaining the prolly tree: content-defined chunking, Merkle trees, and B-trees are the first level.](../figures/tmp-mst-explain-graph.jpg)
+Also, I feel confident using the Dolt version of the tree — it has fewer weird questions like “what if there’s a big hash level gap” or whatever. (And I keep going back and forth about the merits of the MST vs Prolly tree, but I just gotta pick something.) Also it gives me more room to do proofs about operation runtime and such. I will definitely discuss the differences and merits of each approach (MST vs Prolly Tree) in a later discussion.
 
-## Actual writing
+### misc stuff for next chapter
 
-### B-trees
+One of the biggest issues with state-based CRDTs is that the entire state needs to be shared in order to merge. This is fine with smaller states such as a number, but if the state is a list with thousands or millions of items it will quickly become prohibitive.
+
+One approach to fix this is $\delta$-CRDTs. TODO should those go in the background? I don't need to cover them in detail, just explain them. In particular, why are we _not_ using them?
+
+Prolly Trees mean we get a cross-machine "pointer" which is pretty cool.
+
+## ACTUAL WRITING
+
+## B-trees
 
 A B-tree is a self-balancing search tree with (usually) larger blocks than a binary search tree.
 
@@ -22,7 +30,7 @@ Additionally, the larger block size is more efficient than a binary tree in most
 
 For our purposes, B-trees are search trees that are self-balancing and efficient block sizes. A Prolly Tree is like a B-tree with some additional measures for comparing trees.
 
-### Merkle Trees
+## Merkle Trees
 
 A Merkle tree is a tree of hash pointers to other hash nodes, ending in leaves of actual data that is verified by the hashes.
 
@@ -35,7 +43,7 @@ Merkle trees use hashes to verify data integrity. Say a server is storing some f
 
 For our purposes, Merkle trees illustrate a very useful feature of hashing: a mostly-unique, stable identifier of some content. This is verifiable and directly tied to the referenced content --- if the hash of the content does not equal the hash pointer, something has gone wrong. In the prolly tree, this lets us store easily-comparable references to data. If the root hashes of two Prolly Trees are equal, the tree data is almost certainly the same; if they are not equal, then the trees differ in some way. And we can follow this same logic down the tree to compare subtrees.
 
-### Content-defined Chunking
+## Content-defined Chunking
 
 Chunking is the process of breaking up a large sequence of data into smaller blocks, or chunks.
 It's commonly used for storing large amounts of data, since there are often duplicated blocks between large files. Instead of storing the large file directly, it stores a series of pointers to chunks. Then if any chunks are shared between files, there's no duplicated data.
@@ -60,84 +68,23 @@ In practice, this naive approach is inefficient because we are potentially re-ha
 
 Content-defined chunking is a very useful tool in general for data deduplication. But it's especially important when you expect to have a lot of very similar data. In a Prolly Tree, content-defined chunking is the final piece of the puzzle. For each search item, instead of fixed block sizes (like in a B-tree), we use CDC to decide chunks of the keys. This is far more efficient for storing multiple versions of a tree, and on average changing the data in one part of the tree won't much affect the chunking of another part of the tree.
 
-### Prolly tree overview
+## Prolly tree overview
 ![Dolt's version of an MST, called a prolly tree.](../figures/tmp-dolt-prolly.jpg)
 
-<!-- NOTE there are many different versions of MSTs. I am gonna focus on the dolthub version and can talk about others later if needed. If Jim or Marcus disagree then I'll deal with it then. -->
 There are many different constructions of a Prolly Tree and many different names for the same idea; we'll use the design from DoltHub. See discussion for more about the diffferent kinds.
-
-TODO re-do all this stuff (using "Prolly Tree")
 
 A Merkle Search Tree is a combo Merkle tree and B-tree that uses content-defined chunking to determine block boundaries. To begin, a content-defined chunker is applied to the key-value pairs in sequence. Once the output of the function gets below some threshold, we draw a chunk line and restart the chunking after that line.
 <!-- image good, scribble something on the board or steal dolt's -->
 Once chunks have been determined, those are the leaves of the tree --- the places where actual the actual key-value data live. Now we take a hash of each chunk (which will act as a pointer to that block) and concatenate them into another large stream. Then we do the whole chunk-and-hash step again, and again, and again, until there is only one block at the top (the chunker didn't draw any lines in the middle of the hash stream). That's the root of the tree!
 By annotating the edges with metadata on what value ranges are in those subtrees, we get a searchable tree (like a B-tree) that can efficiently find keys in logarithmic time. Using hashes as pointers for all of this (like a Merkle tree) means the entire structure is self-verifying and not dependent on the machine or environment it's on. And content-defined chunking gives a unique prolly tree representation for a given set of items that will still be (probabilistically) balanced.
 
-### Comparison of similar structures
+
+<!-- old recap/overview, can delete probably -->
+Since a given collection of key-value pairs has a unique representation as an MST, we can easily compare two peers' trees by comparing their root hashes. If equal, the trees are equal and we do no more work. If not equal, we can compare every single child hash and only continue down the paths that differ. If the difference between the two trees is large, there will still be a large amount of work necessary to share the difference between the peers. But the work is asymptotically proportional to the difference of the trees, not the whole tree size.
+
+## Comparison of similar structures
 (Currently informal thoughts)
 
 There are so many parallel inventions of the same thing. Read the blog posts for more fun info. Generally, most constructions are like Dolt's prolly tree; MST is a bit of an outlier. In terms of design, the prolly tree is more like "start with a Merkle tree and then do CDC to get unicity and then annotate with keys for searchability." (There are the non-searchtree inventions which don't do that last step.) On the other hand, MST is like "start with a search tree and then use hashing to deterministically decide item height, also backsolve & annotate with block pointers." I find that the prolly tree approach is a bit more intuitive and has the hash structure built in which I like. But really you can do anything! DoltHub uses prolly trees. BlueSky uses MST. It's whatever. We're using prolly tree.
 
 Perhaps here is the best naming. The thing that Inria did is a Merkle Search Tree. Content-defined Merkle Trees are exactly that --- a Merkle tree with content-defined chunking, but no search keys. And a Prolly Tree is when you add search keys on top of that.
-
-## Old(?) notes and stuff
-I wanna keep it around, but right now I just gotta write anew.
-
-### Overview of MST
-
-<!-- Anyways, explain the Merkle Search Tree paper. (Maybe use Dolt's version and prove those properties?) Do a ton of explaining and walk-through. Drive the main point: it's a key-value search tree that efficiently stores diffs. Talk about how this relates to state-based CRDTs, delta-CRDTs, and a nice way to represent it all if we use this content-addressing thing. -->
-
-One of the biggest issues with state-based CRDTs is that the entire state needs to be shared in order to merge. This is fine with smaller states such as a number, but if the state is a list with thousands or millions of items it will quickly become prohibitive.
-
-One approach to fix this is $\delta$-CRDTs. TODO should those go in the background? I don't need to cover them in detail, just explain them. In particular, why are we _not_ using them?
-
-Another approach is taken by CITE PAPER for a tree-based key-value set, called a Merkle Search Tree (MST). They use a clever design to ensure that a given collection of keys and values has a unique representation; then trees can be compared by hashes of their roots and (subsequently) subtrees' roots to find the actual difference between the trees.
-
-<!-- NOTE should I use the original paper's version or the Dolt version? Document it if it's the Dolt version -->
-
-<!-- recap/overview -->
-Since a given collection of key-value pairs has a unique representation as an MST, we can easily compare two peers' trees by comparing their root hashes. If equal, the trees are equal and we do no more work. If not equal, we can compare every single child hash and only continue down the paths that differ. If the difference between the two trees is large, there will still be a large amount of work necessary to share the difference between the peers. But the work is asymptotically proportional to the difference of the trees, not the whole tree size.
-
-<!-- what do we gain from this? Recap the usefulness and go from there into "next steps" -->
-That's pretty cool! What's the point? It gives us efficient state merge with large states.
-<!-- It also means we get a cross-machine "pointer" which is pretty cool. -->
-
-The MST is pretty cool because a given state (set of items) always has a unique representation; furthermore, it's efficient to use. If I want to make other CaRDTs, this is what matters.
-
-### Background info
-
-B-tree, Merkle tree, content-defined chunking. Idk whether this stuff belongs in a separate chapter or here, but either way it's gotta get written.
-
-### MST construction details
-
-<!-- should I put e.g. rolling hashes in the general background section? -->
-
-explain it
-
-analysis/proofs
-
-### Discussion
-
-- compare with delta-crdts
-- what kinds of crdts can we make with this underlying structure? talk about the keys and the values and e.g. last-writer-wins reconciliation.
-- discuss some range of other MST constructions: Inria, Dolt, XetHub, bup...
-
-### What comes next (what I'm doing with this)
-
-What else can we do with this idea? Some ideas. Some info is duplicated rn.
-
-- Make other data types like this (unique representation via hash)
-  - We can also adapt the MST to other container structures. A "range tree" (used by the fast crdt guy) is a fine way to represent a list, where each key is the index and value is the character. (Or maybe we ignore the "keys" altogether and just store the data, indexing with metadata?) It's not the most efficient but it definitely works. And maybe we can optimize the storage nicely or something idk.
-- Improve the chunking somehow. Not sure exactly how but surely there's a way.
-- Further improve the update latency by optimistically sending over each modification as we get it (along with old & new hashes, path in tree, etc). Can fall back on original transfer protocol when needed.
-
-- We can make other data structures with an MST, e.g. a list as a kind of range tree. That could be cool and useful. Or we could implement a new system from scratch! The important part is the unicity of representation. Can we make a "file?" What does that look like — an array of bytes, a list of strings, a syntax tree based on some grammar, or what?
-- Re: MST's future ideas. Is there some way we can do MST data transfer in an op-like way, sending over just what changed? Then we could swap between state-based and op-based info sharing depending on context. Ooooh, the op-based system could send the full tree path of what changed (including old and new hashes) and reconciliation could happen fully on the destination. This feels like it reduces the communication latency a lot. Ooooooh.
-- Also we could swap back and forth between the op-based system (send over each change as it happens) and the state-based system (send over root hash and do the full tree comparison every time) depending on speed and divergence and all that.
-
-What’s my overarching point, the thesis of my thesis? Something like...
-
-- Distributed systems are cool/important
-- CRDTs are useful for them
-- This MST thing solves some distributed systems problems (examples in the real world)
-- Here’s how we can make it more flexible and/or powerful and/or etc, also just look it’s a great thing

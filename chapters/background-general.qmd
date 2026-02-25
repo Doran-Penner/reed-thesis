@@ -2,7 +2,24 @@
 
 <!-- General background on distributed systems, cap theorem, lamport, crdts, and so on. -->
 
-<!-- Note: should CRDTs go here or in the "specific" background? Or their own section somewhere in-between? -->
+## Notes/todos
+
+Based on my notes, write dist systems background again (incl. p2p, assumed infrastructure, etc)
+
+Given that, rewrite later background stuff a bit
+
+- Do a proper editor re-write
+- Be more formal with definitions and such
+- Get references --- even if not exactly citing, make `@` citations at the start of each section so I have them
+
+Should I, in the background, do what Jim said and say something like "I'm interested in distributed hash tables?" Something to think about.
+
+- Find academic references for the dependency subjects; that’ll get me more formal definitions that I can use.
+- Use those references to give more formal treatment of dependency topics, and eventually the Prolly Tree itself.
+- Write a lot about distributed systems background, mindset, et cetera. Don’t need paper references quite yet but ask Jim for them.
+- Hold off on the rest of the general background — there’s a lot in the air right now and I want to pin down the start and finish before going too hard on the middle.
+
+### dist. sys. intro
 
 Time to rewrite this! (At least the first section, based on Jim feedback.) I should give a better explanation of distributed systems and peer-to-peer/decentralized networks.
 
@@ -19,6 +36,8 @@ Another way of describing it: a peer-to-peer network is what happens if you take
 Good peer-to-peer examples: torrenting... what else is there? Blockchain. Lots of other stuff is kinda niche. Does ATProto count? Hm, it's still kinda CRDT-like in that it's a building block.
 
 Also should talk a bit about the network/connection and rough infrastructure. Not a fully connected graph (everything talks directly to everything), but there is usually (ideally) a path between any two nodes. Could be organized in some kind of tree hierarchy; who knows. And nodes can connect and disconnect at any time for any reason, either individually or at the same time.
+
+## ACTUAL WRITING
 
 ## Distributed systems
 
