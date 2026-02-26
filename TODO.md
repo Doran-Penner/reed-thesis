@@ -12,22 +12,42 @@ Section notes should either live in the first section of each chapter or here; I
 
 - background
   - dist. sys.
-    - general intro
-    - problems, cap theorem, lamport?, and so on
+    - general intro, background
+      - motivating examples like grapevine/email
+      - eventually define _decentralized_ and _peer-to-peer_ with an understanding of why they exist
+    - define our assumed network model
+      - define my common terminology like "node"
+      - maybe connected in 10s/100s/1000s groups
+      - network may be faulty/flakey but in "fully up" scenario the graph is connected
+    - problems with distributed systems
+      - time, network partitions, heterogeneous machines/connections
+    - cap theorem
+    - lamport?
+    - ...and any other stuff I need to explain
   - crdts
-    - yep all the stuff
-  - hashing, content addressing, etc
+    - yep all the stuff that I've talked about
+  - hashing
+    - what it is
+    - why it's useful
+    - other stuff we can do: hash table, content addressing
 - prolly tree
   - search trees
+    - desirable properties; briefly mention b-trees
   - merkle trees
+    - discuss crypto applications, then how it helps us
   - content-defined chunking
   - what the prolly tree actually is
   - discussion vs mst and others
 - prolly tree properties
   - proofs about read/write runtimes, etc
   - prolly tree as a crdt (incl. when the values are crdts)
-  - ...?
-- things you can do with prolly trees (maybe each is its own chapter)
+    - it's a key-value set and will have those semantics
+    - grow-only with keys as T/F => grow-only set over keys
+    - also can have last-writer-wins for values
+    - can do tombstones for deletion, but perhaps that makes the tree reconciliation messy
+    - ...?
+  - what other existing properties do we wanna talk about? how/when should I meld into my own contributions?
+- my work: improvements & flexibility with prolly trees (maybe each is its own chapter)
   - dynamo-like
   - send data in op-like way
   - range tree for array; other data structures (we get JSON)

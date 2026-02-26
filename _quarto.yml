@@ -9,18 +9,9 @@ book:
   date: "May 2026"
   date-format: "MMMM YYYY"
   chapters:
-    # in debate about how much to break down by chapter vs section vs part etc
-    # for now grouping logical parts by chapter:
-    # - quick overview/intro
-    # - general background
-    # - specific background
-    # - my contributions
-    # and can work out the splitting details later
     - index.qmd
-    - chapters/background-general.qmd
-    # does CRDT intro go in general or specific? It's kinda between
+    - chapters/background.qmd
     - chapters/prolly-tree.qmd
-    - chapters/mer-dag.qmd
     - chapters/my-stuff.qmd
   appendices:
     - chapters/git-revisions.qmd
