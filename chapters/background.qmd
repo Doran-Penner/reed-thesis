@@ -2,6 +2,28 @@
 
 <!-- General background on distributed systems, cap theorem, lamport, crdts, and so on. -->
 
+background
+
+- dist. sys.
+  - general intro, background
+    - motivating examples like grapevine/email
+    - eventually define _decentralized_ and _peer-to-peer_ with an understanding of why they exist
+  - define our assumed network model
+    - define my common terminology like "node"
+    - maybe connected in 10s/100s/1000s groups
+    - network may be faulty/flakey but in "fully up" scenario the graph is connected
+  - problems with distributed systems
+    - time, network partitions, heterogeneous machines/connections
+  - cap theorem
+  - lamport?
+  - ...and any other stuff I need to explain
+- crdts
+  - yep all the stuff that I've talked about
+- hashing
+  - what it is
+  - why it's useful
+  - other stuff we can do: hash table, content addressing
+
 ## Notes/todos
 
 Based on my notes, write dist systems background again (incl. p2p, assumed infrastructure, etc)
@@ -41,9 +63,19 @@ Also should talk a bit about the network/connection and rough infrastructure. No
 
 ## Distributed systems
 
+### general intro, background, etc
+
+<!-- Formatting: do I want this to be just under the 2nd-level dist. sys. heading, or a dedicated 3rd-level like right now? -->
+
 A distributed computer system is one in which multiple computers are connected via some network. Each device (sometimes called a _node_ since we can view the network as a graph) has its own processing, storage, and so on, and can also send messages over the network to other machines. The challenge of distributed systems is designing programs that run on multiple machines and achieve some overarching goal (e.g. compute sum of a large collection of numbers) with the complications introduced by the network.
 
 We will focus on _peer-to-peer_ networks in which all machines are equal in some sense. That doesn't mean they necessarily all get the same amount of usage or have the same computational power; rather, there is no difference in the abstract model. This is in contrast to client-server architecture which explicitly delegates some machines to run different programs and act differently than others.
+
+### Our assumed network model
+
+e.g. 10s/100s/1000s or whatever
+
+### Challenges with distributed and peer-to-peer systems
 
 Peer-to-peer systems have many challenges that need to be worked around! Network connections between machines can falter, resulting in dropped, corrupted, out-of-order, and duplicate messages; nodes can often join or leave the network arbitrarily, either due to choice or network outage; and there is no inherent source of truth, as opposed to client-server models where we can designate one machine to always have the final word.
 <!-- transition somehow? -->
@@ -144,10 +176,6 @@ Somehow mention delta-crdts and variations on the two classic types of crdt.
 What about a tree? Briefly explain the tree move, talk about the issues that that faces. What about other data structures? More complex structures tend to have harder semantics for CRDTs to handle.
 
 <!-- Note it is difficult (perhaps impossible) to always resolve things in a way that the end-user desires. And more complicated data types have more complicated semantics. -->
-
-## Data structures
-
-Maybe explain B-tree here? Maybe blend this with below?
 
 ## Hashing and content addressing
 
