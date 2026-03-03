@@ -65,7 +65,15 @@ Also should talk a bit about the network/connection and rough infrastructure. No
 
 ### general intro, background, etc
 
-<!-- Formatting: do I want this to be just under the 2nd-level dist. sys. heading, or a dedicated 3rd-level like right now? -->
+<!-- Formatting: do I want this to be just under the 2nd-level dist. sys. heading, or a dedicated 3rd-level like right now? For now I will keep it very deeply nested, but for readability later I may un-nest some parts. -->
+
+Textbook is @distsys-textbook. A distributed system is one where multiple devices work together to provide some combined program or service (instead of one machine doing it all). Simple distributed example is grapevine [@grapevine].
+
+Peer-to-peer is defined in @p2p but it's not a great definition. I say it's where machines are equal in some sense (in contrast to client/server). Good example is BitTorrent [@sam-thesis].
+
+Also note that it gets messy, e.g. Dynamo [@dynamo] is meant to be a client-server service but internally is p2p. Neat! And p2p is defined in contrast to client/server (where there are exactly two roles), but some real-world programs (e.g. the internet?) are more complex.
+
+***
 
 A distributed computer system is one in which multiple computers are connected via some network. Each device (sometimes called a _node_ since we can view the network as a graph) has its own processing, storage, and so on, and can also send messages over the network to other machines. The challenge of distributed systems is designing programs that run on multiple machines and achieve some overarching goal (e.g. compute sum of a large collection of numbers) with the complications introduced by the network.
 
@@ -73,15 +81,21 @@ We will focus on _peer-to-peer_ networks in which all machines are equal in some
 
 ### Our assumed network model
 
+Do I have an example of this? Maybe in Dynamo they say what they do.
+
 e.g. 10s/100s/1000s or whatever
 
 ### Challenges with distributed and peer-to-peer systems
+
+Briefly covered in @distsys-textbook[p. 30].
 
 Peer-to-peer systems have many challenges that need to be worked around! Network connections between machines can falter, resulting in dropped, corrupted, out-of-order, and duplicate messages; nodes can often join or leave the network arbitrarily, either due to choice or network outage; and there is no inherent source of truth, as opposed to client-server models where we can designate one machine to always have the final word.
 <!-- transition somehow? -->
 
 ### Lamport's partial order
 <!-- gonna need to make citations at some point -->
+
+Source... @lamport-clock
 
 One challenge of distributed systems is that time is unreliable. On a single processor, there is a relatively clear ordering of events (the order in which the single processor did things). But different machines may or may not have physical clocks, and those clocks may or may not be accurate. Even if they are accurate to human standards, operations on the order of microseconds apart on different machines cannot be easily disentangled into a clear path of what happened first.
 
@@ -95,6 +109,8 @@ On a single machine, there is a total order of operations --- it does $a$, then 
 ### CAP theorem
 
 <!-- I'm saying "distributed systems" a lot -->
+
+Cite: @brewer-conjecture and @brewer-proof. Also the CAP theorem has been critiqued in a lot of ways and @kleppmann-cap has a good analysis of alternative frameworks.
 
 Now that we've discussed one issue with distributed systems, say there's some data (maybe a bank account balance) somehow managed in the network. Let's cover three desirable properties of the data in our system.
 

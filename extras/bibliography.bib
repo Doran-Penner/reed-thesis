@@ -1,61 +1,68 @@
-@techreport{shapiro-overview-full,
-	TITLE = {{A comprehensive study of Convergent and Commutative Replicated
-	         Data Types}},
-	AUTHOR = {Shapiro, Marc and Pregui{\c c}a, Nuno and Baquero, Carlos and
-	          Zawirski, Marek},
-	URL = {https://inria.hal.science/inria-00555588},
-	TYPE = {Research Report},
-	NUMBER = {RR-7506},
-	PAGES = {50},
-	INSTITUTION = {{Inria -- Centre Paris-Rocquencourt ; INRIA}},
-	YEAR = {2011},
-	MONTH = Jan,
-	KEYWORDS = {distributed systems ; Data replication ; commutative operations
-	            ; distributed algorithms ; replicated data types ; optimistic
-	            replication ; eventual consistency},
-	PDF = {https://inria.hal.science/inria-00555588v1/file/techreport.pdf},
-	HAL_ID = {inria-00555588},
-	HAL_VERSION = {v1},
+@book{distsys-textbook,
+	author = {Coulouris, George and Dollimore, Jean and Kindberg, Tim},
+	title = {Distributed systems: concepts and design},
+	edition = {3rd. ed},
+	year = {2000},
+	isbn = {0201619180},
+	publisher = {Addison-Wesley Longman Publishing Co., Inc.},
+	address = {USA},
 }
 
-@article{kleppmann-move-op,
-	author = {Kleppmann, Martin and Mulligan, Dominic P. and Gomes, Victor B. F.
-	          and Beresford, Alastair R.},
-	journal = {IEEE Transactions on Parallel and Distributed Systems},
-	title = {A Highly-Available Move Operation for Replicated Trees},
-	year = {2022},
-	volume = {33},
-	number = {7},
-	pages = {1711-1724},
-	keywords = {Internet;Synchronization;Computer bugs;XML;Software;Drives;Data
-	            models;Conflict-free replicated data types (CRDTs);formal
-	            verification;distributed filesystems;distributed collaboration},
-	doi = {10.1109/TPDS.2021.3118603},
+@article{grapevine,
+	author = {Birrell, Andrew D. and Levin, Roy and Schroeder, Michael D. and
+	          Needham, Roger M.},
+	title = {Grapevine: an exercise in distributed computing},
+	year = {1982},
+	issue_date = {April 1982},
+	publisher = {Association for Computing Machinery},
+	address = {New York, NY, USA},
+	volume = {25},
+	number = {4},
+	issn = {0001-0782},
+	url = {https://doi.org/10.1145/358468.358487},
+	doi = {10.1145/358468.358487},
+	abstract = {Grapevine is a multicomputer system on the Xerox research
+	            internet. It provides facilities for the delivery of digital
+	            messages such as computer mail; for naming people, machines, and
+	            services; for authenticating people and machines; and for
+	            locating services on the internet. This paper has two goals: to
+	            describe the system itself and to serve as a case study of a real
+	            application of distributed computing. Part I describes the set of
+	            services provided by Grapevine and how its data and function are
+	            divided among computers on the internet. Part II presents in more
+	            detail selected aspects of Grapevine that illustrate novel
+	            facilities or implementation techniques, or that provide insight
+	            into the structure of a distributed system. Part III summarizes
+	            the current state of the system and the lesson learned from it so
+	            far.},
+	journal = {Communications of the ACM},
+	month = apr,
+	pages = {260–274},
+	numpages = {15},
 }
 
-@conference{coast,
-	author = {Aäron Munsters and Angel Luis Scull Pupo and Jens Nicolay},
-	title = {COAST: A Conflict-free Replicated Abstract Syntax Tree},
-	booktitle = {Proceedings of the 17th International Conference on Software
-	             Technologies - ICSOFT},
-	year = {2022},
-	pages = {187-196},
-	publisher = {SciTePress},
-	organization = {INSTICC},
-	doi = {10.5220/0011278800003266},
-	isbn = {978-989-758-588-3},
-	issn = {2184-2833},
+@inproceedings{p2p,
+	author = {Schollmeier, R.},
+	booktitle = {Proceedings First International Conference on Peer-to-Peer
+	             Computing},
+	title = {A definition of peer-to-peer networking for the classification of
+	         peer-to-peer architectures and applications},
+	year = {2001},
+	pages = {101-102},
+	keywords = {Peer to peer computing;Network servers;Communication networks;IP
+	            networks;Web server;Transform
+	            coding;Hardware;Printers;Collaborative work},
+	doi = {10.1109/P2P.2001.990434},
 }
 
-@misc{ethereum-merkle,
-	title = {Towards Stateless Clients in Ethereum: Benchmarking Verkle Trees
-	         and Binary Merkle Trees with SNARKs},
-	author = {Jan Oberst},
+@thesis{sam-thesis,
+	author = {Sam Gauck},
+	title = {{B}it by {B}it: {I}mplementing the {B}it{T}orrent peer-to-peer
+	         file-sharing protocol},
+	type = {Bachelor's Thesis},
+	institution = {Reed College},
 	year = {2025},
-	eprint = {2504.14069},
-	archivePrefix = {arXiv},
-	primaryClass = {cs.CR},
-	url = {https://arxiv.org/abs/2504.14069},
+	month = {May},
 }
 
 @article{dynamo,
@@ -98,6 +105,26 @@
 	keywords = {performance, reliability, scalability},
 }
 
+@techreport{shapiro-overview-full,
+	TITLE = {{A comprehensive study of Convergent and Commutative Replicated
+	         Data Types}},
+	AUTHOR = {Shapiro, Marc and Pregui{\c c}a, Nuno and Baquero, Carlos and
+	          Zawirski, Marek},
+	URL = {https://inria.hal.science/inria-00555588},
+	TYPE = {Research Report},
+	NUMBER = {RR-7506},
+	PAGES = {50},
+	INSTITUTION = {{Inria -- Centre Paris-Rocquencourt ; INRIA}},
+	YEAR = {2011},
+	MONTH = Jan,
+	KEYWORDS = {distributed systems ; Data replication ; commutative operations
+	            ; distributed algorithms ; replicated data types ; optimistic
+	            replication ; eventual consistency},
+	PDF = {https://inria.hal.science/inria-00555588v1/file/techreport.pdf},
+	HAL_ID = {inria-00555588},
+	HAL_VERSION = {v1},
+}
+
 @article{lamport-clock,
 	author = {Lamport, Leslie},
 	title = {Time, clocks, and the ordering of events in a distributed system},
@@ -127,6 +154,76 @@
 	            clock synchronization},
 }
 
+@inproceedings{brewer-conjecture,
+	author = {Fox, Armando and Brewer, Eric A.},
+	title = {Harvest, yield, and scalable tolerant systems},
+	booktitle = {Proceedings of the Seventh Workshop on Hot Topics in Operating
+	             Systems},
+	pages = {174-178},
+	url = {http://dx.doi.org/10.1109/HOTOS.1999.798396},
+	doi = {10.1109/HOTOS.1999.798396},
+	isbn = {0769502377},
+	ISSN = {1530-1621},
+	month = Mar,
+	year = {1999},
+	publisher = {IEEE Computer Society},
+	address = {Los Alamitos, CA, USA},
+	abstract = {The cost of reconciling consistency and state management with
+	            high availability is highly magnified by the unprecedented scale
+	            and robustness requirements of today's Internet applications. We
+	            propose two strategies for improving overall availability using
+	            simple mechanisms that scale over large applications whose output
+	            behavior tolerates graceful degradation. We characterize this
+	            degradation in terms of harvest and yield, and map it directly
+	            onto engineering mechanisms that enhance availability by
+	            improving fault isolation, and in some cases also simplify
+	            programming. By collecting examples of related techniques in the
+	            literature and illustrating the surprising range of applications
+	            that can benefit from these approaches, we hope to motivate a
+	            broader research program in this area.},
+	keywords = {Degradation;Routing;Web server;Availability;Transaction
+	            databases;Costs;Internet;Read only memory;Search
+	            engines;Application software;Cluster computing;High
+	            availability;Orthogonal mechanisms;Internet systems and services},
+	series = {HOTOS '99},
+	collection = {HOTOS-99},
+}
+
+@article{brewer-proof,
+	author = {Gilbert, Seth and Lynch, Nancy},
+	title = {Brewer's conjecture and the feasibility of consistent, available,
+	         partition-tolerant web services},
+	year = {2002},
+	issue_date = {June 2002},
+	publisher = {Association for Computing Machinery},
+	address = {New York, NY, USA},
+	volume = {33},
+	number = {2},
+	issn = {0163-5700},
+	url = {https://doi.org/10.1145/564585.564601},
+	doi = {10.1145/564585.564601},
+	abstract = {When designing distributed web services, there are three
+	            properties that are commonly desired: consistency, availability,
+	            and partition tolerance. It is impossible to achieve all three.
+	            In this note, we prove this conjecture in the asynchronous
+	            network model, and then discuss solutions to this dilemma in the
+	            partially synchronous model.},
+	journal = {SIGACT News},
+	month = jun,
+	pages = {51–59},
+	numpages = {9},
+}
+
+@techreport{kleppmann-cap,
+	title = {A Critique of the CAP Theorem},
+	url = {https://www.repository.cam.ac.uk/handle/1810/267054},
+	DOI = {10.17863/CAM.13083},
+	institution = {Apollo - University of Cambridge Repository},
+	author = {Kleppmann, M},
+	year = {2015},
+	keywords = {cs.DC, cs.DB},
+}
+
 @inproceedings{mst,
 	TITLE = {{Merkle Search Trees: Efficient State-Based CRDTs in Open Networks}
 	         },
@@ -147,15 +244,33 @@
 	HAL_VERSION = {v1},
 }
 
-@misc{merkle-dag,
-	title = {Merkle-CRDTs: Merkle-DAGs meet CRDTs},
-	author = {Hector Sanjuan and Samuli Poyhtari and Pedro Teixeira and Ioannis
-	          Psaras},
-	year = {2020},
-	eprint = {2004.00107},
-	archivePrefix = {arXiv},
-	primaryClass = {cs.NI},
-	url = {https://arxiv.org/abs/2004.00107},
+@article{kleppmann-move-op,
+	author = {Kleppmann, Martin and Mulligan, Dominic P. and Gomes, Victor B. F.
+	          and Beresford, Alastair R.},
+	journal = {IEEE Transactions on Parallel and Distributed Systems},
+	title = {A Highly-Available Move Operation for Replicated Trees},
+	year = {2022},
+	volume = {33},
+	number = {7},
+	pages = {1711-1724},
+	keywords = {Internet;Synchronization;Computer bugs;XML;Software;Drives;Data
+	            models;Conflict-free replicated data types (CRDTs);formal
+	            verification;distributed filesystems;distributed collaboration},
+	doi = {10.1109/TPDS.2021.3118603},
+}
+
+@conference{coast,
+	author = {Aäron Munsters and Angel Luis Scull Pupo and Jens Nicolay},
+	title = {COAST: A Conflict-free Replicated Abstract Syntax Tree},
+	booktitle = {Proceedings of the 17th International Conference on Software
+	             Technologies - ICSOFT},
+	year = {2022},
+	pages = {187-196},
+	publisher = {SciTePress},
+	organization = {INSTICC},
+	doi = {10.5220/0011278800003266},
+	isbn = {978-989-758-588-3},
+	issn = {2184-2833},
 }
 
 @inproceedings{byzantine-crdt,
@@ -186,4 +301,26 @@
 	            fault tolerance},
 	location = {Rennes, France},
 	series = {PaPoC '22},
+}
+
+@misc{merkle-dag,
+	title = {Merkle-CRDTs: Merkle-DAGs meet CRDTs},
+	author = {Hector Sanjuan and Samuli Poyhtari and Pedro Teixeira and Ioannis
+	          Psaras},
+	year = {2020},
+	eprint = {2004.00107},
+	archivePrefix = {arXiv},
+	primaryClass = {cs.NI},
+	url = {https://arxiv.org/abs/2004.00107},
+}
+
+@misc{ethereum-merkle,
+	title = {Towards Stateless Clients in Ethereum: Benchmarking Verkle Trees
+	         and Binary Merkle Trees with SNARKs},
+	author = {Jan Oberst},
+	year = {2025},
+	eprint = {2504.14069},
+	archivePrefix = {arXiv},
+	primaryClass = {cs.CR},
+	url = {https://arxiv.org/abs/2504.14069},
 }
