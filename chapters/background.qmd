@@ -2,28 +2,6 @@
 
 <!-- General background on distributed systems, cap theorem, lamport, crdts, and so on. -->
 
-background
-
-- dist. sys.
-  - general intro, background
-    - motivating examples like grapevine/email
-    - eventually define _decentralized_ and _peer-to-peer_ with an understanding of why they exist
-  - define our assumed network model
-    - define my common terminology like "node"
-    - maybe connected in 10s/100s/1000s groups
-    - network may be faulty/flakey but in "fully up" scenario the graph is connected
-  - problems with distributed systems
-    - time, network partitions, heterogeneous machines/connections
-  - cap theorem
-  - lamport?
-  - ...and any other stuff I need to explain
-- crdts
-  - yep all the stuff that I've talked about
-- hashing
-  - what it is
-  - why it's useful
-  - other stuff we can do: hash table, content addressing
-
 ## Notes/todos
 
 Based on my notes, write dist systems background again (incl. p2p, assumed infrastructure, etc)
@@ -63,11 +41,38 @@ Also should talk a bit about the network/connection and rough infrastructure. No
 
 ## Distributed systems
 
-### general intro, background, etc
+<!-- In the modern world of computing, there are many devices connected by some network --- Ethernet, Wi-Fi, telephone line, and so on. Each device is usually doing some amount of work on its own and regardless of other devices. For example, a calculator app doesn't need communication with other devices in order to do its task. But many applications require the network so they can fulfill their task. A weather app needs to get weather data from government agencies or other sources to display the current temperature; a messaging app needs to send and recieve messages to/from other devices. More generally, many programs need to communicate over some connection to other computers. -->
 
-<!-- Formatting: do I want this to be just under the 2nd-level dist. sys. heading, or a dedicated 3rd-level like right now? For now I will keep it very deeply nested, but for readability later I may un-nest some parts. -->
+In the modern world of computing, many devices that connected by some network --- Ethernet, Wi-Fi, telephone line, and so on --- and communicate with each other 
 
-Textbook is @distsys-textbook. A distributed system is one where multiple devices work together to provide some combined program or service (instead of one machine doing it all). Simple distributed example is grapevine [@grapevine].
+TODO goals:
+- network causes new failures
+- explain client/server
+
+<!-- Formatting: For now I will keep this in its own subsection, but later I may un-nest it and some other parts. -->
+### Distributed and peer-to-peer systems
+
+The client-server model with a single server runs into scaling issues: no computer of today, regardless of how much processing power it has or how much bandwidth its network has, could possibly handle all of the requests that are demanded upon some services (e.g. a single computer serving all Google search results). As such, the work of handling all these requests must be managed amongst multiple computers.
+
+::: {#def-distsys}
+A _distributed system_ is a system where multiple devices work together to provide some combined program or service, instead of one machine doing it all. [@distsys-textbook p. 2]
+:::
+
+An old example of a distributed system is Grapevine [@grapevine], an early email service. Xerox had local electronic mail servers in its offices, and the workstations were connected to some local server; the servers were also connected to each other via telephone lines. Given this setup, Grapevine was designed to facilitate email getting from one workstation to another regardless of their location.
+<!-- Maybe could talk more about the Grapevine design or challenges it faced -->
+
+TODO next:
+
+- a reason for p2p (e.g. file sharing)
+- definitions (and discussion)
+- example of bittorrent
+- it gets messy
+
+Many definitions of p2p, it's kinda an ethos/mindset thing (and in contrast to client-server).
+
+- machines are equal in some sense
+- no one machine which is crucial to the system
+- all machines do some amount of server and some amount of client
 
 Peer-to-peer is defined in @p2p but it's not a great definition. I say it's where machines are equal in some sense (in contrast to client/server). Good example is BitTorrent [@sam-thesis].
 
@@ -84,6 +89,8 @@ We will focus on _peer-to-peer_ networks in which all machines are equal in some
 Do I have an example of this? Maybe in Dynamo they say what they do.
 
 e.g. 10s/100s/1000s or whatever
+
+Should this be earlier? Could fold in with the distsys intro.
 
 ### Challenges with distributed and peer-to-peer systems
 
