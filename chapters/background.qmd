@@ -19,24 +19,6 @@ Should I, in the background, do what Jim said and say something like "I'm intere
 - Write a lot about distributed systems background, mindset, et cetera. Don’t need paper references quite yet but ask Jim for them.
 - Hold off on the rest of the general background — there’s a lot in the air right now and I want to pin down the start and finish before going too hard on the middle.
 
-### dist. sys. intro
-
-Time to rewrite this! (At least the first section, based on Jim feedback.) I should give a better explanation of distributed systems and peer-to-peer/decentralized networks.
-
-Jim says a distributed system is about providing a monolithic service when you have distributed resources. e.g. a distributed hash table. Do I agree with this? I definitely think it is _a_ usage. But are there others? Does Git provide a single shared service? Does email?
-Hm. I think email does: it's a system for sending and receiving text between people via some identity. Note that it's still a client-server setup --- it just has the "server" system across many computers.
-I think you'd use a CRDT for some high-level service. Say the service is "a shared document that everyone can edit." Then you use some kind of CRDT to do that. It gets a bit messier because you can also just choose to keep it local... but that can be cast as just shrinking the current definition of "everyone." Overall it's still about a kind of background magic cohesion. But a CRDT itself is not quite a service; it's a way to make a service work.
-
-Good decentralized (but still client-server) examples: email and some big company. Maybe Netflix? Big streaming service, acts like a centralized thing. Excellent. Also Dynamo if desired.
-
-Peer-to-peer networks are distributed systems in which all nodes are equal in some sense. There is no central organization or server; everyone's machines are contributing. To explain this, use examples of torrenting and blockchain and maybe something else.
-Perhaps can make a note that "pure" p2p means everyone is running the exact same software, but in practice sometimes different nodes have different tasks. Still no idea of a more central "server" but there are different jobs. Idk maybe.
-Another way of describing it: a peer-to-peer network is what happens if you take a (decentralized) client-server architecture and ran all the server stuff on the client devices. Thus there is no client-server divide; there's just a bunch of nodes that serve and are also clients.
-
-Good peer-to-peer examples: torrenting... what else is there? Blockchain. Lots of other stuff is kinda niche. Does ATProto count? Hm, it's still kinda CRDT-like in that it's a building block.
-
-Also should talk a bit about the network/connection and rough infrastructure. Not a fully connected graph (everything talks directly to everything), but there is usually (ideally) a path between any two nodes. Could be organized in some kind of tree hierarchy; who knows. And nodes can connect and disconnect at any time for any reason, either individually or at the same time.
-
 ## ACTUAL WRITING
 
 ## Distributed systems
@@ -52,8 +34,11 @@ TODO goals:
 <!-- Formatting: For now I will keep this in its own subsection, but later I may un-nest it and some other parts. -->
 ### Distributed and peer-to-peer systems
 
+TODO where do I define all the terminology like "node?"
+
 The client-server model with a single server runs into scaling issues: no computer of today, regardless of how much processing power it has or how much bandwidth its network has, could possibly handle all of the requests that are demanded upon some services (e.g. a single computer serving all Google search results). As such, the work of handling all these requests must be managed amongst multiple computers.
 
+<!-- do I actually want this definition style, or should I keep it in prose? -->
 ::: {#def-distsys}
 A _distributed system_ is a system where multiple devices work together to provide some combined program or service, instead of one machine doing it all. [@distsys-textbook p. 2]
 :::
@@ -61,28 +46,24 @@ A _distributed system_ is a system where multiple devices work together to provi
 An old example of a distributed system is Grapevine [@grapevine], an early email service. Xerox had local electronic mail servers in its offices, and the workstations were connected to some local server; the servers were also connected to each other via telephone lines. Given this setup, Grapevine was designed to facilitate email getting from one workstation to another regardless of their location.
 <!-- Maybe could talk more about the Grapevine design or challenges it faced -->
 
+TODO some explanation for why we care about p2p. Resiliency, independence, better load/speed, and so on. And sometimes you have to deal with non-hierarchical interactions so it's necessary.
+
+A _peer-to-peer_ system addresses these problems.
+For the first conference on peer-to-peer networking, peer-to-peer is defined as when
+"the participants share a part of their own hardware resources ... These shared resources are necessary to provide the Service ... [and] are accessible by other peers directly, without passing intermediary entities. The participants of such a network are thus ... providers and ... requestors" [@p2p].
+They additionally define "pure" peer-to-peer with the additional constraint that any single node can be removed without impacting service, and the network is "hybrid" otherwise.
+
+This is a complex definition and already shows the nuances of peer-to-peer systems. Most of the time, peer-to-peer is defined in contrast to a client-server architecture --- instead of defining nodes as clients that request data or servers that respond to requests, all machines are equal in some sense and can operate as both clients and servers. A simple example of peer-to-peer program is BitTorrent [@sam-thesis], which is used for file sharing: TODO explain the benefits (via Sam's intro) of p2p file sharing.
+<!-- But there are many ways to define peer-to-peer systems. -->
+
 TODO next:
-
-- a reason for p2p (e.g. file sharing)
-- definitions (and discussion)
-- example of bittorrent
-- it gets messy
-
-Many definitions of p2p, it's kinda an ethos/mindset thing (and in contrast to client-server).
-
-- machines are equal in some sense
-- no one machine which is crucial to the system
-- all machines do some amount of server and some amount of client
-
-Peer-to-peer is defined in @p2p but it's not a great definition. I say it's where machines are equal in some sense (in contrast to client/server). Good example is BitTorrent [@sam-thesis].
-
 Also note that it gets messy, e.g. Dynamo [@dynamo] is meant to be a client-server service but internally is p2p. Neat! And p2p is defined in contrast to client/server (where there are exactly two roles), but some real-world programs (e.g. the internet?) are more complex.
 
-***
+<!-- *** -->
 
-A distributed computer system is one in which multiple computers are connected via some network. Each device (sometimes called a _node_ since we can view the network as a graph) has its own processing, storage, and so on, and can also send messages over the network to other machines. The challenge of distributed systems is designing programs that run on multiple machines and achieve some overarching goal (e.g. compute sum of a large collection of numbers) with the complications introduced by the network.
+<!-- A distributed computer system is one in which multiple computers are connected via some network. Each device (sometimes called a _node_ since we can view the network as a graph) has its own processing, storage, and so on, and can also send messages over the network to other machines. The challenge of distributed systems is designing programs that run on multiple machines and achieve some overarching goal (e.g. compute sum of a large collection of numbers) with the complications introduced by the network. -->
 
-We will focus on _peer-to-peer_ networks in which all machines are equal in some sense. That doesn't mean they necessarily all get the same amount of usage or have the same computational power; rather, there is no difference in the abstract model. This is in contrast to client-server architecture which explicitly delegates some machines to run different programs and act differently than others.
+<!-- We will focus on _peer-to-peer_ networks in which all machines are equal in some sense. That doesn't mean they necessarily all get the same amount of usage or have the same computational power; rather, there is no difference in the abstract model. This is in contrast to client-server architecture which explicitly delegates some machines to run different programs and act differently than others. -->
 
 ### Our assumed network model
 
