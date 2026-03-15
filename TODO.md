@@ -13,13 +13,13 @@ The 1.a number is planned number of days for the MVP.
 
 1. background
     a. dist. sys. _(2)_
-        i. general intro, background
-            - motivating examples like grapevine/email
-            - eventually define _decentralized_ and _peer-to-peer_ with an understanding of why they exist
-        ii. define our assumed network model
+        i. define our assumed network model
             - define my common terminology like "node"
             - maybe connected in 10s/100s/1000s groups
             - network may be faulty/flakey but in "fully up" scenario the graph is connected
+        ii. general intro, background
+            - motivating examples like grapevine/email
+            - eventually define _decentralized_ and _peer-to-peer_ with an understanding of why they exist
         iii. problems with distributed systems
             - time, network partitions, heterogeneous machines/connections
         iv. cap theorem

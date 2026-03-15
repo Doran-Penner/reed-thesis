@@ -4,20 +4,7 @@
 
 ## Notes/todos
 
-Based on my notes, write dist systems background again (incl. p2p, assumed infrastructure, etc)
-
-Given that, rewrite later background stuff a bit
-
-- Do a proper editor re-write
-- Be more formal with definitions and such
-- Get references --- even if not exactly citing, make `@` citations at the start of each section so I have them
-
-Should I, in the background, do what Jim said and say something like "I'm interested in distributed hash tables?" Something to think about.
-
-- Find academic references for the dependency subjects; that’ll get me more formal definitions that I can use.
-- Use those references to give more formal treatment of dependency topics, and eventually the Prolly Tree itself.
-- Write a lot about distributed systems background, mindset, et cetera. Don’t need paper references quite yet but ask Jim for them.
-- Hold off on the rest of the general background — there’s a lot in the air right now and I want to pin down the start and finish before going too hard on the middle.
+I can make graphs with Mermaid! I will do this instead of learning tikz.
 
 ## ACTUAL WRITING
 
@@ -25,63 +12,79 @@ Should I, in the background, do what Jim said and say something like "I'm intere
 
 <!-- In the modern world of computing, there are many devices connected by some network --- Ethernet, Wi-Fi, telephone line, and so on. Each device is usually doing some amount of work on its own and regardless of other devices. For example, a calculator app doesn't need communication with other devices in order to do its task. But many applications require the network so they can fulfill their task. A weather app needs to get weather data from government agencies or other sources to display the current temperature; a messaging app needs to send and recieve messages to/from other devices. More generally, many programs need to communicate over some connection to other computers. -->
 
-In the modern world of computing, many devices that connected by some network --- Ethernet, Wi-Fi, telephone line, and so on --- and communicate with each other 
+In the modern world of computing, many devices are connected by some network --- Ethernet, Wi-Fi, telephone line, and so on --- and communicate with each other over this network.
 
-TODO goals:
-- network causes new failures
+TODO more rough intro. Goals:
+
+- terminology (e.g. node, partition)
+- network causes new failures (partial operations, long latency or partition...)
 - explain client/server
+- explain system (here or elsewhere) as a collection of programs (possibly on different machines) that combine to make some kind of overall service or program. e.g. the internet and so many other examples. It's generally broader than a single application/program but serves the same purpose
 
-<!-- Formatting: For now I will keep this in its own subsection, but later I may un-nest it and some other parts. -->
-### Distributed and peer-to-peer systems
+Here, a "system" means some collection of computers on some network that collaborate by each running some part of a larger program.
 
-TODO where do I define all the terminology like "node?"
+Maybe some of this will end up in the assumed infrastructure.
 
-The client-server model with a single server runs into scaling issues: no computer of today, regardless of how much processing power it has or how much bandwidth its network has, could possibly handle all of the requests that are demanded upon some services (e.g. a single computer serving all Google search results). As such, the work of handling all these requests must be managed amongst multiple computers.
+### Assumed infrastructure
 
-<!-- do I actually want this definition style, or should I keep it in prose? -->
-::: {#def-distsys}
-A _distributed system_ is a system where multiple devices work together to provide some combined program or service, instead of one machine doing it all. [@distsys-textbook p. 2]
-:::
-
-An old example of a distributed system is Grapevine [@grapevine], an early email service. Xerox had local electronic mail servers in its offices, and the workstations were connected to some local server; the servers were also connected to each other via telephone lines. Given this setup, Grapevine was designed to facilitate email getting from one workstation to another regardless of their location.
-<!-- Maybe could talk more about the Grapevine design or challenges it faced -->
-
-TODO some explanation for why we care about p2p. Resiliency, independence, better load/speed, and so on. And sometimes you have to deal with non-hierarchical interactions so it's necessary.
-
-A _peer-to-peer_ system addresses these problems.
-For the first conference on peer-to-peer networking, peer-to-peer is defined as when
-"the participants share a part of their own hardware resources ... These shared resources are necessary to provide the Service ... [and] are accessible by other peers directly, without passing intermediary entities. The participants of such a network are thus ... providers and ... requestors" [@p2p].
-They additionally define "pure" peer-to-peer with the additional constraint that any single node can be removed without impacting service, and the network is "hybrid" otherwise.
-
-This is a complex definition and already shows the nuances of peer-to-peer systems. Most of the time, peer-to-peer is defined in contrast to a client-server architecture --- instead of defining nodes as clients that request data or servers that respond to requests, all machines are equal in some sense and can operate as both clients and servers. A simple example of peer-to-peer program is BitTorrent [@sam-thesis], which is used for file sharing: TODO explain the benefits (via Sam's intro) of p2p file sharing.
-<!-- But there are many ways to define peer-to-peer systems. -->
-
-TODO next:
-Also note that it gets messy, e.g. Dynamo [@dynamo] is meant to be a client-server service but internally is p2p. Neat! And p2p is defined in contrast to client/server (where there are exactly two roles), but some real-world programs (e.g. the internet?) are more complex.
-
-<!-- *** -->
-
-<!-- A distributed computer system is one in which multiple computers are connected via some network. Each device (sometimes called a _node_ since we can view the network as a graph) has its own processing, storage, and so on, and can also send messages over the network to other machines. The challenge of distributed systems is designing programs that run on multiple machines and achieve some overarching goal (e.g. compute sum of a large collection of numbers) with the complications introduced by the network. -->
-
-<!-- We will focus on _peer-to-peer_ networks in which all machines are equal in some sense. That doesn't mean they necessarily all get the same amount of usage or have the same computational power; rather, there is no difference in the abstract model. This is in contrast to client-server architecture which explicitly delegates some machines to run different programs and act differently than others. -->
-
-### Our assumed network model
+Ugh I'm feeling like this should go at the end of distsys section. It's kinda the conclusion to all of this background but also is useful background and terminology. I feel like I need to put early definitons (system, node, etc) in the start and then the "Assumed infra" section at the end. Maybe.
 
 Do I have an example of this? Maybe in Dynamo they say what they do.
 
-e.g. 10s/100s/1000s or whatever
+Could have hierarchy of connections, e.g. 10s/100s/1000s or whatever. Could have fully connected. But somehow there's a buncha computers and it's a connected graph when everything is working. But also the network can falter.
 
-Should this be earlier? Could fold in with the distsys intro.
+Somehow they're working together to do something. Or just talking to each other and expecting things (e.g. client-server).
+
+Oooh wait also nodes can join or leave at any time. Also we are not worried about malicious nodes.
+
+### Distributed and peer-to-peer systems
+
+<!-- Don't love it but we needed something. Also does this go here or in the above section? Ugh. -->
+We will define a _system_ as an overarching container of programs and protocols that does something when put together. A system could just be a single program on a single device. But it can also span multiple programs and computers. For example, the Internet Protocol (IP) is a system that allows computers to reach and communicate with each other even when they're not directly connected.
+<!-- We will define a "system" as one or more programs running on one or more devices connected by some network which collectively act as part of some larger service. -->
+
+Should I explain client-server right here?
+
+The client-server model with a single server runs into scaling issues: no computer of today, regardless of how much processing power it has or how much bandwidth its network has, could possibly handle all of the requests that are demanded upon some services (e.g. a single computer serving all Google search results). As such, the work of handling all these requests must be managed amongst multiple computers.
+A _distributed system_ is a system as defined above where multiple devices work together to provide some program or service, instead of one machine doing it all. [@distsys-textbook p. 2]
+
+An old example of a distributed system is Grapevine [@grapevine], an early email service. Xerox had local electronic mail servers in its offices, and the workstations were connected to some local server; the servers were also connected to each other via telephone lines. Given this setup, Grapevine was designed to facilitate email getting from one workstation to another regardless of their location.
+There were components for email delivery, authenictation, and so on, and each had to deal with its own challenges due to the distributed nature of the system. For example if the dial-up connection between two offices is down, what should the email-fetcher do --- stall until the line is back, or try again in an hour? These are the sorts of problems that com eup with  unreliable networks.
+
+A _peer-to-peer_ system is a special kind of distributed system.
+For the First International Conference on Peer-to-Peer Computing, peer-to-peer is defined as when
+"the participants share a part of their own hardware resources ... These shared resources are necessary to provide the Service ... [and] are accessible by other peers directly, without passing intermediary entities. The participants of such a network are thus ... providers and ... requestors" [@p2p].
+They additionally define "pure" peer-to-peer with the additional constraint that any single node can be removed without impacting service, and the network is "hybrid" otherwise.
+<!-- don't love this direct quotation but it works for now. Come back later -->
+
+This is a complex definition and already shows the nuances of peer-to-peer systems. Most of the time, peer-to-peer is defined in contrast to a client-server architecture --- instead of marking a computer as either a client that requests data or server that responds to requests, all machines are equal in some sense and can operate as both clients and servers. A simple example of a peer-to-peer program is BitTorrent [@sam-thesis], which is used for file sharing: a node both downloads data from other nodes and provides data for upload to other nodes. This provides resilience, reduced load, and increased speed when many devices would otherwise all have to request the data from the same server.
+
+TODO some explanation for why we care about p2p? Sometimes you have to deal with non-hierarchical interactions so it's necessary.
+
+TODO are we worried about malicious actors? What about nodes leaving and rejoining?
+
+Note that the line between client-server and peer-to-peer gets messy. For example, Dynamo [@dynamo] is a system from Amazon to provide a key-value store. The entire system operates as a server for external clients: a device can connect to some machine in the Dynamo system and ask for the value corresponding to some key. However, amongst the Dynamo servers the protocol is peer-to-peer --- no Dynamo node is structurally prioritized over another.
+TODO add one more sentence about why this is meaningful.
 
 ### Challenges with distributed and peer-to-peer systems
 
 Briefly covered in @distsys-textbook[p. 30].
 
-Peer-to-peer systems have many challenges that need to be worked around! Network connections between machines can falter, resulting in dropped, corrupted, out-of-order, and duplicate messages; nodes can often join or leave the network arbitrarily, either due to choice or network outage; and there is no inherent source of truth, as opposed to client-server models where we can designate one machine to always have the final word.
+Peer-to-peer systems have many challenges that need to be worked around.
+
+- Network connections between machines can falter, resulting in
+  - dropped,
+  - corrupted,
+  - out-of-order,
+  - and duplicate messages;
+- nodes can often join or leave the network arbitrarily, either due to choice or network outage;
+- and there is no inherent source of truth, as opposed to one-server client-server models where we can designate one machine to always have the final word.
 <!-- transition somehow? -->
 
 ### Lamport's partial order
 <!-- gonna need to make citations at some point -->
+
+Do I even want/need to talk about Lamport?
 
 Source... @lamport-clock
 
