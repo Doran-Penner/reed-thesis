@@ -1,5 +1,51 @@
 # Introduction {.unnumbered}
 
+1. background
+    a. dist. sys. _(2)_
+        i. general intro, background
+            - motivating examples like grapevine/email
+            - eventually define _decentralized_ and _peer-to-peer_ with an understanding of why they exist
+        ii. define our assumed network model
+            - define my common terminology like "node"
+            - maybe connected in 10s/100s/1000s groups
+            - network may be faulty/flakey but in "fully up" scenario the graph is connected
+        iii. problems with distributed systems
+            - time, network partitions, heterogeneous machines/connections
+        iv. cap theorem
+        v. lamport?
+        vi. ...and any other stuff I need to explain
+    b. crdts _(3)_
+        i. yep all the stuff that I've talked about
+    c. hashing _(2)_
+        i. what it is
+        ii. why it's useful
+        iii. other stuff we can do: hash table, content addressing
+2. prolly tree
+    a. search trees _(1)_
+        i. desirable properties; briefly mention b-trees
+    b. merkle trees _(2)_
+        i. discuss crypto applications, then how it helps us
+    c. content-defined chunking _(2)_
+    d. what the prolly tree actually is _(1)_
+    e. discussion vs mst and others _(1)_
+3. prolly tree properties
+    a. proofs about read/write runtimes, etc _(1 for MVP)_
+    b. prolly tree as a crdt (incl. when the values are crdts) _(3)_
+        i. it's a key-value set and will have those semantics
+        ii. grow-only with keys as T/F => grow-only set over keys
+        iii. also can have last-writer-wins for values
+        iv. can do tombstones for deletion, but perhaps that makes the tree reconciliation messy
+        v. ...?
+    c. what other existing properties do we wanna talk about? how/when should I meld into my own contributions? _(?)_
+4. my work: improvements & flexibility with prolly trees (maybe each is its own chapter)
+    a. dynamo-like _(not in MVP)_
+    b. send data in op-like way _(not in MVP)_
+    c. range tree for array; other data structures (we get JSON) _(not in MVP)_
+    d. improve the cdc system (stuff that Dolt did) _(not in MVP)_
+    e. and so on! _(not in MVP)_
+
+***
+
 Quick intro and overview of the thesis before we get into proper background. Look, I did stuff! Blah blah blah, quick overview, what I learned and contributed. Anything else useful to know, e.g. how advanced I expect my reader to be.
 
 ## Distributed systems
