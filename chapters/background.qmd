@@ -43,7 +43,7 @@ Oooh wait also nodes can join or leave at any time. Also we are not worried abou
 We will define a _system_ as an overarching container of programs and protocols that does something when put together. A system could just be a single program on a single device. But it can also span multiple programs and computers. For example, the Internet Protocol (IP) is a system that allows computers to reach and communicate with each other even when they're not directly connected.
 <!-- We will define a "system" as one or more programs running on one or more devices connected by some network which collectively act as part of some larger service. -->
 
-Should I explain client-server right here?
+TODO should I explain client-server right here?
 
 The client-server model with a single server runs into scaling issues: no computer of today, regardless of how much processing power it has or how much bandwidth its network has, could possibly handle all of the requests that are demanded upon some services (e.g. a single computer serving all Google search results). As such, the work of handling all these requests must be managed amongst multiple computers.
 A _distributed system_ is a system as defined above where multiple devices work together to provide some program or service, instead of one machine doing it all. [@distsys-textbook p. 2]
@@ -61,7 +61,7 @@ This is a complex definition and already shows the nuances of peer-to-peer syste
 
 TODO some explanation for why we care about p2p? Sometimes you have to deal with non-hierarchical interactions so it's necessary.
 
-TODO are we worried about malicious actors? What about nodes leaving and rejoining?
+TODO are we worried about malicious actors? What about nodes leaving and rejoining? This should be addressed in the assumptions and maybe "challenges" sections.
 
 Note that the line between client-server and peer-to-peer gets messy. For example, Dynamo [@dynamo] is a system from Amazon to provide a key-value store. The entire system operates as a server for external clients: a device can connect to some machine in the Dynamo system and ask for the value corresponding to some key. However, amongst the Dynamo servers the protocol is peer-to-peer --- no Dynamo node is structurally prioritized over another.
 TODO add one more sentence about why this is meaningful.
@@ -73,29 +73,37 @@ Briefly covered in @distsys-textbook[p. 30].
 Peer-to-peer systems have many challenges that need to be worked around.
 
 - Network connections between machines can falter, resulting in
+  - delayed,
   - dropped,
   - corrupted,
   - out-of-order,
   - and duplicate messages;
 - nodes can often join or leave the network arbitrarily, either due to choice or network outage;
+- nodes can exhibit faulty or actively malicious behavior that messes up communication;
 - and there is no inherent source of truth, as opposed to one-server client-server models where we can designate one machine to always have the final word.
-<!-- transition somehow? -->
 
+All of that means that
+
+- communication between nodes is inherently prone to failure, meaning that it cannot be completely trusted,
+- and there is always the possibility that a node doesn't have the most up-to-date information.
+
+<!--
 ### Lamport's partial order
-<!-- gonna need to make citations at some point -->
+gonna need to make citations at some point
 
-Do I even want/need to talk about Lamport?
+Do I even want/need to talk about Lamport? Commenting out the section for now, but it's still here if we want it later.
 
 Source... @lamport-clock
 
 One challenge of distributed systems is that time is unreliable. On a single processor, there is a relatively clear ordering of events (the order in which the single processor did things). But different machines may or may not have physical clocks, and those clocks may or may not be accurate. Even if they are accurate to human standards, operations on the order of microseconds apart on different machines cannot be easily disentangled into a clear path of what happened first.
 
 To solve this, Leslie Lamport observed that events in a distributed system form a partial order.
-<!-- Do I need to explain what that is? -->
+TODO Do I need to explain what that is?
 On a single machine, there is a total order of operations --- it does $a$, then $b$, then $c$. And another machine may do operations $x$ and $y$. Then the two machines send messages back and forth, which we'll call event $t$. We can confidently say that $a$ happened before $b$, $b$ before $c$, and $c$ before $t$; similarly, $x$ happened before both $y$ and $t$. But there is no inherent way to determine whether $b$ happened sometime before $x$.
-<!-- TODO add visuals -->
+TODO add visuals
 
-<!-- Should I have more formalism here and actually define the partial order? I feel like that comes right after the visual if I need it. Also do I need to explain the way we create a total ordering via Lamport time or no? -->
+Should I have more formalism here and actually define the partial order? I feel like that comes right after the visual if I need it. Also do I need to explain the way we create a total ordering via Lamport time or no?
+-->
 
 ### CAP theorem
 
@@ -103,7 +111,7 @@ On a single machine, there is a total order of operations --- it does $a$, then 
 
 Cite: @brewer-conjecture and @brewer-proof. Also the CAP theorem has been critiqued in a lot of ways and @kleppmann-cap has a good analysis of alternative frameworks.
 
-Now that we've discussed one issue with distributed systems, say there's some data (maybe a bank account balance) somehow managed in the network. Let's cover three desirable properties of the data in our system.
+To explore that last point, say there's some data (maybe a bank account balance) somehow managed in the network. Let's cover three desirable properties of the data in our system.
 
 - **Consistency**: every query of the data returns the most up-to-date version or an error. (So we don't get stale data.)
 - **Availability**: every query of the data returns something, regardless of if it's correct. (So we're not hanging forever waiting for a response.)
