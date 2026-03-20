@@ -2,12 +2,6 @@
 
 <!-- General background on distributed systems, cap theorem, lamport, crdts, and so on. -->
 
-## Notes/todos
-
-I can make graphs with Mermaid! I will do this instead of learning tikz.
-
-## ACTUAL WRITING
-
 ## Distributed systems
 
 <!-- In the modern world of computing, there are many devices connected by some network --- Ethernet, Wi-Fi, telephone line, and so on. Each device is usually doing some amount of work on its own and regardless of other devices. For example, a calculator app doesn't need communication with other devices in order to do its task. But many applications require the network so they can fulfill their task. A weather app needs to get weather data from government agencies or other sources to display the current temperature; a messaging app needs to send and recieve messages to/from other devices. More generally, many programs need to communicate over some connection to other computers. -->
@@ -19,9 +13,9 @@ TODO more rough intro. Goals:
 - terminology (e.g. node, partition)
 - network causes new failures (partial operations, long latency or partition...)
 - explain client/server
-- explain system (here or elsewhere) as a collection of programs (possibly on different machines) that combine to make some kind of overall service or program. e.g. the internet and so many other examples. It's generally broader than a single application/program but serves the same purpose
+- explain a (distributed) system (here or elsewhere) as a collection of programs (on different machines) that combine to make some kind of overall service. e.g. the internet and so many other examples. It's generally broader than a single application/program but serves the same purpose
 
-Here, a "system" means some collection of computers on some network that collaborate by each running some part of a larger program.
+<!-- Here, a "system" means some collection of computers on some network that collaborate by each running some part of a larger program. -->
 
 Maybe some of this will end up in the assumed infrastructure.
 
@@ -40,6 +34,7 @@ Oooh wait also nodes can join or leave at any time. Also we are not worried abou
 ### Distributed and peer-to-peer systems
 
 <!-- Don't love it but we needed something. Also does this go here or in the above section? Ugh. -->
+<!-- lmao yet another definition of (distributed) system -->
 We will define a _system_ as an overarching container of programs and protocols that does something when put together. A system could just be a single program on a single device. But it can also span multiple programs and computers. For example, the Internet Protocol (IP) is a system that allows computers to reach and communicate with each other even when they're not directly connected.
 <!-- We will define a "system" as one or more programs running on one or more devices connected by some network which collectively act as part of some larger service. -->
 
@@ -104,37 +99,30 @@ Should I have more formalism here and actually define the partial order? I feel 
 
 ### CAP theorem
 
-<!-- I'm saying "distributed systems" a lot -->
+To explore that last point, say there's some data somehow managed in the distributed system; for example, a list of people who are authorized to access a supercomputer.
+The list could be stored by a single machine, or all nodes could store part of the list, or all nodes might have their own copy --- it doesn't matter for the example. But any machine in the distributed system is allowed to make changes to this list.
 
-Cite: @brewer-conjecture and @brewer-proof. Also the CAP theorem has been critiqued in a lot of ways and @kleppmann-cap has a good analysis of alternative frameworks.
+Now, say that one machine gets an access request and needs to check if the user is authorized, but one of the other nodes has been offline for a while. A decision then has to be made. It's possible that the currently-offline peer has important changes to the access list, so it is reasonable to stall until all peers are available. On the downside, that would mean waiting an indefinite length of time and the user wants to connect right now. So it's also reasonable to go with the most recent information available to the authorizing machine and hope that the offline node doesn't have any relevant pending changes.
 
-TODO rewrite this section a bit.
-I want to explain how a node cannot always get the most up-to-date information and what to do when that happens.
-I will state the CAP theorem, but something like
+Neither of these approaches is incorrect, but each has its benefits and drawbacks. By proceeding without connection, there is the possibility of accessing out-of-date information; by waiting until all peers are available, we indefinitely delay responses. More formally, there are three properties that one might desire from data stored in a distributed system.
 
-- if there's a partition you gotta choose available or consistent
-- this is the cap theorem
-- there are some critiques of it e.g. kleppmann
-- but generally there's a problem with always wanting consistency, and there's a lot of workarounds
+Consistency
+: every query of the data returns the most up-to-date version or an error. (So we don't get stale data.)
 
-That gets across the main point and blends beautifully into the CRDT section.
+Availability
+: every query of the data returns something, regardless of if it's correct. (So we're not hanging forever waiting for a response.)
 
-To explore that last point, say there's some data (maybe a bank account balance) somehow managed in the network. Let's cover three desirable properties of the data in our system.
+Partition tolerance
+: the system still works with arbitrary partitions of the network. (So we don't crash when one node becomes unreachable.)
 
-- **Consistency**: every query of the data returns the most up-to-date version or an error. (So we don't get stale data.)
-- **Availability**: every query of the data returns something, regardless of if it's correct. (So we're not hanging forever waiting for a response.)
-- **Partition tolerance**: the system still works with arbitrary partitions of the network. (So we don't crash when one node becomes unreachable.)
+Unfortunately, we cannot have all three of these. This is known as the _CAP theorem_, conjectured in @brewer-conjecture and proven in @brewer-proof. It doesn't matter exactly how the data is stored: as long as any node in the system can make changes to it and can also go offline, you cannot guarantee both consistency and availability in the event of a network partition.
 
-Unfortunately, we cannot have all three of these. This is known as the _CAP theorem_. Let's work through why it's not possible.
-
-If we can assume that everyone is always connected, the problem is reduced to that of multiprocessor consistency and cache coherence. These are not easy problems, but we have known solutions to them that ensure both availability and consistency. But if the connection between processors is faulty, the problem becomes harder.
-
-Now say that our system can still operate with network partitions. If the authoritative copy of the data is stored on another machine that's offline right now, what should a query return? It could hang or give an error until the data owner is back online, giving us consistency at the cost of availability; or it could return the most recent version that we have, meaning we have availability but lose consistency since the other node could've made changes since we last checked.
-
-This is described as if there's only one "owner" of the data, but the proof still works as long as there's at least one other node (besides the current node) that can modify the data. If anyone else can make changes, we don't know if we have the most up-to-date version without communicating; and since we sometimes can't communicate, we need to choose: stall until the network is up again, or work with old data.
-
-For this thesis, we will sacrifice some consistency and say that all nodes can have their own versions of the data. Instead of getting perfect consistency, we will settle for _strong eventual consistency_: given enough communication between nodes (when the network is up), all nodes eventually agree upon the final version.
-<!-- TODO anything else? I feel like there's duplication with the next section. -->
+There are reasonable critiques of the CAP theorem; see @kleppmann-cap for a good analysis of alternative frameworks.
+For one, it relies on a specific definition of consistency --- atomic, linearizable transactions --- and only focuses on a single value to be written. The theorem also says that a system can get both consistency and availability when there is no partition-tolerance; while true, in the real world of distributed systems one always has to design around a network partition in case it occurs.
+Furthermore, the CAP theorem does not consider latency at all. If all nodes are reachable but it'll take 20 minutes to get updates, is it worth the wait? Depends on the application and the CAP theorem does not address this question.
+But generally speaking, there is usually a tradeoff of availability in distributed systems. Applications that require good availability have to forgo some amount of consistency, whether that's due to latency or partition tolerance.
+And the CAP impossibility means there is a large space of options that applications can choose from depending on their needs.
+<!-- TODO idk if that's the perfect ending but whatever. -->
 
 ## CRDTs
 
@@ -143,6 +131,8 @@ A solution to the CAP impossibility is a _conflict-free replicated data type_, o
 - a _data type_, e.g. number, list, or tree;
 - that is _replicated_, where there are multiple copies of the data on different machines;
 - and _conflict-free_, meaning that there is some way of combining copies that always succeeds.
+
+For this thesis, we will sacrifice some consistency and say that all nodes can have their own versions of the data. Instead of getting perfect consistency, we will settle for _strong eventual consistency_: given enough communication between nodes (when the network is up), all nodes eventually agree upon the final version.
 
 This is how we achieve strong eventual consistency. We get availability and partition tolerance by having a local copy of the data, and design our systems such that the different copies will converge to the same value with communication. There are two common ways to ensure this --- either by focusing on the state of the data or the operations we do to it.
 
