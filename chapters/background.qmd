@@ -126,30 +126,35 @@ And the CAP impossibility means there is a large space of options that applicati
 
 ## CRDTs
 
-A solution to the CAP impossibility is a _conflict-free replicated data type_, or CRDT. That is
+One solution to the CAP impossibility is a _conflict-free replicated data type_, or CRDT. That is
 
 - a _data type_, e.g. number, list, or tree;
 - that is _replicated_, where there are multiple copies of the data on different machines;
 - and _conflict-free_, meaning that there is some way of combining copies that always succeeds.
 
-For this thesis, we will sacrifice some consistency and say that all nodes can have their own versions of the data. Instead of getting perfect consistency, we will settle for _strong eventual consistency_: given enough communication between nodes (when the network is up), all nodes eventually agree upon the final version.
+This sacrifices some consistency and assumes that all nodes can have their own versions of the data. Instead of getting perfect consistency, we will settle for _strong eventual consistency_: given enough communication between nodes (when the network is up), all nodes eventually agree upon the final version [@eventual-consistency]. In practice, this is often a reasonable tradeoff; and excellent availability and partition-tolerance are solved by just having some local copy of the shared data.
 
-This is how we achieve strong eventual consistency. We get availability and partition tolerance by having a local copy of the data, and design our systems such that the different copies will converge to the same value with communication. There are two common ways to ensure this --- either by focusing on the state of the data or the operations we do to it.
+This framework requires a guarantee that different copies of the data will converge to the same value with communication. There are two common ways to ensure this --- either by focusing on the state of the data or the operations applied to it.
 
 ### State-based
 
-State-based CRDTs combine two states to a least upper bound. For the possible states $S$, there must be an operation $\sqcup : S \times S \to S$ which has certain properties for all possible states $x, y, z \in S$:
+TODO do I need a source for defining semilattices? I'm just reading off the wikipedia page
 
-1. Associative: $(x \sqcup y) \sqcup z = x \sqcup (y \sqcup z)$.
-2. Commutative: $x \sqcup y = y \sqcup x.$
-3. Idempotent: $x \sqcup x = x$.
+State-based CRDTs ensure strong eventual consistency via a join-semilattice over the states. Let $S$ be the set of all possible states of the replicated data, and $\sqcup : S \times S \to S$ be a binary operation (our "join") on $S$. Then $S$ is a join-semilattice via $\sqcup$ if the operation has the following properties for all $x, y, z \in S$:
 
-This forms a join-semilattice over $S$.
-When these conditions are met, both nodes can take the least upper bound of their state and the other. Since it's idempotent, self-merging won't change anything; since it's commutative, the order doesn't matter; and since it's associative, merging three or more states will come out to be the same no matter which we do first.
-Thus we get strong eventual consistency! So if we can prove that a data type has such an operation, then we have a CRDT.
+1. Associativity: $(x \sqcup y) \sqcup z = x \sqcup (y \sqcup z)$. It doesn't matter what order the join is applied in.
+2. Commutativity: $x \sqcup y = y \sqcup x.$ There's no "sidedness" to the join.
+3. Idempotency: $x \sqcup x = x$. Self-joining does nothing.
 
-<!-- Should I justify these examples? -->
-For a simple example, we can easily make a max-number value with state-based power. If our LUB is the maximum of two real numbers, then our states $S = \mathbb{R}$. We can verify that this satisfies all the properties: the maximum of any number with itself is itself, and the maximum function does not care about order of inputs or application.
+This join operation is also called a least upper bound. If these properties hold, then there is always a way to combine two items; furthermore, this combination is minimal in some sense.
+
+<!-- When these conditions are met, both nodes can take the least upper bound of their state and the other. Since it's idempotent, self-merging won't change anything; since it's commutative, the order doesn't matter; and since it's associative, merging three or more states will come out to be the same no matter which we do first. -->
+
+This gives us strong eventual consistency! Given any two copies of some data, we can merge them via the join operation. No matter the order that this propogates throughout the distributed system, if nodes (without making any new changes) keep joining pair-wise then eventually all will have the same state.
+So if we can define an operation on our data that has these properties, then we have a CRDT.
+
+<!-- Should I justify these examples? Nah -->
+For a simple example, we can easily make a max-number value with state-based power. If our join is the maximum of two real numbers, then our state space $S = \mathbb{R}$. We can verify that this satisfies all the properties: the maximum of any number with itself is itself, and the maximum function does not care about order of inputs or application.
 We can also easily make a grow-only set by setting $\sqcup = \cup$ (set union) over all sets. Set union is associative, idempotent, and commutative, meaning this is another CRDT.
 
 ### Op-based
