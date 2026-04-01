@@ -2,7 +2,11 @@
 
 <!-- General background on distributed systems, cap theorem, lamport, crdts, and so on. -->
 
+ADVISE: overall, try to have more of a narrative. It's very okay and good to say "we're doing crdts and we'll talk about them later" and then give reasons _why_ we wanna talk about x y or z.
+
 ## Distributed systems
+
+ADVISE: you don't need to be a textbook. Give some kind of explanatory story (possibly in Introduction?) that gets the idea across.
 
 <!-- In the modern world of computing, there are many devices connected by some network --- Ethernet, Wi-Fi, telephone line, and so on. Each device is usually doing some amount of work on its own and regardless of other devices. For example, a calculator app doesn't need communication with other devices in order to do its task. But many applications require the network so they can fulfill their task. A weather app needs to get weather data from government agencies or other sources to display the current temperature; a messaging app needs to send and recieve messages to/from other devices. More generally, many programs need to communicate over some connection to other computers. -->
 
@@ -53,6 +57,8 @@ They additionally define "pure" peer-to-peer with the additional constraint that
 <!-- don't love this direct quotation but it works for now. Come back later -->
 
 This is a complex definition and already shows the nuances of peer-to-peer systems. Most of the time, peer-to-peer is defined in contrast to a client-server architecture --- instead of marking a computer as either a client that requests data or server that responds to requests, all machines are equal in some sense and can operate as both clients and servers. A simple example of a peer-to-peer program is BitTorrent [@sam-thesis], which is used for file sharing: a node both downloads data from other nodes and provides data for upload to other nodes. This provides resilience, reduced load, and increased speed when many devices would otherwise all have to request the data from the same server.
+
+ADVISE: you might be able to remove all the TODOs here. Unsure.
 
 TODO some explanation for why we care about p2p? Sometimes you have to deal with non-hierarchical interactions so it's necessary.
 
@@ -126,6 +132,8 @@ And the CAP impossibility means there is a large space of options that applicati
 
 ## CRDTs
 
+ADVISE: briefly explain an abstract data type (ADT) and say that. e.g. set ADT. That is an important distinction that I am fluent in but should be made explicit.
+
 TODO add citations to the 2011 Shapiro paper
 
 One solution to the CAP impossibility is a _conflict-free replicated data type_, or CRDT. That is
@@ -142,6 +150,10 @@ This framework requires a guarantee that different copies of the data will conve
 
 TODO do I need a source for defining semilattices? I'm just reading off the wikipedia page
 
+ADVISE: put the actual definition in a definition environment. Also link to some textbook, likely "Introduction to Lattices and Order," and use their terminology.
+
+Source... @lattices
+
 State-based CRDTs ensure strong eventual consistency via a join-semilattice over the states. Let $S$ be the set of all possible states of the replicated data, and $\sqcup : S \times S \to S$ be a binary operation (our "join") on $S$. Then $S$ is a join-semilattice via $\sqcup$ if the operation has the following properties for all $x, y, z \in S$:
 
 1. Associativity: $(x \sqcup y) \sqcup z = x \sqcup (y \sqcup z)$. It doesn't matter what order the join is applied in.
@@ -155,11 +167,15 @@ This join operation is also called a least upper bound. If these properties hold
 This gives us strong eventual consistency! Given any two copies of some data, we can merge them via the join operation. No matter the order that this propogates throughout the distributed system, if nodes (without making any new changes) keep joining pair-wise then eventually all will have the same state.
 So if we can define an operation on our data that has these properties, then we have a CRDT.
 
+ADVISE: for narrative, might be good to give example at the top of state-based for motivation. Also I should actually (briefly) prove stuff, not just wave my hands.
+
 <!-- Should I justify these examples? Nah -->
 For a simple example, we can easily make a max-number value with state-based power. If our join is the maximum of two real numbers, then our state space $S = \mathbb{R}$. We can verify that this satisfies all the properties: the maximum of any number with itself is itself, and the maximum function does not care about order of inputs or application.
 We can also easily make a grow-only set by setting $\sqcup = \cup$ (set union) over all sets. Set union is associative, idempotent, and commutative, meaning this is another CRDT.
 
 ### Op-based
+
+ADVISE: I'm really not gonna be focusing on the op-based stuff, but it's here for people to know. I should explicitly say that to the reader.
 
 Operation-based CRDTs achieve strong eventual consistency by requiring that all operations done on the data are commutative: that is, you can apply a collection of operations $a, b, c, \dots$ in any order and the outcome will be the same.
 When this is the case, we also get a CRDT.
@@ -170,9 +186,13 @@ A simple operation-based CRDT is a number counter with addition (for example a b
 
 ### More complex examples
 
+ADVISE: say "abstract data type" and clean up words.
+
 We've shown two ways to create a grow-only set. What about a "full" set? Only considering two operations, $\mathsf{add}$ and $\mathsf{remove}$ which operate on one item at a time, we immediately encounter a problem: these are not commutative. To illustrate this, consider the three operations $\mathsf{add}(7), \mathsf{add}(7), \mathsf{remove}(7)$. Since sets have no duplicates, the second $\mathsf{add}$ does nothing, and then the $\mathsf{remove}$ removes the $7$, yielding no overall change. But if we $\mathsf{add}(7), \mathsf{remove}(7), \mathsf{add}(7)$, the $\mathsf{add}$ at the end means there is overall a $7$ added to the set.
 
 How can we fix this? It turns out that there is no real way to make a perfect set CRDT due to the above issue. However, we can create reasonable approximations with varying ways to resolve the non-commutativity.
+
+ADVISE: reference the Shapiro paper here
 
 One solution is storing two grow-only sets (called a two-phase or 2P-set), one called the tombstone set. Once an item is added to the tombstone set, it's treated as no longer in the overall set. So they user-facing set equals $A ~\backslash~ T$, where $A$ is the added set and $T$ is the tombstone set. This is easy to implement, since it's just two grow-only sets; however, it doesn't allow for re-adding elements which have already been removed. This could be alleviated to the $n$th degree by having $n$ pairs of added/removed sets in a hierarchy, but that is simply not practical or very useful most of the time.
 
@@ -188,6 +208,8 @@ With this system, the only underlying operations that don't commute are adding a
 
 ### Compare and contrast
 
+ADVISE: come back to this. Awkward balance between "cool misc info" and "stay focused on what matters"
+
 TODO: figure out what I want to say in this section and why. I have all this info, but I want to give a little bit of overarching analysis.
 
 In the original paper, op needs reliable network and maybe fully-connected graph? We don't have that. So need some way of tracking divergence, e.g. version vectors. And may need to keep arbitrarily-old history of operations in the case that a new peer joins or an old peer is gone for a very long time.
@@ -197,6 +219,8 @@ State can only grow. It just keeps joining! Awkward to do something like subtrac
 What about a tree? Briefly explain the tree move, talk about the issues that that faces. What about other data structures? More complex structures tend to have harder semantics for CRDTs to handle.
 
 ## Hashing and content addressing
+
+ADVISE: this is an abrupt jump. Explain why we're talking about this.
 
 A _hash function_ is a function that takes variable-length input and gives fixed-length output. Its output seems random and is hard to predict or backsolve: given the hash, there's no good way to figure out what input it came from (besides just trying a ton of things).
 
