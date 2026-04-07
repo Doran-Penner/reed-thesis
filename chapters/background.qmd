@@ -220,13 +220,22 @@ What about a tree? Briefly explain the tree move, talk about the issues that tha
 
 ## Hashing and content addressing
 
+TODO maybe this would fit better in the next chapter. It's all kinda background, but the hashing section blends a bit better into talking about merkle trees, cdc, and so forth.
+
 ADVISE: this is an abrupt jump. Explain why we're talking about this.
 
-A _hash function_ is a function that takes variable-length input and gives fixed-length output. Its output seems random and is hard to predict or backsolve: given the hash, there's no good way to figure out what input it came from (besides just trying a ton of things).
+A _hash function_ is a function that takes variable-length input and gives fixed-length output. Its output seems random and is hard to predict or backsolve: given the hash, there's no good way to figure out what input it came from besides just trying a ton of things.
+
+(A note on terminology: the word "hash" is overloaded. You hash _(verb)_ some input with a hash function _(noun)_ and the output is the hash _(noun)_ of the input.)
 
 There are _collisions_ in a hash function --- two different inputs that hash to the same output. For our purposes, we're going to ignore that! We'll assume that a hash is a unique identifier of data. All of this stuff also works when we factor in collisions, but don't worry about it.
 
-<!-- TODO example images for this (and likely the others too) -->
+TODO I don't love that wording. I still need to address collisions, but I can offload management of that to the (content-addressed) block store.
+
+TODO example images for this (and likely the others too)
+
 A _hash table_ is a big array that we can index with hashes. _Content addressing_ is when we store data in a hash table at its hash index. This lets us get a special kind of pointer to any data. But normal computer pointers reference a location in memory that is specific to the program being run. A "hash pointer" is defined by the data it points to and will always be the same no matter what machine we're on.
+
+TODO as part of the narrative, explain why that is useful.
 
 <!-- Do I need to explain actual Merkle trees? -->

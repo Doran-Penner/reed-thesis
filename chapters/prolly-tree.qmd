@@ -2,6 +2,14 @@
 
 ## Notes/todos
 
+IDEA maybe I reflow this a bit.
+
+- Start section with narrative explanation and brief description.
+- Then go on to hashing (moved from background), then merkle trees, then content-defined chunking. That flows nicely and ends at "look we could get a content-defined merkle tree."
+- Then finally discuss search trees and how this content-defined merkle tree already has nice properties like balancing.
+
+Maybe!
+
 Don't need to actually explain B-trees. Should talk about (desirable properties of) search trees in general, and can mention B-trees as an example of a search tree that has these properties.
 
 Also, I feel confident using the Dolt version of the tree — it has fewer weird questions like “what if there’s a big hash level gap” or whatever. (And I keep going back and forth about the merits of the MST vs Prolly tree, but I just gotta pick something.) Also it gives me more room to do proofs about operation runtime and such. I will definitely discuss the differences and merits of each approach (MST vs Prolly Tree) in a later discussion.
