@@ -1,38 +1,30 @@
 # Prolly Trees
 
-## Notes/todos
-
-IDEA maybe I reflow this a bit.
-
-- Start section with narrative explanation and brief description.
-- Then go on to hashing (moved from background), then merkle trees, then content-defined chunking. That flows nicely and ends at "look we could get a content-defined merkle tree."
-- Then finally discuss search trees and how this content-defined merkle tree already has nice properties like balancing.
-
-Maybe!
-
-Don't need to actually explain B-trees. Should talk about (desirable properties of) search trees in general, and can mention B-trees as an example of a search tree that has these properties.
-
-Also, I feel confident using the Dolt version of the tree — it has fewer weird questions like “what if there’s a big hash level gap” or whatever. (And I keep going back and forth about the merits of the MST vs Prolly tree, but I just gotta pick something.) Also it gives me more room to do proofs about operation runtime and such. I will definitely discuss the differences and merits of each approach (MST vs Prolly Tree) in a later discussion.
-
-### misc stuff for next chapter
-
+<!-- TODO update after I've written a bit more abourt deltas -->
 One of the biggest issues with state-based CRDTs is that the entire state needs to be shared in order to merge. This is fine with smaller states such as a number, but if the state is a list with thousands or millions of items it will quickly become prohibitive.
-
-One approach to fix this is $\delta$-CRDTs. TODO should those go in the background? I don't need to cover them in detail, just explain them. In particular, why are we _not_ using them?
-
-Prolly Trees mean we get a cross-machine "pointer" which is pretty cool.
-
-## ACTUAL WRITING
+The problem is addressed by $\delta$-CRDTs, but those require more complex infrastructure.
+Can we do better? _Prolly trees_ provide a solution that embeds information about what changed directly in the data structure itself.
+Here is how to construct one in stages.
 
 ## Hashing and content addressing
 
-ADVISE: this is an abrupt start. Explain why we're talking about this, perhaps at the start of the chapter for preamble.
+TODO add formal definitions of stuff (and citations). Hash function input and output sets. We can just consider bit strings for simplicity.
+
+<!-- BAD WORDING BUT WHATEVER -->
+We can use _hashing_ to reduce the communication cost of comparison --- that is, reduce the amount of data necessary to transmit when checking whether two things are equal.
 
 A _hash function_ is a function that takes variable-length input and gives fixed-length output. Its output seems random and is hard to predict or backsolve: given the hash, there's no good way to figure out what input it came from besides just trying a ton of things.
 
 (A note on terminology: the word "hash" is overloaded. You hash _(verb)_ some input with a hash function _(noun)_ and the output is the hash _(noun)_ of the input.)
 
-There are _collisions_ in a hash function --- two different inputs that hash to the same output. For our purposes, we're going to ignore that! We'll assume that a hash is a unique identifier of data. All of this stuff also works when we factor in collisions, but don't worry about it.
+<!-- TODO find some throwaway citation for sha256 and maybe sha3 -->
+There necessarily are _collisions_ in a hash function: for some $x, y \in \{0,1\}^*$, $H(x) = H(y)$ but $x \neq y$. (Since the output space is smaller than the input space, some inputs are pidgeonholed into the same output.)
+For our purposes, we'll ignore the chance of collisions and treat hash equality as true equality. SHA-256, a ubiquitous cryptographic hash function, has $2^256$ bits of output and there are no known collisions even after years of analysis (CITE). Even if it were a problem, we could use an additional hash function to supplement the original, swap out SHA-256 for an entirely new hash function with larger output space (like SHA3-512), or do many other things.
+TODO one more line to wrap up that paragraph.
+
+Hashes let us cheaply compare equality. With a hash function $H$, if $H(x) = H(y)$, then $x$ most likely equals $y$. Thus if two nodes wish to compare their data, they simply hash the entirety of their data and only share the hash. If the value is the same, they most likely have the same data and don't need to communicate further. If they don't have the same hash, then they'll need to share the full CRDT's state as usual.
+
+For our purposes, we're going to ignore that! We'll assume that a hash is a unique identifier of data. All of this stuff also works when we factor in collisions, but don't worry about it.
 
 TODO I don't love that wording. I still need to address collisions, but I can offload management of that to the (content-addressed) block store.
 
@@ -40,9 +32,73 @@ TODO example images for this (and likely the others too)
 
 A _hash table_ is a big array that we can index with hashes. _Content addressing_ is when we store data in a hash table at its hash index. This lets us get a special kind of pointer to any data. But normal computer pointers reference a location in memory that is specific to the program being run. A "hash pointer" is defined by the data it points to and will always be the same no matter what machine we're on.
 
-TODO as part of the narrative, explain why that is useful.
+And content-addressed storage lets us also look up data by hash, meaning that we only need to deal with hashes a lot of the time. This works across machines --- no matter the node, the same hash algorithm will produce the same hash of a given input.
 
-## B-trees
+## Merkle Trees
+
+What if we have a lot of data to store? Should we take a hash of everything at once? But then if any small part changes we'll still have to transmit the full data. And if we hash everything individually, we'll have to manage $n$ hashes. There's a better way to organize everything together.
+
+A _Merkle tree_ is a tree of hash pointers to other hash nodes, ending in leaves of actual data that is verified by the hashes.
+
+To construct a Merkle tree, start with some data (e.g. a series of files). For each data block $x_i$, compute its hash $h_i = H(x_i)$ with some hash function $H$. Then construct a binary tree from the bottom up, recursively hashing pairs of hashes. For example, the parent of $h_1$ and $h_2$ (denoted $h_{1,2}$) stores $H(h_1||h_2)$, the hash of $h_1$ concatenated with $h_2$. And then its parent $h_{1,2,3,4} = H(h_{1,2}||h_{3,4})$, and so on. Eventually this leads to one root pointer, with possibly some padding at the end of the data stream to get to a power of two.
+
+<!-- By Azaghal - Own work, CC0, https://commons.wikimedia.org/w/index.php?curid=18157888 -->
+![Merkle tree diagram.](../figures/tmp-wikipedia-merkle-tree.png)
+
+<!-- TODO do I wanna use this example? Or should i just describe a very simple state-based "prolly tree" up to this point? -->
+<!-- Merkle trees use hashes to verify data integrity. Say a server is storing some files $f_1, \dots, f_n$ for a client. The client only stores the root hash of this Merkle tree (constructed when the files were first given to the server), and the server can store the whole tree or recompute it on the fly. Now the client requests $f_3$ and wants to know if the file is the same as when first sent. By requesting $h_4$, $h_{1,2}$, $h_{5,6,7,8}$, and so on, the client can recompute the branch of the Merkle tree from bottom up until it gets to the root. If the computed root hash equals the old, stored-by-client hash, we know that (with very high probability) the file sent to the client is the exact same as when the client first sent it to the server. This only requires communication between the client and the server that is logarithmic in the number of files stored, and constant storage for the client (just store the original root hash). -->
+
+<!-- TODO the first part is really the point of hashing in general. Merkle trees are good to compose this, more like the second part. -->
+We can compose hashes in a tree structure by taking hashes of hashes, which preserves the hash-pointer guarantees no mater how deep the tree is.
+In the prolly tree, this lets us store easily-comparable references to data. If the root hashes of two Prolly Trees are equal, the tree data is almost certainly the same; if they are not equal, then the trees differ in some way. And we can follow this same logic down the tree to compare subtrees. If the root hashes of two Merkle trees are different but some of the children are the same (TODO define children), we know that that section is the same. So we can follow the differences down the tree to figure out the difference between two merkle trees' contents.
+
+## Content-defined Chunking
+
+NEW INTRO:
+What if we want to modify the merkle tree's data? Depending on how we decide to re-group the hashes, different methods could result in different merkle tree structures. This would lead to different root hashes even though they store the same data. We need some way of deterministically deciding how to break up and hash the underlying data.
+
+TODO example (with image?) of this issue?
+
+_Chunking_ is the process of breaking up a large sequence of data into smaller blocks, or chunks.
+It's commonly used for storing large amounts of data, since there are often duplicated blocks between large files. Instead of storing the large file directly, it stores a series of pointers to chunks. Then if any chunks are shared between files, there's no duplicated data.
+
+<!-- TODO this is our motivating issue at the top of the section. Restructure. -->
+The simplest form of chunking is fixed-length: draw a dividing line every $k$ bytes and those are the blocks. This is a useful deduplication system, but doesn't take full advantage of data similarity. What if we have two files that are almost the same, but one has an extra character at the start?
+
+<!-- https://joshleeb.com/posts/content-defined-chunking.html -->
+![The problem with fixed-size chunking.](../figures/tmp-chunk-fixed.png)
+
+This means we're sharing nothing between the two versions, even though they have almost the same contents.
+To fix this, we employ _content-defined chunking_.
+This means we find some way of determining chunk boundaries (when to draw a line between chunks) based on the actual contents being chunked.
+
+How can this be done? The common solution is with hashing. The hash of a chunk will always be the same, since hash functions are deterministic. However, it is pseudorandom and doesn't follow any nice pattern like "every $k$ bytes we draw a line;" this actually is beneficial in this case.
+<!-- NOTE I don't love this explanation/wording but whatever -->
+
+To do content-defined chunking, then, we first run a hash function $H$ on the first part of data (say the first byte $b_1$). If its output is below some threshold value, draw a chunk boundary and start again with just $H(b_2)$. If the output is not below that boundary, we increase the hash window size --- now we compute $H(b_1b_2)$ and see whether _that_ falls under the threshold. Repeat until at the end of the data.
+
+In practice, this naive approach is inefficient because we are potentially re-hashing some units of data (in this case bytes) many times over. To solve this, there are _rolling hash functions_ which can efficiently "slide their window" so we don't re-calculate hashes for anything. Rolling hash functions do not have the same cryptographic guarantees as standard hash functions, but we don't need such strong guarantees for this application --- just a deterministic but random-seeming way to chunk data.
+
+<!-- https://joshleeb.com/posts/content-defined-chunking.html -->
+![Rolling hash functions.](../figures/tmp-rolling-hash.png)
+
+TODO explain how we can improve merkle trees with this.
+Should I (briefly) describe the recursive rolling hash application, creating a content-defined merkle tree? I think so, but not too formally. That'll come later.
+Also remember that the unicity of representation **depends on having an ordering on insertion**, which we have to externally enforce somehow. If there's already an ordering on the data (e.g. a large file), that's great.
+
+Content-defined chunking is a very useful tool in general for data deduplication. But it's especially important when you expect to have a lot of very similar data. In a Prolly Tree, content-defined chunking is the final piece of the puzzle. For each search item, instead of fixed block sizes (like in a B-tree), we use CDC to decide chunks of the keys. This is far more efficient for storing multiple versions of a tree, and on average changing the data in one part of the tree won't much affect the chunking of another part of the tree.
+
+## Search trees
+
+What if we want to be able to search our data?
+
+TODO describe search trees.
+
+TODO describe desirable properties (larger blocks and balancing). Example is a B-tree.
+
+TODO explain that we already get that from our previously-accumulated data structure, so all we need to do is have an ordering on keys and then annotate higher up with metadata about keys. Boom!
+
+***
 
 A B-tree is a self-balancing search tree with (usually) larger blocks than a binary search tree.
 
@@ -56,48 +112,12 @@ Additionally, the larger block size is more efficient than a binary tree in most
 
 For our purposes, B-trees are search trees that are self-balancing and efficient block sizes. A Prolly Tree is like a B-tree with some additional measures for comparing trees.
 
-## Merkle Trees
-
-A Merkle tree is a tree of hash pointers to other hash nodes, ending in leaves of actual data that is verified by the hashes.
-
-To construct a Merkle tree, start with some data (e.g. a series of files). For each data block $x_i$, compute its hash $h_i = H(x_i)$ with some hash function $H$. Then construct a binary tree from the bottom up, recursively hashing pairs of hashes. For example, the parent of $h_1$ and $h_2$ (denoted $h_{1,2}$) stores $H(h_1||h_2)$, the hash of $h_1$ concatenated with $h_2$. And then its parent $h_{1,2,3,4} = H(h_{1,2}||h_{3,4})$, and so on. Eventually this leads to one root pointer, with possibly some padding at the end of the data stream to get to a power of two.
-
-<!-- By Azaghal - Own work, CC0, https://commons.wikimedia.org/w/index.php?curid=18157888 -->
-![Merkle tree diagram.](../figures/tmp-wikipedia-merkle-tree.png)
-
-Merkle trees use hashes to verify data integrity. Say a server is storing some files $f_1, \dots, f_n$ for a client. The client only stores the root hash of this Merkle tree (constructed when the files were first given to the server), and the server can store the whole tree or recompute it on the fly. Now the client requests $f_3$ and wants to know if the file is the same as when first sent. By requesting $h_4$, $h_{1,2}$, $h_{5,6,7,8}$, and so on, the client can recompute the branch of the Merkle tree from bottom up until it gets to the root. If the computed root hash equals the old, stored-by-client hash, we know that (with very high probability) the file sent to the client is the exact same as when the client first sent it to the server. This only requires communication between the client and the server that is logarithmic in the number of files stored, and constant storage for the client (just store the original root hash).
-
-For our purposes, Merkle trees illustrate a very useful feature of hashing: a mostly-unique, stable identifier of some content. This is verifiable and directly tied to the referenced content --- if the hash of the content does not equal the hash pointer, something has gone wrong. In the prolly tree, this lets us store easily-comparable references to data. If the root hashes of two Prolly Trees are equal, the tree data is almost certainly the same; if they are not equal, then the trees differ in some way. And we can follow this same logic down the tree to compare subtrees.
-
-## Content-defined Chunking
-
-Chunking is the process of breaking up a large sequence of data into smaller blocks, or chunks.
-It's commonly used for storing large amounts of data, since there are often duplicated blocks between large files. Instead of storing the large file directly, it stores a series of pointers to chunks. Then if any chunks are shared between files, there's no duplicated data.
-
-The simplest form of chunking is fixed-length: draw a dividing line every $k$ bytes and those are the blocks. This is a useful deduplication system, but doesn't take full advantage of data similarity. What if we have two files that are almost the same, but one has an extra character at the start?
-
-<!-- https://joshleeb.com/posts/content-defined-chunking.html -->
-![The problem with fixed-size chunking.](../figures/tmp-chunk-fixed.png)
-
-This means we're sharing nothing between the two versions, even though they have almost the same contents. To fix this, we employ _content-defined chunking_.
-This means we find some way of determining chunk boundaries (when to draw a line between chunks) based on the actual contents being chunked.
-
-How can this be done? The common solution is with hashing. The hash of a chunk will always be the same, since hash functions are deterministic. However, it is pseudorandom and doesn't follow any nice pattern like "every $k$ bytes we draw a line;" this actually is beneficial in this case.
-<!-- NOTE I don't love this explanation/wording but whatever -->
-
-To do content-defined chunking, then, we first run a hash function $H$ on the first part of data (say the first byte $b_1$). If its output is below some threshold value, draw a chunk boundary and start again with just $H(b_2)$. If the output is not below that boundary, we increase the hash window size --- now we compute $H(b_1b_2)$ and see whether _that_ falls under the threshold. Repeat until at the end of the data.
-
-In practice, this naive approach is inefficient because we are potentially re-hashing some units of data (in this case bytes) many times over. To solve this, there are _rolling hash functions_ which can efficiently "slide their window" so we don't re-calculate hashes for anything.
-
-<!-- https://joshleeb.com/posts/content-defined-chunking.html -->
-![Rolling hash functions.](../figures/tmp-rolling-hash.png)
-
-Content-defined chunking is a very useful tool in general for data deduplication. But it's especially important when you expect to have a lot of very similar data. In a Prolly Tree, content-defined chunking is the final piece of the puzzle. For each search item, instead of fixed block sizes (like in a B-tree), we use CDC to decide chunks of the keys. This is far more efficient for storing multiple versions of a tree, and on average changing the data in one part of the tree won't much affect the chunking of another part of the tree.
-
 ## Prolly tree overview
 ![Dolt's version of an MST, called a prolly tree.](../figures/tmp-dolt-prolly.jpg)
 
-There are many different constructions of a Prolly Tree and many different names for the same idea; we'll use the design from DoltHub. See discussion for more about the diffferent kinds.
+Now we get to the formal definition. Use definition environment and so on; this is the crescendo. Define things directly, but add notes about how it relates to previous stuff.
+
+***
 
 A Merkle Search Tree is a combo Merkle tree and B-tree that uses content-defined chunking to determine block boundaries. To begin, a content-defined chunker is applied to the key-value pairs in sequence. Once the output of the function gets below some threshold, we draw a chunk line and restart the chunking after that line.
 <!-- image good, scribble something on the board or steal dolt's -->
@@ -109,8 +129,18 @@ By annotating the edges with metadata on what value ranges are in those subtrees
 Since a given collection of key-value pairs has a unique representation as an MST, we can easily compare two peers' trees by comparing their root hashes. If equal, the trees are equal and we do no more work. If not equal, we can compare every single child hash and only continue down the paths that differ. If the difference between the two trees is large, there will still be a large amount of work necessary to share the difference between the peers. But the work is asymptotically proportional to the difference of the trees, not the whole tree size.
 
 ## Comparison of similar structures
-(Currently informal thoughts)
+
+This "prolly tree" is defined by Dolt (CITE). But there's a lot of other similar stuff!
+
+If you already have an ordering on the data and don't need searchability, you can just do a merkle tree with content-defined chunking. This is what that one paper does! Content-defined merkle trees.
+
+And there's a Merkle Search Tree which is a bit different but the same idea. TODO explain it.
+
+We chose Dolt version of the tree — it has fewer weird questions like “what if there’s a big hash level gap” or whatever. But MST is also good! It's used in e.g. Bluesky (CITATION NEEDED).
+Also it gives me more room to do proofs about operation runtime and such.
+
+For more fun exploration, see the Dolt blog post and the follow-up.
+
+***
 
 There are so many parallel inventions of the same thing. Read the blog posts for more fun info. Generally, most constructions are like Dolt's prolly tree; MST is a bit of an outlier. In terms of design, the prolly tree is more like "start with a Merkle tree and then do CDC to get unicity and then annotate with keys for searchability." (There are the non-searchtree inventions which don't do that last step.) On the other hand, MST is like "start with a search tree and then use hashing to deterministically decide item height, also backsolve & annotate with block pointers." I find that the prolly tree approach is a bit more intuitive and has the hash structure built in which I like. But really you can do anything! DoltHub uses prolly trees. BlueSky uses MST. It's whatever. We're using prolly tree.
-
-Perhaps here is the best naming. The thing that Inria did is a Merkle Search Tree. Content-defined Merkle Trees are exactly that --- a Merkle tree with content-defined chunking, but no search keys. And a Prolly Tree is when you add search keys on top of that.

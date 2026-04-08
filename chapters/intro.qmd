@@ -72,5 +72,6 @@ Note: (idk where to put this but) we are not focusing on explicit consensus prot
 
 Assumptions of the reader (up to change):
 
-- introductory formal math (basic set theory, what $\mathbb{R}$ is, formal proofs)
-- introductory computer science? (what does this mean)
+- introductory formal math (?)
+- intro graph theory (graphs, trees, DAGs)
+- introductory computer science (trees)

@@ -214,6 +214,7 @@ TODO: figure out what I want to say in this section and why. I have all this inf
 
 In the original paper, op needs reliable network and maybe fully-connected graph? We don't have that. So need some way of tracking divergence, e.g. version vectors. And may need to keep arbitrarily-old history of operations in the case that a new peer joins or an old peer is gone for a very long time.
 
+<!-- TODO we have to address deltas because in the next section I need to say that we're not doing delta-crdts for xyz reasons -->
 State can only grow. It just keeps joining! Awkward to do something like subtract from a number. Also you gotta send over the entire state for a proper join. Delta crdts address the last point at the cost of more complexity and being kinda hybrid.
 
 What about a tree? Briefly explain the tree move, talk about the issues that that faces. What about other data structures? More complex structures tend to have harder semantics for CRDTs to handle.
