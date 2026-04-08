@@ -4,15 +4,17 @@ project:
   post-render: ./template/prelims/cleanup.bash
 
 book:
-  title: "Content-addressed Replicated Data Types"
+  title: "Prolly Trees"
   author: "Doran Penner"
   date: "May 2026"
   date-format: "MMMM YYYY"
   chapters:
     - index.qmd
     - chapters/background.qmd
-    - chapters/prolly-tree.qmd
-    - chapters/my-stuff.qmd
+    - chapters/construction.qmd
+    - chapters/properties.qmd
+    # below not part of MVP
+    - chapters/improvements.qmd
   appendices:
     - chapters/git-revisions.qmd
 
@@ -35,6 +37,8 @@ abbrs:
   CAP: Consistency, availability, partition-tolerance
   MST: Merkle search tree
   # LUB: Least upper bound
+
+# TODO idk if I want to keep this. Will need a check once I'm done.
 spectra:
   hash: |
     A *hash function* is a one-way function, which means it is easy to compute

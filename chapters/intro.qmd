@@ -20,7 +20,7 @@
         i. what it is
         ii. why it's useful
         iii. other stuff we can do: hash table, content addressing
-2. prolly tree
+2. construction
     a. search trees _(1)_
         i. desirable properties; briefly mention b-trees
     b. merkle trees _(2)_
@@ -28,7 +28,7 @@
     c. content-defined chunking _(2)_
     d. what the prolly tree actually is _(1)_
     e. discussion vs mst and others _(1)_
-3. prolly tree properties
+3. properties
     a. proofs about read/write runtimes, etc _(1 for MVP)_
     b. prolly tree as a crdt (incl. when the values are crdts) _(3)_
         i. it's a key-value set and will have those semantics
@@ -37,7 +37,7 @@
         iv. can do tombstones for deletion, but perhaps that makes the tree reconciliation messy
         v. ...?
     c. what other existing properties do we wanna talk about? how/when should I meld into my own contributions? _(?)_
-4. my work: improvements & flexibility with prolly trees (maybe each is its own chapter)
+4. improvements
     a. dynamo-like _(not in MVP)_
     b. send data in op-like way _(not in MVP)_
     c. range tree for array; other data structures (we get JSON) _(not in MVP)_

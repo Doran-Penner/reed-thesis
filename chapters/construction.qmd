@@ -1,4 +1,4 @@
-# Prolly Trees
+# Construction
 
 <!-- TODO update after I've written a bit more abourt deltas -->
 One of the biggest issues with state-based CRDTs is that the entire state needs to be shared in order to merge. This is fine with smaller states such as a number, but if the state is a list with thousands or millions of items it will quickly become prohibitive.
