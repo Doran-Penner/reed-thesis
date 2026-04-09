@@ -3,40 +3,49 @@
 <!-- TODO update after I've written a bit more abourt deltas -->
 One of the biggest issues with state-based CRDTs is that the entire state needs to be shared in order to merge. This is fine with smaller states such as a number, but if the state is a list with thousands or millions of items it will quickly become prohibitive.
 The problem is addressed by $\delta$-CRDTs, but those require more complex infrastructure.
-Can we do better? _Prolly trees_ provide a solution that embeds information about what changed directly in the data structure itself.
+Can we do better? Prolly trees provide a solution that embeds information about what changed directly in the data structure itself.
 Here is how to construct one in stages.
 
 ## Hashing and content addressing
 
-TODO add formal definitions of stuff (and citations). Hash function input and output sets. We can just consider bit strings for simplicity.
+We can use _hashing_ to reduce the communication cost of equality checks.
 
-<!-- BAD WORDING BUT WHATEVER -->
-We can use _hashing_ to reduce the communication cost of comparison --- that is, reduce the amount of data necessary to transmit when checking whether two things are equal.
+A _hash function_ is any function $H : \{0,1\}^* \to \{0,1\}^m$, mapping inputs of arbitrary length to some fixed length $m \in \mathbb{N}^+$. (We can represent all data as a sequence of bits, but will practically consider data in terms of the number of bytes or words it contains.)
+A _collision_ in a hash function $H$ is a pair of inputs $x, y \in \{0,1\}^*$ such that $H(x) = H(y)$ but $x \neq y$.
+A very simple hash function could e.g. map all inputs to the output of 0, but that's not very useful.
+We are interested in functions with small chance of collision.
 
-A _hash function_ is a function that takes variable-length input and gives fixed-length output. Its output seems random and is hard to predict or backsolve: given the hash, there's no good way to figure out what input it came from besides just trying a ton of things.
+::: {#def-collision-resistance}
+
+# Collision resistance
+
+A hash function $H$ is _collision-resistant_ if it is infeasible for any probabilistic polynomial-time algorithm to find a collision in $H$. [@intro-modern-crypto-3rd, p. 168]^[This is an informal definition --- a proper one relies on _keyed_ hash functions (which are academically studied but not relevant to practical use) and a definition of probabilistic polynomial-time algorithms. See the textbook for the full treatment.]
+This implies that its output seems random and is hard to predict or backsolve: given the hash, there's no good way to figure out what input it came from besides just trying a bunch of inputs.
+:::
 
 (A note on terminology: the word "hash" is overloaded. You hash _(verb)_ some input with a hash function _(noun)_ and the output is the hash _(noun)_ of the input.)
 
-<!-- TODO find some throwaway citation for sha256 and maybe sha3 -->
-There necessarily are _collisions_ in a hash function: for some $x, y \in \{0,1\}^*$, $H(x) = H(y)$ but $x \neq y$. (Since the output space is smaller than the input space, some inputs are pidgeonholed into the same output.)
-For our purposes, we'll ignore the chance of collisions and treat hash equality as true equality. SHA-256, a ubiquitous cryptographic hash function, has $2^256$ bits of output and there are no known collisions even after years of analysis (CITE). Even if it were a problem, we could use an additional hash function to supplement the original, swap out SHA-256 for an entirely new hash function with larger output space (like SHA3-512), or do many other things.
-TODO one more line to wrap up that paragraph.
+There necessarily are collisions in a hash function: since the output space is smaller than the input space, some inputs are pidgeonholed into the same output.
+For our purposes, we'll ignore the chance of collisions. SHA-256, a ubiquitous cryptographic hash function, has $2^{256}$ bits of output and there are no known collisions even after years of analysis.^[
+There have been various attacks on reduced-strength versions of these hash functions: see @hashcrack1, @hashcrack2, and @hashcrack3 for the state of the art as of writing this.]
+Even if it were a problem, we could use an additional hash function to supplement the original, swap out SHA-256 for an entirely new hash function with larger output space (like SHA3-512), or do many other things.
+So from here on out, we'll assume that we have access to a collision-resistant hash function $H$ whose output is large enough that if $H(x) = H(y)$ then $x = y$ except with unimaginably small likelyhood.
 
-Hashes let us cheaply compare equality. With a hash function $H$, if $H(x) = H(y)$, then $x$ most likely equals $y$. Thus if two nodes wish to compare their data, they simply hash the entirety of their data and only share the hash. If the value is the same, they most likely have the same data and don't need to communicate further. If they don't have the same hash, then they'll need to share the full CRDT's state as usual.
+With that assumption, hashes let us cheaply check equality. If $H(x) = H(y)$, then $x$ almost always equals $y$. So if two nodes wish to compare their data, they can simply hash the entirety of their data and only share the hash. If the value is the same, then by our above assumption they have the same data and don't need to communicate further. If they don't have the same hash, then they'll need to share the full CRDT's state as usual.
 
-For our purposes, we're going to ignore that! We'll assume that a hash is a unique identifier of data. All of this stuff also works when we factor in collisions, but don't worry about it.
+TODO example images for this? (and likely the others too)
 
-TODO I don't love that wording. I still need to address collisions, but I can offload management of that to the (content-addressed) block store.
-
-TODO example images for this (and likely the others too)
-
-A _hash table_ is a big array that we can index with hashes. _Content addressing_ is when we store data in a hash table at its hash index. This lets us get a special kind of pointer to any data. But normal computer pointers reference a location in memory that is specific to the program being run. A "hash pointer" is defined by the data it points to and will always be the same no matter what machine we're on.
-
-And content-addressed storage lets us also look up data by hash, meaning that we only need to deal with hashes a lot of the time. This works across machines --- no matter the node, the same hash algorithm will produce the same hash of a given input.
+<!-- TODO should I give an example of a hash table? -->
+<!-- TODO don't love wording but whatever. -->
+_Content-addressed storage_ is a database that supports efficient queries via the hash of the desired content.
+This is immensely useful in distributed systems. Normal computer pointers reference a location in memory that is specific to the program being run and the device that it's on. But a hash is defined by the data it points to and will always be the same, no matter what machine calculates the hash. This means it can be used as a stable, cross-machine pointer to a block of data.
+Prolly trees have a lot of data that we want to reference by hash; content addressing means we generally only need to deal with hashes, and can easily get the content when desired.
 
 ## Merkle Trees
 
-What if we have a lot of data to store? Should we take a hash of everything at once? But then if any small part changes we'll still have to transmit the full data. And if we hash everything individually, we'll have to manage $n$ hashes. There's a better way to organize everything together.
+What if we have a lot of data to store? Should we take a hash of everything at once? But then if any small part changes we'll still have to transmit the full data. And if we hash everything individually, we'll have to manage $n$ individual hashes. There's a better way to organize everything together.
+
+DEFINITION ENV?
 
 A _Merkle tree_ is a tree of hash pointers to other hash nodes, ending in leaves of actual data that is verified by the hashes.
 
@@ -50,7 +59,7 @@ To construct a Merkle tree, start with some data (e.g. a series of files). For e
 
 <!-- TODO the first part is really the point of hashing in general. Merkle trees are good to compose this, more like the second part. -->
 We can compose hashes in a tree structure by taking hashes of hashes, which preserves the hash-pointer guarantees no mater how deep the tree is.
-In the prolly tree, this lets us store easily-comparable references to data. If the root hashes of two Prolly Trees are equal, the tree data is almost certainly the same; if they are not equal, then the trees differ in some way. And we can follow this same logic down the tree to compare subtrees. If the root hashes of two Merkle trees are different but some of the children are the same (TODO define children), we know that that section is the same. So we can follow the differences down the tree to figure out the difference between two merkle trees' contents.
+In the prolly tree, this lets us store easily-comparable references to data. If the root hashes of two Prolly Trees are equal, the tree data is almost certainly the same; if they are not equal, then the trees differ in some way. And we can follow this same logic down the tree to compare subtrees. If the root hashes of two Merkle trees are different but some of the children are the same (TODO define children?), we know that that section is the same. So we can follow the differences down the tree to figure out the difference between two merkle trees' contents.
 
 ## Content-defined Chunking
 
