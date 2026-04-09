@@ -10,16 +10,16 @@ Here is how to construct one in stages.
 
 We can use _hashing_ to reduce the communication cost of equality checks.
 
-A _hash function_ is any function $H : \{0,1\}^* \to \{0,1\}^m$, mapping inputs of arbitrary length to some fixed length $m \in \mathbb{N}^+$. (We can represent all data as a sequence of bits, but will practically consider data in terms of the number of bytes or words it contains.)
+A _hash function_ is any function $H : \{0,1\}^* \to \{0,1\}^m$, mapping inputs of arbitrary length to some fixed length $m \in \mathbb{N}^+$. (We can represent all data as a sequence of bits, though will practically consider data in terms of the number of bytes or words it contains.)
 A _collision_ in a hash function $H$ is a pair of inputs $x, y \in \{0,1\}^*$ such that $H(x) = H(y)$ but $x \neq y$.
 A very simple hash function could e.g. map all inputs to the output of 0, but that's not very useful.
 We are interested in functions with small chance of collision.
 
 ::: {#def-collision-resistance}
 
-# Collision resistance
+### Collision resistance
 
-A hash function $H$ is _collision-resistant_ if it is infeasible for any probabilistic polynomial-time algorithm to find a collision in $H$. [@intro-modern-crypto-3rd, p. 168]^[This is an informal definition --- a proper one relies on _keyed_ hash functions (which are academically studied but not relevant to practical use) and a definition of probabilistic polynomial-time algorithms. See the textbook for the full treatment.]
+A hash function $H$ is _collision-resistant_ if it is infeasible for any probabilistic polynomial-time algorithm to find a collision in $H$ [@intro-modern-crypto-3rd, p. 168].^[This is an informal definition --- a proper one relies on _keyed_ hash functions (which are academically studied but not relevant to our use) and a definition of probabilistic polynomial-time algorithms. See the textbook for the full treatment.]
 This implies that its output seems random and is hard to predict or backsolve: given the hash, there's no good way to figure out what input it came from besides just trying a bunch of inputs.
 :::
 
@@ -29,7 +29,7 @@ There necessarily are collisions in a hash function: since the output space is s
 For our purposes, we'll ignore the chance of collisions. SHA-256, a ubiquitous cryptographic hash function, has $2^{256}$ bits of output and there are no known collisions even after years of analysis.^[
 There have been various attacks on reduced-strength versions of these hash functions: see @hashcrack1, @hashcrack2, and @hashcrack3 for the state of the art as of writing this.]
 Even if it were a problem, we could use an additional hash function to supplement the original, swap out SHA-256 for an entirely new hash function with larger output space (like SHA3-512), or do many other things.
-So from here on out, we'll assume that we have access to a collision-resistant hash function $H$ whose output is large enough that if $H(x) = H(y)$ then $x = y$ except with unimaginably small likelyhood.
+So from here on out, we'll assume that we have access to a collision-resistant hash function $H$ whose output is large enough that if $H(x) = H(y)$ then $x = y$ except with unimaginably small chance.
 
 With that assumption, hashes let us cheaply check equality. If $H(x) = H(y)$, then $x$ almost always equals $y$. So if two nodes wish to compare their data, they can simply hash the entirety of their data and only share the hash. If the value is the same, then by our above assumption they have the same data and don't need to communicate further. If they don't have the same hash, then they'll need to share the full CRDT's state as usual.
 
@@ -37,29 +37,34 @@ TODO example images for this? (and likely the others too)
 
 <!-- TODO should I give an example of a hash table? -->
 <!-- TODO don't love wording but whatever. -->
-_Content-addressed storage_ is a database that supports efficient queries via the hash of the desired content.
-This is immensely useful in distributed systems. Normal computer pointers reference a location in memory that is specific to the program being run and the device that it's on. But a hash is defined by the data it points to and will always be the same, no matter what machine calculates the hash. This means it can be used as a stable, cross-machine pointer to a block of data.
+_Content-addressed storage_ is a database that supports efficient queries via the hash of the desired content. So given a hash $h$, it will return the data $x$ for which $H(x) = h$ (assuming that that data has been previously put into the storage).
+This is immensely useful in distributed systems because it provides a clear way to concisely reference data. Normal computer pointers reference a location in memory that is specific to the program being run and the device that it's on. But a hash is defined by the data it points to and will always be the same, no matter what machine calculates the hash. This means it can be used as a stable, cross-machine pointer to a block of data.
 Prolly trees have a lot of data that we want to reference by hash; content addressing means we generally only need to deal with hashes, and can easily get the content when desired.
 
 ## Merkle Trees
 
 What if we have a lot of data to store? Should we take a hash of everything at once? But then if any small part changes we'll still have to transmit the full data. And if we hash everything individually, we'll have to manage $n$ individual hashes. There's a better way to organize everything together.
 
-DEFINITION ENV?
+TODO definition env?
 
-A _Merkle tree_ is a tree of hash pointers to other hash nodes, ending in leaves of actual data that is verified by the hashes.
+A _Merkle tree_ is a tree of hash pointers to other hash nodes, ending in leaves of actual data that is verified by the hashes [@merkle-tree].
 
-To construct a Merkle tree, start with some data (e.g. a series of files). For each data block $x_i$, compute its hash $h_i = H(x_i)$ with some hash function $H$. Then construct a binary tree from the bottom up, recursively hashing pairs of hashes. For example, the parent of $h_1$ and $h_2$ (denoted $h_{1,2}$) stores $H(h_1||h_2)$, the hash of $h_1$ concatenated with $h_2$. And then its parent $h_{1,2,3,4} = H(h_{1,2}||h_{3,4})$, and so on. Eventually this leads to one root pointer, with possibly some padding at the end of the data stream to get to a power of two.
+To construct a Merkle tree, start with some data (e.g. a series of files). For each data block $x_i$ (e.g. each file), compute its hash $h_i = H(x_i)$. Then construct a binary tree from the bottom up, recursively hashing pairs of hashes. For example, the parent of $h_1$ and $h_2$ (denoted $h_{1,2}$) stores $H(h_1||h_2)$, the hash of $h_1$ concatenated with $h_2$. And then its parent $h_{1,2,3,4} = H(h_{1,2}||h_{3,4})$, and so on. Eventually this leads to a single hash, called the root hash since it's at the root of the tree.
+Taking hashes of hashes in this way maintains collision resistance --- it is still computationally infeasible to find a collision in two Merkle tree root hashes.
+<!-- (If the number of blocks is not a power of two, we can add padding at the end or have an uneven tree.) -->
 
 <!-- By Azaghal - Own work, CC0, https://commons.wikimedia.org/w/index.php?curid=18157888 -->
 ![Merkle tree diagram.](../figures/tmp-wikipedia-merkle-tree.png)
 
-<!-- TODO do I wanna use this example? Or should i just describe a very simple state-based "prolly tree" up to this point? -->
-<!-- Merkle trees use hashes to verify data integrity. Say a server is storing some files $f_1, \dots, f_n$ for a client. The client only stores the root hash of this Merkle tree (constructed when the files were first given to the server), and the server can store the whole tree or recompute it on the fly. Now the client requests $f_3$ and wants to know if the file is the same as when first sent. By requesting $h_4$, $h_{1,2}$, $h_{5,6,7,8}$, and so on, the client can recompute the branch of the Merkle tree from bottom up until it gets to the root. If the computed root hash equals the old, stored-by-client hash, we know that (with very high probability) the file sent to the client is the exact same as when the client first sent it to the server. This only requires communication between the client and the server that is logarithmic in the number of files stored, and constant storage for the client (just store the original root hash). -->
+Merkle trees solve our problem of hashing large amounts of data. Assume that our state-based CRDT has some way to represent its current state in an ordered way, e.g. a binary string. Furthermore, assume that this representation is unique for a given state. Then we can construct a Merkle tree on e.g. 1-kibibyte chunks of its data. This is a bit of extra storage, but not much --- we store about two hashes for every 1KiB, which is roughly 6% extra storage space.
+And the benefits are dramatic.
 
-<!-- TODO the first part is really the point of hashing in general. Merkle trees are good to compose this, more like the second part. -->
-We can compose hashes in a tree structure by taking hashes of hashes, which preserves the hash-pointer guarantees no mater how deep the tree is.
-In the prolly tree, this lets us store easily-comparable references to data. If the root hashes of two Prolly Trees are equal, the tree data is almost certainly the same; if they are not equal, then the trees differ in some way. And we can follow this same logic down the tree to compare subtrees. If the root hashes of two Merkle trees are different but some of the children are the same (TODO define children?), we know that that section is the same. So we can follow the differences down the tree to figure out the difference between two merkle trees' contents.
+To explain, say that two nodes $A$ and $B$ wish to compare states. Each constructs a Merkle tree on their data which happens to have four leaves. Notate $A$'s root hash as $a_{1,2,3,4}$ and $B$'s root hash as $b_{1,2,3,4}$.
+Now $A$ and $B$ share their root hashes. If they are the same, then (with overwhelming probability) their data is the same and thus the states are the same.
+And if the hashes are different, the states are different --- but we can find _where_ they differ. If $a_{1,2,3,4} \neq b_{1,2,3,4}$, then $A$ and $B$ can share the next layer's hashes: $a_{1,2}$, $a_{3,4}$, $b_{1,2}$, and $b_{3,4}$. If $a_{1,2} = b_{1,2}$, then that section of the Merkle tree is the same, so we don't need to go further down that path: the Merkle tree structure means that all the data in that subtree is identical. So $A$ and $B$ will only have to compare data in the right subtree where $a_{3,4} \neq b_{3,4}$. This process can recurse all the way down the tree until both nodes have a list of the leaf hashes that differ, which tells them what data they need to actually share. In the worst case, every hash differs between the two nodes and both need to share their entire states. But when only a small amount of data has changed, a Merkle tree means that they may only need to share a small amount of data, which immensely reduces the communication cost of merging states.
+
+All of this relies on a standard way to represent and order the data. In some domains, such as tracking modifications to a large file, there is a natural way to do this. But some domains are harder. For example, if a CRDT implements a Set ADT, how should its data be represented for the Merkle Tree? There needs to be some representation that is unique to the abstract state, not just the internal state.
+<!-- TODO don't love that but should move on. -->
 
 ## Content-defined Chunking
 
