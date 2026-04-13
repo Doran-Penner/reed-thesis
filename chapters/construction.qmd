@@ -70,7 +70,18 @@ And if the hashes are different, the states are different --- but we can find _w
 All of this relies on a standard way to represent and order the data. In some domains, such as tracking modifications to a large file, there is a natural way to do this. But some domains are harder. For example, if a CRDT implements an approximate Set ADT, how should its data be represented for the Merkle Tree? Sets don't have inherent order. There needs to be some representation that is unique to the abstract state, not just the internal state.
 <!-- TODO don't love that but should move on. -->
 
-## Content-defined Chunking
+## Content-defined chunking
+
+ALT TITLE: Rolling hash(es|ing)?
+
+WIP OUTLINE
+
+- explain CDC simply: tries to fix the boundary-shift problem (in many areas besides distsys) while still deduplicating things and being deterministic.
+- give explanation of simple gear hash (judgment function)
+- say "future work fixes problems like normalization, but that's not our problem"
+- recap and say "look we now have a fancier merkle tree for state-based crdts"
+
+***
 
 The scheme we just described has a big problem. What if data is added to the start? For example, say our List CRDT for a file serializes as a list of its values and some node adds data to the start of the file. This necessarily changes the hash of the first block in the Merkle tree, but has cascading effects --- all the data shift down the line a bit, meaning that all chunks suddenly have new hashes. So our Merkle tree hash comparison would see that the nodes need to transmit all of their state, even though just a little bit has changed.
 
@@ -78,44 +89,30 @@ The scheme we just described has a big problem. What if data is added to the sta
 <!-- https://joshleeb.com/posts/content-defined-chunking.html -->
 ![The problem with fixed-size chunking.](../figures/tmp-chunk-fixed.png)
 
-<!-- Chunking is commonly used for storing large amounts of data, since there are often duplicated blocks between large files. Instead of storing the large file directly, it stores a series of pointers to chunks. Then if any chunks are shared between files, there's no duplicated data. -->
 Generally, _chunking_ is the process of breaking up a large sequence of data into smaller blocks, or chunks.
-The simplest form of chunking is fixed-length: draw a dividing line every $k$ bytes and those are the blocks. (This is what we did initially with the Merkle tree.) This is a useful deduplication system, but as shown above it doesn't take full advantage of data similarity.
+What we did initially with the Merkle tree is fixed-length chunking: draw a dividing line every $k$ bytes and those are the blocks. This is a useful deduplication system, but as shown above it doesn't take full advantage of data similarity. _Content-defined chunking_ (CDC) attempts to fix this boundary-shift problem by determining chunk boundaries (when to draw a line between chunks) based on the actual contents being chunked. It doesn't fix the duplication problem entirely, but good CDC is reasonably efficient and reduces the problem when new data is inserted.
 
-We can't fix the chunk-shift problem entirely, but we can make it less likely to happen with _content-defined chunking_.
-This means we find some way of determining chunk boundaries (when to draw a line between chunks) based on the actual contents being chunked.
+::: {#def-rolling-hash}
 
-TODO give better explanation of rolling hash, use academic references, etc. I should just skip to a rolling hash and not talk about this fake intermediary.
+### Rolling hash
 
-How can this be done? The common solution is with a _rolling hash_.
+A _rolling hash_ computes a random-seeming (but deterministic) value of a sliding window of data. TODO improve that definition.
 
-TODO I'm tired and unenthusiastic about explaining the details of rolling hashes. I'm gonna move on for now, but will get back to this.
+:::
 
-- explain CDC simply: tries to fix the boundary-shift problem (in many areas besides distsys) while still deduplicating things and being deterministic.
-- maybe go into detail. If yes...
-  - give explanation of simple gear hash (judgment function)
-  - say "future work fixes problems like normalization, but that's not our problem"
-- otherwise can black-box it and say that we have neat tools to do this.
-  - Don't love that approach but it might be best, and I can add references to papers. (Note that the one blog post empirically didn't have big boundary-shift issues, though that's limited.)
-- recap and say "look we now have a better merkle tree for state-based crdts"
+Notably, these are not collision-resistant hash functions that we covered earlier --- but they're not made to have low chance of collision.
+Instead, rolling hashes provide an efficient way to do CDC by TODO HOW DO I SAY WHAT IT DOES.
+TODO explain how they work and give examples. Maybe drop the definition environment and instead just have a big paragraph explaining how they work in theory.
 
-***
+A very simple rolling hash is the Gear hash [@ddelta]. TODO give the recursive definition and talk about its properties.
 
-The hash of a chunk will always be the same, since hash functions are deterministic. However, it is pseudorandom and doesn't follow any nice pattern like "every $k$ bytes we draw a line;" this actually is beneficial in this case.
-<!-- NOTE I don't love this explanation/wording but whatever -->
+<!-- FIXME I don't have the license for this or some other images -->
+<!-- https://joshleeb.com/posts/gear-hashing.html -->
+![Gear hashing.](../figures/tmp-gear-hash.png)
 
-To do content-defined chunking, then, we first run a hash function $H$ on the first part of data (say the first byte $b_1$). If its output is below some threshold value, draw a chunk boundary and start again with just $H(b_2)$. If the output is not below that boundary, we increase the hash window size --- now we compute $H(b_1b_2)$ and see whether _that_ falls under the threshold. Repeat until at the end of the data.
-
-In practice, this naive approach is inefficient because we are potentially re-hashing some units of data (in this case bytes) many times over. To solve this, there are _rolling hash functions_ which can efficiently "slide their window" so we don't re-calculate hashes for anything. Rolling hash functions do not have the same cryptographic guarantees as standard hash functions, but we don't need such strong guarantees for this application --- just a deterministic but random-seeming way to chunk data.
-
-<!-- https://joshleeb.com/posts/content-defined-chunking.html -->
-![Rolling hash functions.](../figures/tmp-rolling-hash.png)
-
-TODO explain how we can improve merkle trees with this.
-Should I (briefly) describe the recursive rolling hash application, creating a content-defined merkle tree? I think so, but not too formally. That'll come later.
-Also remember that the unicity of representation **depends on having an ordering on insertion**, which we have to externally enforce somehow. If there's already an ordering on the data (e.g. a large file), that's great.
-
-Content-defined chunking is a very useful tool in general for data deduplication. But it's especially important when you expect to have a lot of very similar data. In a Prolly Tree, content-defined chunking is the final piece of the puzzle. For each search item, instead of fixed block sizes (like in a B-tree), we use CDC to decide chunks of the keys. This is far more efficient for storing multiple versions of a tree, and on average changing the data in one part of the tree won't much affect the chunking of another part of the tree.
+There are further improvements to this scheme, such as in @fastcdc, but we won't go into the details of modern constructions. All that is important for the Prolly Tree is that we have access to some chunking strategy that is efficient and usually won't cause a cascading effect of chunk boundary changes when data is inserted in the middle of the input.
+In a Prolly tree, content-defined chunking mostly fixes the chunk-shift problem when data is inserted at the start of the state representation.
+Thus we can do the Merkle tree hash comparison as before, but are likely to not have too many chunks shift when data is inserted, meaning that more hashes will be the same and there is less redundant data transfer between nodes.
 
 ## Search trees
 

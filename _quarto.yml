@@ -4,7 +4,7 @@ project:
   post-render: ./template/prelims/cleanup.bash
 
 book:
-  title: "Prolly Trees"
+  title: "Prolly Trees"  # ALT: Prolly Trees for State-Based CRDTs
   author: "Doran Penner"
   date: "May 2026"
   date-format: "MMMM YYYY"
@@ -36,6 +36,7 @@ abbrs:
   DAG: Directed acyclic graph
   CAP: Consistency, availability, partition-tolerance
   MST: Merkle search tree
+  CDC: Content-defined chunking
   # LUB: Least upper bound
 
 # TODO idk if I want to keep this. Will need a check once I'm done.
