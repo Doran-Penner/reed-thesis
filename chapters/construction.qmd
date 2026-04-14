@@ -126,20 +126,41 @@ B-trees are a search tree constructed to maintain balance and have large (parame
 
 ROUGH OVERVIEW
 
-Now we have all the tools we need. Say we want a state-based CRDT that implements a key-value store with some ordering on the keys (e.g. the keys are integers). Then we can represent the data as key-value pairs in a long sequence. Then we can do chunking, then take hashes, then chunk those hashes, and so on until we get to the root. And that's a Prolly Tree!
-
 How about inserting and deleting and updating? Here's how. Pretty efficient.
 
 ...
 
+<!-- TODO I want an image :( -->
+Now we have all the tools we need to construct the final Prolly Tree.
+Say we want a state-based CRDT that implements a key-value store with some ordering on the keys (e.g. the keys are integers).
+So we can represent the state as a sequence of key-value pairs $(k_i, v_i)$. Now:
+
+1. Run a content-defined chunker (a rolling hash and judgment function) on the input key-value pairs, checking for boundaries after the end of each pair (so we don't break apart the keys or values).
+2. Then for each block,
+   1. put it in our content-addressable storage,
+   2. take the hash of that block $h_j$,
+   3. and pair that hash with the smallest key $k_j$ that was held in that block.
+3. Now we have a new sequence of key-value pairs $(k_j, h_j)$ (though the values are hashes). Recurse on this new sequence until there is only one key-hash pair remaining. This is the root of the Prolly Tree.
+
+And that's it!
+
+<!-- TODO should I do a proper Algorithm environment? -->
+
+<!--
+TODO do we annotate with keys, or is that part of the data? I can see two worlds.
+One says that after the first round of hashing, we simply concatenate those hashes and do the next round of hashing on just the hashes. Then we have no search tree info, so we have to annotate with where to find what child. And that metadata doesn't factor into any further hashing.
+The other says that we treat each parent node as a key-value thing, where the key is the e.g. smallest key in its child blocks and the value is the hash pointer to the next node down. Then we don't need to do any extra hashing, and it's a bit of a nicer schema because we always are dealing with key-value pairs. (But at the leaves it's key-realvalue, instead of key-hashvalue.)
+I like the second one the most. And it seems most accurate to the original Noms diagrams. https://github.com/attic-labs/noms/blob/master/doc/intro.md#prolly-trees-probabilistic-b-trees
+TODO update description with this new knowledge
+--> 
+
+To compare states between nodes, X.
+
+To insert, Y.
+Deleting and updating are similar --- Z.
+
 ***
 
-Now we get to the formal definition. Use definition environment and so on; this is the crescendo. Define things directly, but add notes about how it relates to previous stuff.
-
-From the ground up, here is how we construct a Prolly Tree.
-
-A Merkle Search Tree is a combo Merkle tree and B-tree that uses content-defined chunking to determine block boundaries. To begin, a content-defined chunker is applied to the key-value pairs in sequence. Once the output of the function gets below some threshold, we draw a chunk line and restart the chunking after that line.
-<!-- image good, scribble something on the board or steal dolt's -->
 Once chunks have been determined, those are the leaves of the tree --- the places where actual the actual key-value data live. Now we take a hash of each chunk (which will act as a pointer to that block) and concatenate them into another large stream. Then we do the whole chunk-and-hash step again, and again, and again, until there is only one block at the top (the chunker didn't draw any lines in the middle of the hash stream). That's the root of the tree!
 By annotating the edges with metadata on what value ranges are in those subtrees, we get a searchable tree (like a B-tree) that can efficiently find keys in logarithmic time. Using hashes as pointers for all of this (like a Merkle tree) means the entire structure is self-verifying and not dependent on the machine or environment it's on. And content-defined chunking gives a unique prolly tree representation for a given set of items that will still be (probabilistically) balanced.
 
