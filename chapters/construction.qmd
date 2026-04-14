@@ -26,8 +26,8 @@ This implies that its output seems random and is hard to predict or backsolve: g
 
 (A note on terminology: the word "hash" is overloaded. You hash _(verb)_ some input with a hash function _(noun)_ and the output is the hash _(noun)_ of the input.)
 
-There necessarily are collisions in a hash function: since the output space is smaller than the input space, some inputs are pidgeonholed into the same output.
-For our purposes, we'll ignore the chance of collisions. SHA-256, a ubiquitous cryptographic hash function, has $2^{256}$ bits of output and there are no known collisions even after years of analysis.^[
+There necessarily are collisions in a hash function, even a collision-resistant one: since the output space is finite and the input space is infinite, an infinite class of inputs are pidgeonholed into the same output.
+For our purposes, we'll ignore the chance of collisions. SHA-256, a ubiquitous cryptographic hash function, has $2^{256}$ bits of output and there are no known collisions even after decades of analysis.^[
 There have been various attacks on reduced-strength versions of these hash functions: see @hashcrack1, @hashcrack2, and @hashcrack3 for the state of the art as of writing this.]
 Even if it were a problem, we could use an additional hash function to supplement the original, swap out SHA-256 for an entirely new hash function with larger output space (like SHA3-512), or do many other things.
 So from here on out, we'll assume that we have access to a collision-resistant hash function $H$ whose output is large enough that if $H(x) = H(y)$ then $x = y$ except with unimaginably small chance.
@@ -37,12 +37,12 @@ With that assumption, hashes let us cheaply check equality. If $H(x) = H(y)$, th
 <!-- TODO example images for this? (and likely the others too) -->
 
 _Content-addressed storage_ is a database that supports efficient queries via the hash of the desired content. So given a hash $h$, it will return the data $x$ for which $H(x) = h$ (assuming that that data has been previously put into the storage).
-One way to do this is with hash tables --- with an array of size $n$, you store $x$ at index $h \mod n$. This table can have collisions, which can be fixed in many ways; for our purposes we will let the storage deal with that, and assume we have access to content-addressed storage that correctly retrieves data from its hash.
+One way to do this is with hash tables --- with an array of size $n$, you store $x$ at index $h \mod n$. This table can have its own collisions, which can be fixed in many ways; for our purposes we will let other programs deal with that, and assume we have access to content-addressed storage that correctly retrieves data from its hash.
 
 Content-addressed storage is immensely useful in distributed systems because it provides a clear way to concisely reference data. Normal computer programs can do this with pointers, but those reference a location in memory that is specific to the program being run and the device that it's on. A hash is defined by the data it points to and will always be the same, no matter what machine calculates the hash. This means it can be used as a stable, cross-machine pointer to a block of data.
 Prolly trees have a lot of data that we want to reference by hash; content addressing means we generally only need to deal with hashes, and can easily get the content when desired.
 
-## Merkle Trees
+## Merkle trees
 
 What if we have a lot of data to store? Should we take a hash of everything at once? But then if any small part changes, two hashes between nodes will be different and they'll still have to transmit the full data. And if we hash a bunch of data blocks individually, we'll have to manage $n$ individual hashes. There's a better way to organize everything together.
 
@@ -64,13 +64,14 @@ Taking hashes of hashes in this way maintains collision resistance --- it is sti
 Merkle trees solve our problem of hashing large amounts of data. Assume that our state-based CRDT has some way to represent its current state in an ordered way, e.g. a binary string. Furthermore, assume that this representation is unique for a given state. Then we can construct a Merkle tree on e.g. 1-kibibyte chunks of its data. This is a bit of extra storage, but not much --- we store about two hashes for every 1KiB, which is roughly 6% extra storage space.
 And the benefits are dramatic.
 
-To explain, say that two nodes $A$ and $B$ wish to compare states. Each constructs a Merkle tree on their data which happens to have four leaves. Notate $A$'s root hash as $a_{1,2,3,4}$ and $B$'s root hash as $b_{1,2,3,4}$.
+To explain, say that two nodes $A$ and $B$ wish to compare states. Each constructs a Merkle tree on their data, which for this example has four leaves. Notate $A$'s root hash as $a_{1,2,3,4}$ and $B$'s root hash as $b_{1,2,3,4}$.
 Now $A$ and $B$ share their root hashes. If they are the same, then (with overwhelming probability) their data is the same and thus the states are the same.
 And if the hashes are different, the states are different --- but we can find _where_ they differ. If $a_{1,2,3,4} \neq b_{1,2,3,4}$, then $A$ and $B$ can share the next layer's hashes: $a_{1,2}$, $a_{3,4}$, $b_{1,2}$, and $b_{3,4}$. (All of this data lives in our content-addressable storage for easy retrieval.) If $a_{1,2} = b_{1,2}$, then that section of the Merkle tree is the same, so we don't need to go further down that path: the Merkle tree structure means that all the data in that subtree is identical. So $A$ and $B$ will only have to compare data in the right subtree where $a_{3,4} \neq b_{3,4}$. This process can recurse all the way down the tree until both nodes have a list of the leaf hashes that differ, which tells them what data they need to actually share. In the worst case, every hash differs between the two nodes and both need to share their entire states. But when only a small amount of data has changed, a Merkle tree means that they may only need to share a small amount of data, which immensely reduces the communication cost of merging states.
 
 All of this relies on a standard way to represent and order the data. In some domains, such as tracking modifications to a large file, there is a natural way to do this. But some domains are harder. For example, if a CRDT implements an approximate Set ADT, how should its data be represented for the Merkle Tree? Sets don't have inherent order. There needs to be some representation that is unique to the abstract state, not just the internal state.
 Prolly Trees represent a key-value mapping with some ordering on the keys, and we'll use that to create a consistent data representation.
 <!-- TODO don't love that but should move on. -->
+<!-- TODO should I just drop the hard cases? We only care about Prolly Trees. -->
 
 ## Rolling hashes
 
@@ -119,7 +120,7 @@ Another nice property to have in a search tree is balancing. If the tree is bala
 
 B-trees are a search tree constructed to be balanced and have large (parameterized) block size [CITE]. But our modified Merkle tree is also balanced, since all the data is at the same level; and we can configure the chunking judgment function to create an average block size. So we can use the Prolly Tree as a search tree and it will work efficiently.
 
-## Prolly tree overview
+## Prolly Trees
 <!-- FIXME I want images that I'm allowed to use :( -->
 <!-- ![Dolt's version of an MST, called a prolly tree.](../figures/tmp-dolt-prolly.jpg) -->
 
