@@ -10,7 +10,7 @@ Here is how to construct one in stages.
 
 We can use _hashing_ to reduce the communication cost of equality checks.
 
-A _hash function_ is any function $H : \{0,1\}^* \to \{0,1\}^m$, mapping inputs of arbitrary length to some fixed length $m \in \mathbb{N}^+$. (We can represent all data as a sequence of bits, though will practically consider data in terms of the number of bytes or words it contains.)
+A _hash function_ is any function $H : \{0,1\}^* \to \{0,1\}^m$, mapping inputs of arbitrary length to some fixed length $m \in \mathbb{N}^+$. (We can represent all data as a sequence of bits, though will practically consider larger units such as bytes.)
 A _collision_ in a hash function $H$ is a pair of inputs $x, y \in \{0,1\}^*$ such that $H(x) = H(y)$ but $x \neq y$.
 A very simple hash function could e.g. map all inputs to the output of 0, but that's not very useful.
 We are interested in functions with small chance of collision.
@@ -35,10 +35,10 @@ With that assumption, hashes let us cheaply check equality. If $H(x) = H(y)$, th
 
 <!-- TODO example images for this? (and likely the others too) -->
 
-<!-- TODO should I give an example of a hash table? -->
-<!-- TODO don't love wording but whatever. -->
 _Content-addressed storage_ is a database that supports efficient queries via the hash of the desired content. So given a hash $h$, it will return the data $x$ for which $H(x) = h$ (assuming that that data has been previously put into the storage).
-This is immensely useful in distributed systems because it provides a clear way to concisely reference data. Normal computer programs can do this with pointers, but those reference a location in memory that is specific to the program being run and the device that it's on. A hash is defined by the data it points to and will always be the same, no matter what machine calculates the hash. This means it can be used as a stable, cross-machine pointer to a block of data.
+One way to do this is with hash tables --- with an array of size $n$, you store $x$ at index $h \mod n$. This table can have collisions, which can be fixed in many ways; for our purposes we will let the storage deal with that, and assume we have access to content-addressed storage that correctly retrieves data from its hash.
+
+Content-addressed storage is immensely useful in distributed systems because it provides a clear way to concisely reference data. Normal computer programs can do this with pointers, but those reference a location in memory that is specific to the program being run and the device that it's on. A hash is defined by the data it points to and will always be the same, no matter what machine calculates the hash. This means it can be used as a stable, cross-machine pointer to a block of data.
 Prolly trees have a lot of data that we want to reference by hash; content addressing means we generally only need to deal with hashes, and can easily get the content when desired.
 
 ## Merkle Trees
@@ -65,52 +65,42 @@ And the benefits are dramatic.
 
 To explain, say that two nodes $A$ and $B$ wish to compare states. Each constructs a Merkle tree on their data which happens to have four leaves. Notate $A$'s root hash as $a_{1,2,3,4}$ and $B$'s root hash as $b_{1,2,3,4}$.
 Now $A$ and $B$ share their root hashes. If they are the same, then (with overwhelming probability) their data is the same and thus the states are the same.
-And if the hashes are different, the states are different --- but we can find _where_ they differ. If $a_{1,2,3,4} \neq b_{1,2,3,4}$, then $A$ and $B$ can share the next layer's hashes: $a_{1,2}$, $a_{3,4}$, $b_{1,2}$, and $b_{3,4}$. If $a_{1,2} = b_{1,2}$, then that section of the Merkle tree is the same, so we don't need to go further down that path: the Merkle tree structure means that all the data in that subtree is identical. So $A$ and $B$ will only have to compare data in the right subtree where $a_{3,4} \neq b_{3,4}$. This process can recurse all the way down the tree until both nodes have a list of the leaf hashes that differ, which tells them what data they need to actually share. In the worst case, every hash differs between the two nodes and both need to share their entire states. But when only a small amount of data has changed, a Merkle tree means that they may only need to share a small amount of data, which immensely reduces the communication cost of merging states.
+And if the hashes are different, the states are different --- but we can find _where_ they differ. If $a_{1,2,3,4} \neq b_{1,2,3,4}$, then $A$ and $B$ can share the next layer's hashes: $a_{1,2}$, $a_{3,4}$, $b_{1,2}$, and $b_{3,4}$. (All of this data lives in our content-addressable storage for easy retrieval.) If $a_{1,2} = b_{1,2}$, then that section of the Merkle tree is the same, so we don't need to go further down that path: the Merkle tree structure means that all the data in that subtree is identical. So $A$ and $B$ will only have to compare data in the right subtree where $a_{3,4} \neq b_{3,4}$. This process can recurse all the way down the tree until both nodes have a list of the leaf hashes that differ, which tells them what data they need to actually share. In the worst case, every hash differs between the two nodes and both need to share their entire states. But when only a small amount of data has changed, a Merkle tree means that they may only need to share a small amount of data, which immensely reduces the communication cost of merging states.
 
 All of this relies on a standard way to represent and order the data. In some domains, such as tracking modifications to a large file, there is a natural way to do this. But some domains are harder. For example, if a CRDT implements an approximate Set ADT, how should its data be represented for the Merkle Tree? Sets don't have inherent order. There needs to be some representation that is unique to the abstract state, not just the internal state.
 <!-- TODO don't love that but should move on. -->
 
-## Content-defined chunking
+## Rolling hashes
 
-ALT TITLE: Rolling hash(es|ing)?
-
-WIP OUTLINE
-
-- explain CDC simply: tries to fix the boundary-shift problem (in many areas besides distsys) while still deduplicating things and being deterministic.
-- give explanation of simple gear hash (judgment function)
-- say "future work fixes problems like normalization, but that's not our problem"
-- recap and say "look we now have a fancier merkle tree for state-based crdts"
-
-***
+<!-- ALT TITLE: Content-defined chunking -->
 
 The scheme we just described has a big problem. What if data is added to the start? For example, say our List CRDT for a file serializes as a list of its values and some node adds data to the start of the file. This necessarily changes the hash of the first block in the Merkle tree, but has cascading effects --- all the data shift down the line a bit, meaning that all chunks suddenly have new hashes. So our Merkle tree hash comparison would see that the nodes need to transmit all of their state, even though just a little bit has changed.
+This doesn't affect correctness, but can ruin our performance gains from using the Merkle tree comparison scheme. We want a way to have the Merkle tree improvements in most cases of data insertion, not just when new data is appended to the end.
 
 <!-- TODO example (with image?) of this issue? -->
 <!-- https://joshleeb.com/posts/content-defined-chunking.html -->
-![The problem with fixed-size chunking.](../figures/tmp-chunk-fixed.png)
+<!-- ![The problem with fixed-size chunking.](../figures/tmp-chunk-fixed.png) -->
 
 Generally, _chunking_ is the process of breaking up a large sequence of data into smaller blocks, or chunks.
-What we did initially with the Merkle tree is fixed-length chunking: draw a dividing line every $k$ bytes and those are the blocks. This is a useful deduplication system, but as shown above it doesn't take full advantage of data similarity. _Content-defined chunking_ (CDC) attempts to fix this boundary-shift problem by determining chunk boundaries (when to draw a line between chunks) based on the actual contents being chunked. It doesn't fix the duplication problem entirely, but good CDC is reasonably efficient and reduces the problem when new data is inserted.
+What we did initially with the Merkle tree is fixed-length chunking: draw a dividing line every $k$ bytes and those are the blocks. This is a decent deduplication system, but as shown above it doesn't take full advantage of data similarity. _Content-defined chunking_ (CDC) attempts to fix this boundary-shift problem by determining chunk boundaries (when to draw a line between chunks) based on the actual contents being chunked. It doesn't fix the duplication problem entirely, but good CDC is reasonably efficient and reduces the problem when new data is inserted.
 
-::: {#def-rolling-hash}
+A _rolling hash_ is an efficient tool for CDC. Unlike hash functions we covered earlier, these are not collision-resistant --- but they don't need to be. Instead, they compute a random-seeming (but deterministic) value of a sliding window of data and can efficiently add new bytes to the input. One such rolling hash is the Gear hash introduced by @ddelta.
+Notate our input data to be chunked as $B$, with $B_i$ the $i$th byte. Then $H_i$, the rolling hash up to byte $i$, has the following recursive definition:
+\begin{align*}
+H_0 &= 0; \\
+H_i &= (H_{i-1} \ll 1) + \textsf{GearTable}[B_i].
+\end{align*}
+Given the rolling hash up to the previous block, we shift those bits up by one (losing the top bit) and then add some constant from a lookup table called the \textsf{GearTable}. That table is simply a mapping from bytes to randomly-generated integers, constant across all uses of the rolling hash. And to determine whether to draw a chunk boundary after byte $i$, check the top $k$ bits of $H_i$; if they're all $1$ then make a chunk boundary and restart the hash at 0 after the boundary, otherwise keep going.
 
-### Rolling hash
-
-A _rolling hash_ computes a random-seeming (but deterministic) value of a sliding window of data. TODO improve that definition.
-
-:::
-
-Notably, these are not collision-resistant hash functions that we covered earlier --- but they're not made to have low chance of collision.
-Instead, rolling hashes provide an efficient way to do CDC by TODO HOW DO I SAY WHAT IT DOES.
-TODO explain how they work and give examples. Maybe drop the definition environment and instead just have a big paragraph explaining how they work in theory.
-
-A very simple rolling hash is the Gear hash [@ddelta]. TODO give the recursive definition and talk about its properties.
+As long as the \textsf{GearTable} is randomly created and we're not too unlucky, the values of $H_i$ will be roughly uniform and the chance of the top $k$ bits all being one should be $\frac1{2^k}$.
+So to have chunks of average size $1$KiB, we'd set $k = \log_2(1024) = 10$. 
+TODO explain how this alleviates the chunk-boundary-shift problem.
 
 <!-- FIXME I don't have the license for this or some other images -->
 <!-- https://joshleeb.com/posts/gear-hashing.html -->
-![Gear hashing.](../figures/tmp-gear-hash.png)
+<!-- ![Gear hashing.](../figures/tmp-gear-hash.png) -->
 
-There are further improvements to this scheme, such as in @fastcdc, but we won't go into the details of modern constructions. All that is important for the Prolly Tree is that we have access to some chunking strategy that is efficient and usually won't cause a cascading effect of chunk boundary changes when data is inserted in the middle of the input.
+There are further improvements to this scheme, such as in @fastcdc where the deduplication ratio and distrubution of chunk sizes is greatly improved, but we won't go into the details of modern constructions. All that is important for the Prolly Tree is that we have access to some chunking strategy that is efficient and usually won't cause a cascading effect of chunk boundary changes when data is inserted in the middle of the input.
 In a Prolly tree, content-defined chunking mostly fixes the chunk-shift problem when data is inserted at the start of the state representation.
 Thus we can do the Merkle tree hash comparison as before, but are likely to not have too many chunks shift when data is inserted, meaning that more hashes will be the same and there is less redundant data transfer between nodes.
 
