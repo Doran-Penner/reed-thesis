@@ -14,7 +14,7 @@ book:
     - chapters/construction.qmd
     - chapters/properties.qmd
     # below not part of MVP
-    - chapters/improvements.qmd
+    # - chapters/improvements.qmd
   appendices:
     - chapters/git-revisions.qmd
 

@@ -77,7 +77,7 @@ Prolly Trees represent a key-value mapping with some ordering on the keys, and w
 
 <!-- ALT TITLE: Content-defined chunking -->
 
-The scheme we just described has a big problem. What if data is added to the start? For example, say our List CRDT for a file serializes as a list of its values and some node adds data to the start of the file. This necessarily changes the hash of the first block in the Merkle tree, but has cascading effects --- all the data shift down the line a bit, meaning that all chunks suddenly have new hashes. So our Merkle tree hash comparison would see that the nodes need to transmit all of their state, even though just a little bit has changed.
+The scheme we just described has a big problem. What if data is added to the start? For example, say our List CRDT serializes as a list of its values and some node adds data to the head of the list. This necessarily changes the hash of the first block in the Merkle tree, but has cascading effects --- all the data shift down the line a bit, meaning that all chunks suddenly have new hashes. So our Merkle tree hash comparison would see that the nodes need to transmit all of their state, even though just a little bit has changed.
 This doesn't affect correctness, but can ruin our performance gains from using the Merkle tree comparison scheme. We want a way to have the Merkle tree improvements in most cases of data insertion, not just when new data is appended to the end.
 
 <!-- TODO example (with image?) of this issue? -->
@@ -95,7 +95,7 @@ H_i &= (H_{i-1} \ll 1) + \textsf{GearTable}[B_i].
 \end{align*}
 Given the rolling hash up to the previous block, we shift those bits up by one (losing the top bit) and then add some constant from a lookup table called the \textsf{GearTable}. That table is simply a mapping from bytes to randomly-generated integers, constant across all uses of the rolling hash. And to determine whether to draw a chunk boundary after byte $i$, check the top $k$ bits of $H_i$; if they're all $1$ then make a chunk boundary and restart the hash at 0 after the boundary, otherwise keep going. (This is called the judgment function.)
 
-As long as the \textsf{GearTable} is randomly created and we're not too unlucky, the values of $H_i$ will be roughly uniform and the chance of the top $k$ bits all being one should be $\frac1{2^k}$.
+As long as the \textsf{GearTable} is randomly created and we're not too unlucky, the values of $H_i$ will be roughly uniform and the chance of the top $k$ bits all being one should be about $\frac1{2^k}$.
 So to have chunks of average size $1$KiB, we'd set $k = \log_2(1024) = 10$. 
 TODO explain how this alleviates the chunk-boundary-shift problem.
 
@@ -104,7 +104,7 @@ TODO explain how this alleviates the chunk-boundary-shift problem.
 <!-- ![Gear hashing.](../figures/tmp-gear-hash.png) -->
 
 There are further improvements to this scheme, such as in @fastcdc where the deduplication ratio and distrubution of chunk sizes is greatly improved, but we won't go into the details of modern constructions. All that is important for the Prolly Tree is that we have access to some chunking strategy that is efficient and usually won't cause a cascading effect of chunk boundary changes when data is inserted in the middle of the input.
-In a Prolly tree, content-defined chunking mostly fixes the chunk-shift problem when data is inserted at the start of the state representation.
+In a Prolly tree, content-defined chunking usually prevents the chunk-shift problem when data is inserted or changed, no matter the position.
 Thus we can do the Merkle tree hash comparison as before, but are likely to not have too many chunks shift when data is inserted, meaning that more hashes will be the same and there is less redundant data transfer between nodes.
 
 ## Search trees
@@ -118,7 +118,7 @@ Generally, search tree nodes can have $n$ keys and $n+1$ children. If a node has
 
 Another nice property to have in a search tree is balancing. If the tree is balanced (meaning the children of a node are roughly even between its two subtrees), then operations on a search tree are very efficient --- we get $\Theta(\log(n))$ time to insert, update, and delete in the worst case since each level of the tree we go down will cut the space of nodes considered by a fraction ($\frac12$ for BSTs).
 
-B-trees are a search tree constructed to be balanced and have large (parameterized) block size [CITE]. But our modified Merkle tree is also balanced, since all the data is at the same level; and we can configure the chunking judgment function to create an average block size. So we can use the Prolly Tree as a search tree and it will work efficiently.
+B-trees are a search tree constructed to maintain balance and have large (parameterizable) block size [@btree]. But our modified Merkle tree is also balanced, since all the data is at the same level; and we can configure the chunking judgment function to create an average block size. Furthermore, the original Merkle tree construction has binary nodes, but we can use the rolling hash to also determine chunk boundaries of the internal tree nodes, meaning that we get larger block sizes through the entire tree. So we can use the Prolly Tree as a search tree and it will work efficiently.
 
 ## Prolly Trees
 <!-- FIXME I want images that I'm allowed to use :( -->
