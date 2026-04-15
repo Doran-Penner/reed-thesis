@@ -36,13 +36,28 @@ With that assumption, hashes let us cheaply check equality. If $H(x) = H(y)$, th
 
 <!-- TODO example images for this? (and likely the others too) -->
 
+
+<!--
+TODO ugh I need to get some terminology.
+- A "set" ADT is an unordered collection of unique items. You can insert values and later check if some value is in the set.
+- An "ordered set" is a set where the keys have some ordering. You can thus query a range of values at a time.
+- A "map" ADT is a mapping from keys to values. You can insert (k,v) pairs and then later query by key to get that value (if it was previously stored in the map). Generally treated like a set ADT on the keys with some extra info (the values) attached to each key, and that extra info can be changed.
+- A "dictionary" is another word for this map ADT.
+- An "ordered dictionary" is a dictionary where the keys also have some (total?) ordering, allowing range queries.
+
+Where should I explain an "ordered dictionary?" Maybe in the background section, not sure. Or maybe in the intro to the construction. But somehow I need to explain this.
+-->
+
+<!-- TODO change this section a bit. Maybe drop the hash table example. Maybe just explain it as a key-value dictionary. -->
 _Content-addressed storage_ is a database that supports efficient queries via the hash of the desired content. So given a hash $h$, it will return the data $x$ for which $H(x) = h$ (assuming that that data has been previously put into the storage).
 One way to do this is with hash tables --- with an array of size $n$, you store $x$ at index $h \mod n$. This table can have its own collisions, which can be fixed in many ways; for our purposes we will let other programs deal with that, and assume we have access to content-addressed storage that correctly retrieves data from its hash.
 
-Content-addressed storage is immensely useful in distributed systems because it provides a clear way to concisely reference data. Normal computer programs can do this with pointers, but those reference a location in memory that is specific to the program being run and the device that it's on. A hash is defined by the data it points to and will always be the same, no matter what machine calculates the hash. This means it can be used as a stable, cross-machine pointer to a block of data.
+Content-addressed storage is immensely useful in distributed systems because it provides a clear way to concisely reference data. Normal computer programs can do this with pointers, but those reference a location in memory that is specific to the program being run and the device that it's on. A hash is defined by the data it points to and will always be the same, no matter what machine calculates the hash. This means it can be used as a stable, cross-machine reference to a block of data.
 Prolly trees have a lot of data that we want to reference by hash; content addressing means we generally only need to deal with hashes, and can easily get the content when desired.
 
 ## Merkle trees
+
+<!-- TODO Jim has opinions on how I should notate this stuff. Future problem but I'm putting it down here. -->
 
 What if we have a lot of data to store? Should we take a hash of everything at once? But then if any small part changes, two hashes between nodes will be different and they'll still have to transmit the full data. And if we hash a bunch of data blocks individually, we'll have to manage $n$ individual hashes. There's a better way to organize everything together.
 

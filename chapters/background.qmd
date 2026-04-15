@@ -186,7 +186,7 @@ A simple operation-based CRDT is a number counter with addition (for example a b
 
 ### More complex examples
 
-ADVISE: say "abstract data type" and clean up words.
+ADVISE: say "abstract data type" and clean up words. I think this is where I should explain ADTs, the difference between interface and implementation, and what an ordered map/dictionary is.
 
 We've shown two ways to create a grow-only set. What about a "full" set? Only considering two operations, $\mathsf{add}$ and $\mathsf{remove}$ which operate on one item at a time, we immediately encounter a problem: these are not commutative. To illustrate this, consider the three operations $\mathsf{add}(7), \mathsf{add}(7), \mathsf{remove}(7)$. Since sets have no duplicates, the second $\mathsf{add}$ does nothing, and then the $\mathsf{remove}$ removes the $7$, yielding no overall change. But if we $\mathsf{add}(7), \mathsf{remove}(7), \mathsf{add}(7)$, the $\mathsf{add}$ at the end means there is overall a $7$ added to the set.
 
