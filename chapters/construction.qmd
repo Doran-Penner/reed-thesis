@@ -161,6 +161,7 @@ How about inserting and deleting and updating? Here's how. Pretty efficient.
 Now we have all the tools we need to construct the final Prolly Tree: a collision-resistant hash $H$, content-addressed storage, and a content-defined chunker $C$.
 When implementing an ordered dictionary with $n$ items, we can represent the state as a sequence of key-value pairs $P = (k_i, v_i)_{i=1}^n$. Then:
 
+<!-- TODO should I do a proper Algorithm environment? -->
 1. Run $C$ on $P$, checking for boundaries after the end of each $p_i \in P$ (so we don't break apart the keys or values). This will create a sequence of $m$ blocks $B = (b_j)_{j=1}^m$.
 2. Then for each block $b_j \in B$,
    1. get the hash of that block $h_j = H(b_j)$,
@@ -168,30 +169,32 @@ When implementing an ordered dictionary with $n$ items, we can represent the sta
    3. and pair $h_j$ with the smallest key $k_j$ that was held in that block.
 3. Now we have a new sequence of key-value pairs $P' = (k_j, h_j)_{j=1}^m]$ (though the values are hashes). Recurse on $P'$ until there is only one key-hash pair remaining. This is the root of the Prolly Tree.
 
+<!-- TODO better wording later. -->
 And that's it!
 We have created a Prolly Tree storing an ordered dictionary and all of its blocks can be accessed by our content-addressable storage.
-<!-- TODO better wording later. -->
+<!-- Similar to a B-tree, we can search for data efficiently. -->
 
-<!-- TODO should I do a proper Algorithm environment? -->
+To compare states between two nodes, first they exchange root hashes. If they're the same, then the nodes have the same data; otherwise both fetch & exchange the data which their root hash references in the content-addressed storage. Any hashes in that block which are the same are known to be shared by both nodes, so they don't need to continue down those subtrees. Repeat the data block exchanges until both nodes have all blocks that differ from their own tree.
+<!-- TODO say more. -->
 
-To compare states between nodes, X.
+TODO I'm just gonna move on from here and come back later.
 
 To insert, Y.
 Deleting and updating are similar --- Z.
+
+TODO IMPORTANT NOTE history-independence even when we allow insertion and stuff. Immensely cool!
 
 ## Comparison of similar structures
 
 This "prolly tree" is defined by Dolt (CITE). But there's a lot of other similar stuff!
 
-If you already have an ordering on the data and don't need searchability, you can just do a merkle tree with content-defined chunking. This is what that one paper does! Content-defined merkle trees.
+If you already have an ordering on the data and don't need searchability, you can just do a merkle tree with content-defined chunking. This is what that one paper does! @content-defined-merkle-tree.
 
-And there's a Merkle Search Tree which is a bit different but the same idea. TODO explain it.
+And there's a Merkle Search Tree which is a bit different but the same idea. TODO explain it. @mst.
 
 We chose Dolt version of the tree --- it has fewer weird questions like “what if there’s a big hash level gap” or whatever. But MST is also good! It's used in e.g. Bluesky (CITATION NEEDED).
-Also it gives me more room to do proofs about operation runtime and such.
-
-For more fun exploration, see the Dolt blog post and the follow-up.
-
-***
+<!-- Also it gives me more room to do proofs about operation runtime and such. -->
 
 There are so many parallel inventions of the same thing. Read the blog posts for more fun info. Generally, most constructions are like Dolt's prolly tree; MST is a bit of an outlier. In terms of design, the prolly tree is more like "start with a Merkle tree and then do CDC to get unicity and then annotate with keys for searchability." (There are the non-searchtree inventions which don't do that last step.) On the other hand, MST is like "start with a search tree and then use hashing to deterministically decide item height, also backsolve & annotate with block pointers." I find that the prolly tree approach is a bit more intuitive and has the hash structure built in which I like. But really you can do anything! DoltHub uses prolly trees. BlueSky uses MST. It's whatever. We're using prolly tree.
+
+FOOTNOTE for more fun exploration, see the Dolt blog post and the follow-up.
