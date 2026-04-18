@@ -177,7 +177,7 @@ We have created a Prolly Tree storing an ordered dictionary and all of its block
 To compare states between two nodes, first they exchange root hashes. If they're the same, then the nodes have the same data; otherwise both fetch & exchange the data which their root hash references in the content-addressed storage. Any hashes in that block which are the same are known to be shared by both nodes, so they don't need to continue down those subtrees. Repeat the data block exchanges until both nodes have all blocks that differ from their own tree.
 <!-- TODO say more. -->
 
-TODO I'm just gonna move on from here and come back later.
+TODO I'm just gonna move on from here and come back later. Maybe this stuff goes in later "runtime analysis?"
 
 To insert, Y.
 Deleting and updating are similar --- Z.

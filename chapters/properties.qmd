@@ -1,3 +1,19 @@
 # Properties
 
+## Prolly Trees as CRDTs
+
+Talk about what prolly trees provide as a crdt. Still has state-based crdt issues of e.g. set can only grow. But discuss all the different things it can be and have some examples.
+
+***
+
 TODO
+
+## Runtime analysis
+
+Talk about things you can do! Access, modify, insert, delete. Nothing super formal but overview stuff.
+
+***
+
+TODO
+
+<!-- ...TODO anything else? -->
