@@ -372,7 +372,7 @@
 	HAL_VERSION = {v1},
 }
 
-@misc{content-defined-merkle-trees,
+@misc{content-defined-merkle-tree,
 	title = {Content-defined Merkle Trees for Efficient Container Delivery},
 	author = {Yuta Nakamura and Raza Ahmad and Tanu Malik},
 	year = {2021},
@@ -382,83 +382,12 @@
 	url = {https://arxiv.org/abs/2104.02158},
 }
 
-@article{kleppmann-move-op,
-	author = {Kleppmann, Martin and Mulligan, Dominic P. and Gomes, Victor B. F.
-	          and Beresford, Alastair R.},
-	journal = {IEEE Transactions on Parallel and Distributed Systems},
-	title = {A Highly-Available Move Operation for Replicated Trees},
-	year = {2022},
-	volume = {33},
-	number = {7},
-	pages = {1711-1724},
-	keywords = {Internet;Synchronization;Computer bugs;XML;Software;Drives;Data
-	            models;Conflict-free replicated data types (CRDTs);formal
-	            verification;distributed filesystems;distributed collaboration},
-	doi = {10.1109/TPDS.2021.3118603},
-}
-
-@conference{coast,
-	author = {Aäron Munsters and Angel Luis Scull Pupo and Jens Nicolay},
-	title = {COAST: A Conflict-free Replicated Abstract Syntax Tree},
-	booktitle = {Proceedings of the 17th International Conference on Software
-	             Technologies - ICSOFT},
-	year = {2022},
-	pages = {187-196},
-	publisher = {SciTePress},
-	organization = {INSTICC},
-	doi = {10.5220/0011278800003266},
-	isbn = {978-989-758-588-3},
-	issn = {2184-2833},
-}
-
-@inproceedings{byzantine-crdt,
-	author = {Kleppmann, Martin},
-	title = {Making CRDTs Byzantine fault tolerant},
-	year = {2022},
-	isbn = {9781450392563},
-	publisher = {Association for Computing Machinery},
-	address = {New York, NY, USA},
-	url = {https://doi.org/10.1145/3517209.3524042},
-	doi = {10.1145/3517209.3524042},
-	abstract = {It is often claimed that Conflict-free Replicated Data Types
-	            (CRDTs) ensure consistency of replicated data in peer-to-peer
-	            systems. However, peer-to-peer systems usually consist of
-	            untrusted nodes that may deviate from the specified protocol
-	            (i.e. exhibit Byzantine faults), and most existing CRDT
-	            algorithms cannot guarantee consistency in the presence of such
-	            faults. This paper shows how to adapt existing non-Byzantine CRDT
-	            algorithms and make them Byzantine fault-tolerant. The proposed
-	            scheme can tolerate any number of Byzantine nodes (making it
-	            immune to Sybil attacks), guarantees Strong Eventual Consistency,
-	            and requires only modest changes to existing CRDT algorithms.},
-	booktitle = {Proceedings of the 9th Workshop on Principles and Practice of
-	             Consistency for Distributed Data},
-	pages = {8–15},
-	numpages = {8},
-	keywords = {optimistic replication, eventual consistency, CRDTs, Byzantine
-	            fault tolerance},
-	location = {Rennes, France},
-	series = {PaPoC '22},
-}
-
-@misc{merkle-dag,
-	title = {Merkle-CRDTs: Merkle-DAGs meet CRDTs},
-	author = {Hector Sanjuan and Samuli Poyhtari and Pedro Teixeira and Ioannis
-	          Psaras},
-	year = {2020},
-	eprint = {2004.00107},
-	archivePrefix = {arXiv},
-	primaryClass = {cs.NI},
-	url = {https://arxiv.org/abs/2004.00107},
-}
-
-@misc{ethereum-merkle,
-	title = {Towards Stateless Clients in Ethereum: Benchmarking Verkle Trees
-	         and Binary Merkle Trees with SNARKs},
-	author = {Jan Oberst},
-	year = {2025},
-	eprint = {2504.14069},
-	archivePrefix = {arXiv},
-	primaryClass = {cs.CR},
-	url = {https://arxiv.org/abs/2504.14069},
+@online{noms,
+	author = {Noms},
+	title = {Prolly Trees: Probabilistic B-Trees},
+	year = 2016,
+	url = {
+	       https://web.archive.org/web/20260314174344/https://github.com/attic-labs/noms/blob/master/doc/intro.md#prolly-trees-probabilistic-b-trees
+	       },
+	urldate = {2026-03-14},
 }

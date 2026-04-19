@@ -1,19 +1,38 @@
 # Properties
 
-## Prolly Trees as CRDTs
+So far we've shown that two Prolly Trees can be efficiently compared, 
+
+What goes here? Talk about the Prolly Tree as a way to implement an ordered dictionary which has nice properties, namely efficient comparison. I will need to modify the end of chapter 2 to flow better with this, but that's okay. Perhaps chapter 3 nicely breaks down into these sections...
+
+## History independence
+
+Everything we've done so far has been about constructing Prolly Trees from the ground up --- that is, building new trees from scratch given the key-value data. But most tree structures allow updating values, inserting new key-value pairs, and deleting existing key-value pairs without rebuilding the entire tree. How would we do this with the Prolly Tree?
+
+TODO give example of updating key to have new value. Walk through the search, modification, and hash+chunk updates all the way through the tree.
+
+<!-- TODO say a bit more after the bolded section as to why it's the same as if we reconstructed from scratch. Also I like bolding stuff but it doesn't _have_ to be like this -->
+The way we do this, **updating a key leads to the exact same Prolly Tree structure as if we had reconstructed the whole thing from just the key-value pairs.**
+The same is true for deleting keys and adding new keys --- we find the leaf to change, add or remove the data, and then recalculate the chunk boundaries & hashes all the way back up the tree.
+This is called _history independence_: no matter the order of insertion, deletion, and updates, two Prolly Trees which have the same key-value pairs will have the exact same tree structure which leads to the exact same root hashes.
+This means that we get the same Prolly Tree benefits (efficient comparison of different trees) while still maintaining efficient modification to the data.
+<!-- TODO anything else to say? All I can say is YAAAAY THIS IS SO AWESOME -->
+
+## Operations and runtime
+
+Now that we know we can safely do all the normal operations on an ordered dictionary, we will analyze how long each operation takes. Note that the random-seeming chunking makes formal analysis difficult, so we will not do any rigorous proofs; but we can get a rough overview of how long different operations will take. The operations we can do on an ordered dictionary are to fetch a single value by key, fetch a range of values by key range, modify a key's value, add a new key-value pair, delete a key-value pair, and construct the tree from scratch.
+
+TODO discuss all of those. Group smartly --- first GET and GET RANGE (which is roughly time `get * range_size`), then insert-update-delete, then construct from scratch. All pretty efficient! Maybe find some citation for other common structures' runtimes e.g. B-trees. And... there's really not much else to this section.
+
+## As CRDTs
+
+TODO wording is a bit hard here. This entire thesis we've been creating Prolly Trees as CRDTs. What should I specifically say here, and how should I say it? I want to talk about the different pseudo-dictionary CRDT things we can do, discuss their pros and cons, that sort of thing. If there's something that's not possible, I wanna know that. Anything else?
+
+Prolly Trees are an excellent way to implement a state-based ordered dictionary CRDT. They already store an ordered dictionary, and...
 
 Talk about what prolly trees provide as a crdt. Still has state-based crdt issues of e.g. set can only grow. But discuss all the different things it can be and have some examples.
 
-***
+...
 
-TODO
+We are implementing an ordered dict crdt. But there are many ways to do such a thing! First consider keys. Do we disallow deletion so it's grow-only? Or do we do observed-remove (unique IDs on keys)? But that one gets weird when the keys correspond to values. And what about the values? Depending on the application, could do any CRDT. Could make all values null so we only store keys and get a true grow-only set if that's what we feel like. But generally the values feel like registers. So it'll have to be LWW or multi-value (the latter working better with observed-remove).
 
-## Runtime analysis
-
-Talk about things you can do! Access, modify, insert, delete. Nothing super formal but overview stuff.
-
-***
-
-TODO
-
-<!-- ...TODO anything else? -->
+Gotta watch out for things which represent the same abstract state but have different internal Prolly states! Tombstones and stuff will get messy; and mixing observed-remove with multi-value register is gonna get nasty real quick. And it's okay if two trees have internal diffs but the abstract state is the same; that's how the tree works. Just gotta make sure there's **one** way to e.g. add a kv pair, so there's not icky mixing between observed-remove set and a multi-value register.

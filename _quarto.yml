@@ -4,7 +4,7 @@ project:
   post-render: ./template/prelims/cleanup.bash
 
 book:
-  title: "Prolly Trees"  # ALT: Prolly Trees for State-Based CRDTs
+  title: "Prolly Trees for State-Based CRDTs"
   author: "Doran Penner"
   date: "May 2026"
   date-format: "MMMM YYYY"
@@ -13,16 +13,13 @@ book:
     - chapters/background.qmd
     - chapters/construction.qmd
     - chapters/properties.qmd
-    # below not part of MVP
-    # - chapters/improvements.qmd
+    - chapters/improvements.qmd
   appendices:
     - chapters/git-revisions.qmd
 
 bibliography: extras/bibliography.bib
 # for changing citation style or including all bibtex entries
 biblio-style: ieee
-# nocite: |
-#   @*
 
 filters:
   - template/treesitter-highlighting.lua
@@ -31,37 +28,13 @@ filters:
 
 # lof: true
 # lot: true
+# TODO do I want this? if so, remember to update after everything
 abbrs:
   CRDT: Conflict-free replicated data type
   DAG: Directed acyclic graph
   CAP: Consistency, availability, partition-tolerance
   MST: Merkle search tree
   CDC: Content-defined chunking
-  # LUB: Least upper bound
-
-# TODO idk if I want to keep this. Will need a check once I'm done.
-spectra:
-  hash: |
-    A *hash function* is a one-way function, which means it is easy to compute
-    the output from the input but (ideally) computationally infeasible to
-    compute the input from the output. Hash functions take an arbitrary
-    input (of arbitrary length) and produce a fixed-length output that is
-    deterministic based on the input but very hard to link back to it. They are
-    commonly used to verify that a large input is unmodified. You hash (verb) an
-    input to produce a hash (noun).
-  graph: |
-    A *graph* in math is a collection of things and lines between those things.
-    The "things" themselves can be called nodes, vertices, or sometimes objects;
-    the lines are called edges. This paper will mainly focus on *directed
-    graphs*, which is when the edges have a direction from one vertex to the
-    other.
-  key-value store: |
-    A *key-value store* allows for data to be looked up by some unique key,
-    which could be a string, number, or anything else. For example, a company's
-    staff directory is a kind of key-value store: you can use a person's name as
-    a key to find their email address, work hours, and so on. A key-value store
-    is an abstract idea --- there are many different ways to actually implement
-    it, each with its own benefits and drawbacks.
 
 division: Mathematics and Computer Science
 thedivisionof: The Established Interdisciplinary Committee for

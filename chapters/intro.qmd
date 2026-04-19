@@ -1,5 +1,22 @@
 # Introduction {.unnumbered}
 
+AAAAAAH too much stuff to do. Things that are stewing in my brain... (will remove when they're put in the right section)
+
+- Future directions. Should I talk about my ideas that I had for improvements? If so, where? At the end of chapter 3, or a weird small chapter 4, or an appendix, or what?
+- Notation and terminology. So much.
+    - I wanna give formal math-y definition of a chunker, and maybe use the same notation for ranges. How should I notate these? Normal sequence parentheses, big comma/kappa, dotdotdot, function from $\mathbb{N}$, square-bracket set builder, CS array notation... so many ways. Ugh. Also "chunk" or "block" for the created thing?
+    - What about state-based merging? The lattice world calls it a "join" and uses a wedge/`and` symbol; I should get on board with them. Not a hard decision, but I gotta go through and enforce consistency.
+    - Also need a bit of ADT terminology for interface, implementation, and so on. Should I say a "set adt crdt?" No. But a "set crdt" should be understood as an implementation of a set adt that also lends itself to strong eventual consistency.
+- "thesis thesis" --- All the things that I am "contributing" to the world. What should I put in my intro? I have rough thoughts but I'll have to simplify it eventually. General outline...
+    - Distributed systems are cool/important
+    - CRDTs are useful for them
+    - This Prolly Tree thing solves some distributed systems problems (examples in the real world)
+    - Here’s how we can make it more flexible and/or powerful and/or etc, also just look it’s a great thing
+
+***
+
+OLD outline, maybe redo soon. Mostly accurate but not 100%
+
 1. background
     a. dist. sys. _(2)_
         i. define our assumed network model
@@ -37,14 +54,20 @@
         iv. can do tombstones for deletion, but perhaps that makes the tree reconciliation messy
         v. ...?
     c. what other existing properties do we wanna talk about? how/when should I meld into my own contributions? _(?)_
-4. improvements
-    a. dynamo-like _(not in MVP)_
-    b. send data in op-like way _(not in MVP)_
-    c. range tree for array; other data structures (we get JSON) _(not in MVP)_
-    d. improve the cdc system (stuff that Dolt did) _(not in MVP)_
-    e. and so on! _(not in MVP)_
+4. improvements and other stuff
+    a. more rigorous asymptotic analysis _(not in MVP)_
+    b. real-world performance studies _(not in MVP)_
+    c. dynamo-like _(not in MVP)_
+    d. send data in op-like way _(not in MVP)_
+    e. (performance of) range tree for array, other data structures (we get JSON) _(not in MVP)_
+    f. improve the cdc system (stuff that Dolt did) _(not in MVP)_
+    g. and so on! _(not in MVP)_
+
+
 
 ***
+
+
 
 Quick intro and overview of the thesis before we get into proper background. Look, I did stuff! Blah blah blah, quick overview, what I learned and contributed. Anything else useful to know, e.g. how advanced I expect my reader to be.
 
@@ -74,4 +97,4 @@ Assumptions of the reader (up to change):
 
 - introductory formal math (?)
 - intro graph theory (graphs, trees, DAGs)
-- introductory computer science (trees)
+- introductory computer science (trees, runtime)

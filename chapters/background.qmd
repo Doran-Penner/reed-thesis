@@ -2,11 +2,11 @@
 
 <!-- General background on distributed systems, cap theorem, lamport, crdts, and so on. -->
 
-ADVISE: overall, try to have more of a narrative. It's very okay and good to say "we're doing crdts and we'll talk about them later" and then give reasons _why_ we wanna talk about x y or z.
+<!-- TODO: overall, try to have more of a narrative. It's very okay and good to say "we're doing crdts and we'll talk about them later" and then give reasons _why_ we wanna talk about x y or z. -->
 
 ## Distributed systems
 
-ADVISE: you don't need to be a textbook. Give some kind of explanatory story (possibly in Introduction?) that gets the idea across.
+TODO: you don't need to be a textbook. Give some kind of explanatory story (possibly in Introduction?) that gets the idea across.
 
 <!-- In the modern world of computing, there are many devices connected by some network --- Ethernet, Wi-Fi, telephone line, and so on. Each device is usually doing some amount of work on its own and regardless of other devices. For example, a calculator app doesn't need communication with other devices in order to do its task. But many applications require the network so they can fulfill their task. A weather app needs to get weather data from government agencies or other sources to display the current temperature; a messaging app needs to send and recieve messages to/from other devices. More generally, many programs need to communicate over some connection to other computers. -->
 
@@ -23,29 +23,18 @@ TODO more rough intro. Goals:
 
 Maybe some of this will end up in the assumed infrastructure.
 
-### Assumed infrastructure
-
-Ugh I'm feeling like this should go at the end of distsys section. It's kinda the conclusion to all of this background but also is useful background and terminology. I feel like I need to put early definitons (system, node, etc) in the start and then the "Assumed infra" section at the end. Maybe.
-
-Do I have an example of this? Maybe in Dynamo they say what they do.
-
-Could have hierarchy of connections, e.g. 10s/100s/1000s or whatever. Could have fully connected. But somehow there's a buncha computers and it's a connected graph when everything is working. But also the network can falter.
-
-Somehow they're working together to do something. Or just talking to each other and expecting things (e.g. client-server).
-
-Oooh wait also nodes can join or leave at any time. Also we are not worried about malicious nodes.
-
 ### Distributed and peer-to-peer systems
 
 <!-- Don't love it but we needed something. Also does this go here or in the above section? Ugh. -->
-<!-- lmao yet another definition of (distributed) system -->
-We will define a _system_ as an overarching container of programs and protocols that does something when put together. A system could just be a single program on a single device. But it can also span multiple programs and computers. For example, the Internet Protocol (IP) is a system that allows computers to reach and communicate with each other even when they're not directly connected.
+<!-- TODO what about the word "service?" I don't love it bc of SaaS connotations but it feels a bit better than this "system" thing. -->
+We will loosely define a _service_ as an overarching container of programs and protocols that does something when put together. A service could just be a single program on a single device, but usually spans multiple programs and computers. For example, the Internet Protocol (IP) is a service that allows computers to reach and communicate with each other even when they're not directly connected.
 <!-- We will define a "system" as one or more programs running on one or more devices connected by some network which collectively act as part of some larger service. -->
 
-TODO should I explain client-server right here?
+<!-- TODO this is bad -->
+A simple service architecture has some machine that other computers make requests to. Think netflix. This is the client-server model (with just one server), where one machine is a server and other machines want something from it or want to do something to it.
 
 The client-server model with a single server runs into scaling issues: no computer of today, regardless of how much processing power it has or how much bandwidth its network has, could possibly handle all of the requests that are demanded upon some services (e.g. a single computer serving all Google search results). As such, the work of handling all these requests must be managed amongst multiple computers.
-A _distributed system_ is a system as defined above where multiple devices work together to provide some program or service, instead of one machine doing it all. [@distsys-textbook p. 2]
+A _distributed system_ is a service where multiple devices work together to provide some program or service, instead of one machine doing it all. [@distsys-textbook p. 2]
 
 An old example of a distributed system is Grapevine [@grapevine], an early email service. Xerox had local electronic mail servers in its offices, and the workstations were connected to some local server; the servers were also connected to each other via telephone lines. Given this setup, Grapevine was designed to facilitate email getting from one workstation to another regardless of their location.
 There were components for email delivery, authenictation, and so on, and each had to deal with its own challenges due to the distributed nature of the system. For example if the dial-up connection between two offices is down, what should the email-fetcher do --- stall until the line is back, or try again in an hour? These are the sorts of problems that come up with unreliable networks.
@@ -54,20 +43,14 @@ A _peer-to-peer_ system is a special kind of distributed system.
 For the First International Conference on Peer-to-Peer Computing, peer-to-peer is defined as when
 "the participants share a part of their own hardware resources ... These shared resources are necessary to provide the Service ... [and] are accessible by other peers directly, without passing intermediary entities. The participants of such a network are thus ... providers and ... requestors" [@p2p].
 They additionally define "pure" peer-to-peer with the additional constraint that any single node can be removed without impacting service, and the network is "hybrid" otherwise.
-<!-- don't love this direct quotation but it works for now. Come back later -->
+<!-- TODO I don't love this direct quotation but it works for now. And maybe I should just give the entire quote instead of this dotdotdotted version? Come back later. -->
 
-This is a complex definition and already shows the nuances of peer-to-peer systems. Most of the time, peer-to-peer is defined in contrast to a client-server architecture --- instead of marking a computer as either a client that requests data or server that responds to requests, all machines are equal in some sense and can operate as both clients and servers. A simple example of a peer-to-peer program is BitTorrent [@sam-thesis], which is used for file sharing: a node both downloads data from other nodes and provides data for upload to other nodes. This provides resilience, reduced load, and increased speed when many devices would otherwise all have to request the data from the same server.
+This is a complex definition and already shows the nuances of peer-to-peer systems. Most of the time, peer-to-peer is defined in contrast to a client-server architecture --- instead of marking a computer as either a client that requests data or server that responds to requests, all machines are equal in some sense and can operate as both clients and servers. An example of this is BitTorrent [@sam-thesis], which is used for file sharing: a node both downloads data from other nodes and provides data for upload to other nodes. This provides resilience, reduced load, and increased speed when many devices would otherwise all have to request the data from the same server.
 
-ADVISE: you might be able to remove all the TODOs here. Unsure.
-
-TODO some explanation for why we care about p2p? Sometimes you have to deal with non-hierarchical interactions so it's necessary.
-
-TODO are we worried about malicious actors? What about nodes leaving and rejoining? This should be addressed in the assumptions and maybe "challenges" sections.
-
-TODO note that p2p often assumes nodes joining late and leaving more permanently, not just temporary outages.
+TODO some explanation for why we care about p2p? Sometimes you have to deal with non-hierarchical interactions so it's necessary. Jim says I might be able to just ignore this.
 
 Note that the line between client-server and peer-to-peer gets messy. For example, Dynamo [@dynamo] is a system from Amazon to provide a key-value store. The entire system operates as a server for external clients: a device can connect to some machine in the Dynamo system and ask for the value corresponding to some key. However, amongst the Dynamo servers the protocol is peer-to-peer --- no Dynamo node is structurally prioritized over another.
-TODO add one more sentence about why this is meaningful.
+And the story gets even more complex with topics such as federation, which is somewhere between a fully peer-to-peer system and a client-server system.
 
 ### Challenges with distributed and peer-to-peer systems
 
@@ -77,31 +60,12 @@ Since network partitions could happen anywhere and at any time, nodes can become
 
 And there are additional difficulties associated with peer-to-peer networks.
 In many settings a peer-to-peer system is _open_, meaning that nodes are free to join or leave at any point in time.
-For example, a new user can set up a BitTorrent client and start downloading and uploading files with peers that were already in the system. Similarly, nodes are often free to leave at any time for any reason. This is already true in distributed systems due to the faulty network, but it's generally assumed that a node will return eventually; in peer-to-peer systems, there is no guarantee that a node will ever return.
+For example, a new user can set up a BitTorrent client and start downloading and uploading files with peers that were already in the system. Similarly, nodes are often free to leave at any time for any reason. This is already true in distributed systems due to the faulty network, but it's generally assumed that a node will return in an unbounded but finite amount of time; in peer-to-peer systems, there is no guarantee that a node will ever return.
 With openness also comes lack of trust --- if any device can join the BitTorrent system, the system might need to account for weak devices and actively malicious actors.
-TODO maybe say a bit more on that or why we're ignoring it.
 
 Finally, there is no inherent source of truth in peer-to-peer networks. In the traditional clients-and-one-server model, the authoritative copy of data lies with the server. But in a peer to peer network where different nodes may have different versions of some data, there's no architectural difference between the two to decide which node is "right."
 
 All of this means that communication between nodes is inherently prone to failure, meaning that it cannot be completely trusted; and there is always the possibility that a node doesn't have the most up-to-date information.
-
-<!--
-### Lamport's partial order
-gonna need to make citations at some point
-
-Do I even want/need to talk about Lamport? Commenting out the section for now, but it's still here if we want it later.
-
-Source... @lamport-clock
-
-One challenge of distributed systems is that time is unreliable. On a single processor, there is a relatively clear ordering of events (the order in which the single processor did things). But different machines may or may not have physical clocks, and those clocks may or may not be accurate. Even if they are accurate to human standards, operations on the order of microseconds apart on different machines cannot be easily disentangled into a clear path of what happened first.
-
-To solve this, Leslie Lamport observed that events in a distributed system form a partial order.
-TODO Do I need to explain what that is?
-On a single machine, there is a total order of operations --- it does $a$, then $b$, then $c$. And another machine may do operations $x$ and $y$. Then the two machines send messages back and forth, which we'll call event $t$. We can confidently say that $a$ happened before $b$, $b$ before $c$, and $c$ before $t$; similarly, $x$ happened before both $y$ and $t$. But there is no inherent way to determine whether $b$ happened sometime before $x$.
-TODO add visuals
-
-Should I have more formalism here and actually define the partial order? I feel like that comes right after the visual if I need it. Also do I need to explain the way we create a total ordering via Lamport time or no?
--->
 
 ### CAP theorem
 
@@ -123,16 +87,48 @@ Partition tolerance
 
 Unfortunately, we cannot have all three of these. This is known as the _CAP theorem_, conjectured in @brewer-conjecture and proven in @brewer-proof. It doesn't matter exactly how the data is stored: as long as any node in the system can make changes to it and can also go offline, you cannot guarantee both consistency and availability in the event of a network partition.
 
-There are reasonable critiques of the CAP theorem; see @kleppmann-cap for a good analysis of alternative frameworks.
+There are problems with the CAP theorem as a tool of analysis for a distributed system; see @kleppmann-cap for discussion of alternative frameworks.
 For one, it relies on a specific definition of consistency --- atomic, linearizable transactions --- and only focuses on a single value to be written. The theorem also says that a system can get both consistency and availability when there is no partition-tolerance; while true, in the real world of distributed systems one always has to design around a network partition in case it occurs.
-Furthermore, the CAP theorem does not consider latency at all. If all nodes are reachable but it'll take 20 minutes to get updates, is it worth the wait? Depends on the application and the CAP theorem does not address this question.
+Furthermore, the CAP theorem does not consider latency at all. If all nodes are reachable but it'll take 20 minutes to get updates, is it worth the wait? It depends on the application and the CAP theorem does not address this question.
 But generally speaking, there is usually a tradeoff of availability in distributed systems. Applications that require good availability have to forgo some amount of consistency, whether that's due to latency or partition tolerance.
 And the CAP impossibility means there is a large space of options that applications can choose from depending on their needs.
-<!-- TODO idk if that's the perfect ending but whatever. -->
+
+### Assumed infrastructure
+
+Do I have an example of this? Maybe in Dynamo they say what they do.
+
+With all of that, there are a ton of different settings and models that distributed systems must operate in. For our purposes...
+
+- Non-fully-connected graph, maybe tree structure e.g. 10s/100s/1000s
+- Some kind of gossip network (see what MST references) so any two peers can eventually communicate but not necessarily directly
+- Network can fail & recover, nodes can permanently join and leave
+- Not worried about malicious nodes
+- Somehow they're working together to do something, or just talking to each other and expecting things (e.g. client-server)
+
+## Abstract data types
+
+TODO: ADT stuff. I want to somehow, somewhere, discuss the notion of an abstract data type. Meaning I want to say "we're gonna implement an ordered dictionary" and the reader knows that we are implementing a certain interface and that implementation can be in a bajillion different ways. Then I need consistent terminology for it, but that's a future problem. Where and when do I introduce it? What do I say?
+
+**What is it**: briefly explain the notion of an interface. Give brief examples of different implementations of the same interface. Say that we are making an ordered dictionary.
+
+**Where to put it**: maybe this belongs in the background, between distsys and crdts. Then the reader understands the setting and we can use ADT terminology when discussing CRDTs.
+
+I couuuuld start with this stuff. It gives a bit more narrative to the distsys section, at the cost of maybe limiting it a bit. I want to strike a balance between "textbook info about distsys" and "what you need to know for prolly trees." Hm. But I think it needs to be explained before the CRDT section.
+
+**How I say it**: "in this world of distsys we might wanna create some sort of service, e.g. a distributed hash table is something that others care about. Look at this thing called an ordered dictionary, that's pretty cool" or whatever. (If I'm putting it between distsys and crdt.) If at the start, I could talk about services in general? Hm. Not sure.
+
+Yeah I think it flows best when between those two sections. Then we get
+an intro to the area and problems (distsys),
+something we care about doing (ordered dictionary),
+and a neat framework to solve it (crdts).
+
+I would/will need to rework some of the crdt examples and discussion, e.g. the stuff about sets. But I can say "sets are simpler than ordered dictionaries but look they have all these problems." Then in the "even more complex" section instead of graphs I talk about ordered dictionaries. Also as a side note I should add stuff to that section like LWW-registers. I'm okay with my current overview for the sake of explanation, but I also need to cover anything that actually gets used --- and I think I will use LWW registers as an example of how Prolly Trees can be CRDTs.
+
+***
 
 ## CRDTs
 
-ADVISE: briefly explain an abstract data type (ADT) and say that. e.g. set ADT. That is an important distinction that I am fluent in but should be made explicit.
+TODO: briefly explain an abstract data type (ADT) and say that. e.g. set ADT. That is an important distinction that I am fluent in but should be made explicit.
 
 TODO add citations to the 2011 Shapiro paper
 
@@ -142,17 +138,13 @@ One solution to the CAP impossibility is a _conflict-free replicated data type_,
 - that is _replicated_, where there are multiple copies of the data on different machines;
 - and _conflict-free_, meaning that there is some way of combining copies that always succeeds.
 
-This gets excellent availability and partition-tolerance by just having some local copy of the shared data. Instead of getting perfect consistency, we will settle for _strong eventual consistency_: given enough communication between nodes (when the network is up), all nodes eventually agree upon the final version [@eventual-consistency]. In many applications, this is a reasonable tradeoff: git, for example, doesn't require internet connection while working but only to share and retrieve data from others.
+This gets excellent availability and partition-tolerance by just having some local copy of the shared data. Additionally, having many copies means that there are inherent backups to prevent data loss. Instead of getting perfect consistency, we will settle for _strong eventual consistency_: given enough communication between nodes (when the network is up), all nodes eventually agree upon the final version [@eventual-consistency]. In many applications, this is a reasonable tradeoff: git, for example, doesn't require internet connection while working but only to share and retrieve data from others.
 
 This framework requires a guarantee that different copies of the data will converge to the same value with communication. There are two common ways to ensure this --- either by focusing on the state of the data or the operations applied to it.
 
 ### State-based
 
-TODO do I need a source for defining semilattices? I'm just reading off the wikipedia page
-
-ADVISE: put the actual definition in a definition environment. Also link to some textbook, likely "Introduction to Lattices and Order," and use their terminology.
-
-Source... @lattices
+TODO put the actual definition in a definition environment. Also link to textbook "Introduction to Lattices and Order" [@lattices] and use their terminology (the land/wedge notation and the word "join").
 
 State-based CRDTs ensure strong eventual consistency via a join-semilattice over the states. Let $S$ be the set of all possible states of the replicated data, and $\sqcup : S \times S \to S$ be a binary operation (our "join") on $S$. Then $S$ is a join-semilattice via $\sqcup$ if the operation has the following properties for all $x, y, z \in S$:
 
@@ -167,7 +159,7 @@ This join operation is also called a least upper bound. If these properties hold
 This gives us strong eventual consistency! Given any two copies of some data, we can merge them via the join operation. No matter the order that this propogates throughout the distributed system, if nodes (without making any new changes) keep joining pair-wise then eventually all will have the same state.
 So if we can define an operation on our data that has these properties, then we have a CRDT.
 
-ADVISE: for narrative, might be good to give example at the top of state-based for motivation. Also I should actually (briefly) prove stuff, not just wave my hands.
+TODO: for narrative, might be good to give example at the top of state-based for motivation. Also I should actually (briefly) prove stuff, not just wave my hands.
 
 <!-- Should I justify these examples? Nah -->
 For a simple example, we can easily make a max-number value with state-based power. If our join is the maximum of two real numbers, then our state space $S = \mathbb{R}$. We can verify that this satisfies all the properties: the maximum of any number with itself is itself, and the maximum function does not care about order of inputs or application.
@@ -175,7 +167,7 @@ We can also easily make a grow-only set by setting $\sqcup = \cup$ (set union) o
 
 ### Op-based
 
-ADVISE: I'm really not gonna be focusing on the op-based stuff, but it's here for people to know. I should explicitly say that to the reader.
+TODO: I'm really not gonna be focusing on the op-based stuff, but it's here for people to know. I should explicitly say that to the reader. Why? Can say it's because it has stronger connectivity requirements (assumes fully connected) but that's not great. Alternatively I can say it in the compare & contrast section.
 
 Operation-based CRDTs achieve strong eventual consistency by requiring that all operations done on the data are commutative: that is, you can apply a collection of operations $a, b, c, \dots$ in any order and the outcome will be the same.
 When this is the case, we also get a CRDT.
@@ -186,13 +178,12 @@ A simple operation-based CRDT is a number counter with addition (for example a b
 
 ### More complex examples
 
-ADVISE: say "abstract data type" and clean up words. I think this is where I should explain ADTs, the difference between interface and implementation, and what an ordered map/dictionary is.
-
+<!-- TODO once "abstract data types" are explained, use that terminology/understanding to word this section a bit better. -->
 We've shown two ways to create a grow-only set. What about a "full" set? Only considering two operations, $\mathsf{add}$ and $\mathsf{remove}$ which operate on one item at a time, we immediately encounter a problem: these are not commutative. To illustrate this, consider the three operations $\mathsf{add}(7), \mathsf{add}(7), \mathsf{remove}(7)$. Since sets have no duplicates, the second $\mathsf{add}$ does nothing, and then the $\mathsf{remove}$ removes the $7$, yielding no overall change. But if we $\mathsf{add}(7), \mathsf{remove}(7), \mathsf{add}(7)$, the $\mathsf{add}$ at the end means there is overall a $7$ added to the set.
 
 How can we fix this? It turns out that there is no real way to make a perfect set CRDT due to the above issue. However, we can create reasonable approximations with varying ways to resolve the non-commutativity.
 
-ADVISE: reference the Shapiro paper here
+<!-- TODO reference the Shapiro paper here -->
 
 One solution is storing two grow-only sets (called a two-phase or 2P-set), one called the tombstone set. Once an item is added to the tombstone set, it's treated as no longer in the overall set. So they user-facing set equals $A ~\backslash~ T$, where $A$ is the added set and $T$ is the tombstone set. This is easy to implement, since it's just two grow-only sets; however, it doesn't allow for re-adding elements which have already been removed. This could be alleviated to the $n$th degree by having $n$ pairs of added/removed sets in a hierarchy, but that is simply not practical or very useful most of the time.
 
@@ -208,9 +199,11 @@ With this system, the only underlying operations that don't commute are adding a
 
 ### Compare and contrast
 
-ADVISE: come back to this. Awkward balance between "cool misc info" and "stay focused on what matters"
+TODO come back to this. Awkward balance & transition from "misc background" to "what we care about for this thesis."
 
 TODO: figure out what I want to say in this section and why. I have all this info, but I want to give a little bit of overarching analysis.
+
+State-based can only grow. We simulate removal with tombstones. Op-based doesn't have this problem on the surface. But it also assumes a strong network. If a peer is joining for the first time, it needs the full history --- or a current starting state or something, and I'm not 100% convinced that that works.
 
 In the original paper, op needs reliable network and maybe fully-connected graph? We don't have that. So need some way of tracking divergence, e.g. version vectors. And may need to keep arbitrarily-old history of operations in the case that a new peer joins or an old peer is gone for a very long time.
 
