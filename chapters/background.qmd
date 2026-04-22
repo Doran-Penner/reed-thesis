@@ -8,6 +8,8 @@
 
 TODO: you don't need to be a textbook. Give some kind of explanatory story (possibly in Introduction?) that gets the idea across.
 
+TODO maybe I ignore the story part, since that'll be kinda given in Introduction, and just start right here with the _Distributed and peer-to-peer systems_ section. I can define stuff like node there. Yeah I like this.
+
 <!-- In the modern world of computing, there are many devices connected by some network --- Ethernet, Wi-Fi, telephone line, and so on. Each device is usually doing some amount of work on its own and regardless of other devices. For example, a calculator app doesn't need communication with other devices in order to do its task. But many applications require the network so they can fulfill their task. A weather app needs to get weather data from government agencies or other sources to display the current temperature; a messaging app needs to send and recieve messages to/from other devices. More generally, many programs need to communicate over some connection to other computers. -->
 
 In the modern world of computing, many devices are connected by some network --- Ethernet, Wi-Fi, telephone line, and so on --- and communicate with each other over this network.
@@ -53,6 +55,8 @@ Note that the line between client-server and peer-to-peer gets messy. For exampl
 And the story gets even more complex with topics such as federation, which is somewhere between a fully peer-to-peer system and a client-server system.
 
 ### Challenges with distributed and peer-to-peer systems
+
+<!-- TODO define partition here. -->
 
 Distributed and peer-to-peer systems have many challenges that need to be worked around [@distsys-textbook, p. 30].
 Since the network can fail, there are many problems that plague all distributed systems: messages can be delayed, dropped, corrupted, delivered out-of-order, and duplicated.
@@ -107,6 +111,19 @@ With all of that, there are a ton of different settings and models that distribu
 
 ## Abstract data types
 
+<!--
+TODO ugh I need to get some terminology.
+- A "set" ADT is an unordered collection of unique items. You can insert values and later check if some value is in the set.
+- An "ordered set" is a set where the keys have some ordering. You can thus query a range of values at a time.
+- A "map" ADT is a mapping from keys to values. You can insert (k,v) pairs and then later query by key to get that value (if it was previously stored in the map). Generally treated like a set ADT on the keys with some extra info (the values) attached to each key, and that extra info can be changed.
+- A "dictionary" is another word for this map ADT.
+- An "ordered dictionary" is a dictionary where the keys also have some (total?) ordering, allowing range queries.
+
+Where should I explain an "ordered dictionary?" Maybe in the background section, not sure. Or maybe in the intro to the construction. But somehow I need to explain this.
+-->
+
+<!-- TODO I need a bit of ADT terminology for interface, implementation, and so on. Should I say a "set adt crdt?" No. But a "set crdt" should be understood as an implementation of a set adt that also lends itself to strong eventual consistency. -->
+
 TODO: ADT stuff. I want to somehow, somewhere, discuss the notion of an abstract data type. Meaning I want to say "we're gonna implement an ordered dictionary" and the reader knows that we are implementing a certain interface and that implementation can be in a bajillion different ways. Then I need consistent terminology for it, but that's a future problem. Where and when do I introduce it? What do I say?
 
 **What is it**: briefly explain the notion of an interface. Give brief examples of different implementations of the same interface. Say that we are making an ordered dictionary.
@@ -144,7 +161,7 @@ This framework requires a guarantee that different copies of the data will conve
 
 ### State-based
 
-TODO put the actual definition in a definition environment. Also link to textbook "Introduction to Lattices and Order" [@lattices] and use their terminology (the land/wedge notation and the word "join").
+TODO put the actual definition in a definition environment. Also link to textbook "Introduction to Lattices and Order" [@lattices] and use their terminology (the land/wedge notation and the word "join"). And then make sure to use that terminology & notation everywhere.
 
 State-based CRDTs ensure strong eventual consistency via a join-semilattice over the states. Let $S$ be the set of all possible states of the replicated data, and $\sqcup : S \times S \to S$ be a binary operation (our "join") on $S$. Then $S$ is a join-semilattice via $\sqcup$ if the operation has the following properties for all $x, y, z \in S$:
 

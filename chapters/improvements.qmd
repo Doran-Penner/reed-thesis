@@ -2,23 +2,28 @@
 
 TODO clean this up someday but not today. Yay I can include it!
 
-This chapter may never see the light of day. Oh well! Here are my misc thoughts on how to build on what I just wrote.
+Here are various future directions and ways to improve upon the existing schema we just covered. This is less formal and more a collection of ideas that came up during the thesis-writing process.
 
-a. more rigorous asymptotic analysis _(not in MVP)_
-b. real-world performance studies _(not in MVP)_
-c. dynamo-like _(not in MVP)_
-d. send data in op-like way _(not in MVP)_
-e. (performance of) range tree for array, other data structures (we get JSON) _(not in MVP)_
-f. improve the cdc system (stuff that Dolt did) _(not in MVP)_
-g. and so on! _(not in MVP)_
+## Improving the CDC
+
+Dolt already did this, but I can talk a bit about how to make the chunking better.
+This relates a lot to the formal runtime analysis --- maybe a true sliding-window system would yield better analysis and/or performance.
+
+## More rigorous runtime analysis
+
+There was a lot of hand-waving with the runtime analysis of e.g. inserting a new key-value pair. This is partially because the chunking is messy and partially because randomness is hard. Can we do better?
+
+## Real-world performance studies
+
+Generally, how useful is this structure in practice? Are there changes to the construction that make it faster to use?
 
 ## Range tree etc
 
-Can use Prolly Trees as a range tree, thus creating an array-like interface.
+Can use Prolly Trees as a range tree (CITE), thus creating an array-like interface.
 
-- What are the efficiencies of this? Idk if it's worth benchmarking. But note that `diamond-types` uses that structure so it can't be that slow.
+- What are the efficiencies of this? Asymptotically as well as practically. The package `diamond-types` (CITE) uses that structure for a list CRDT so my intuition says it can't be that slow.
 
-What about other large data types like trees, dags, graphs? Note that "small" data can just be directly hashed which is nice. The important part is the unicity of representation. Can we make a "file?" What does that look like — an array of bytes, a list of strings, a syntax tree based on some grammar, or what?
+What about using a Prolly Tree for other large data types like trees, dags, graphs, and so on? Note that "small" data can just be directly hashed which is nice. The important part is the unicity of representation. Can we make a "file?" What does that look like — an array of bytes, a list of strings, a syntax tree based on some grammar, or what?
 
 With key-value map, array, and "small stuff," we have JSON. That's worth mentioning because you can use JSON for pretty much anything --- not efficiently, but you can use it.
 
@@ -44,7 +49,3 @@ This is a really interesting contrast; it's a very different model, exchanging r
 What if we don't replicate the Prolly Tree, but instead it's shared amongst peers? That would be really cool to analyze. You don't need trust because everything is hash-based and you can compute the hash yourself to verify.
 
 We don't wanna get too into the details of how Dynamo and such work, but should be able to wave our hands and say "there is existing literature for that stuff." The question then is, "What to Prolly Trees help with here?" Maybe decreased trust, but I would need to do a bit of reading to be sure.
-
-## Improving the CDC
-
-Dolt already did this, but I can talk a bit about how to make the chunking better.

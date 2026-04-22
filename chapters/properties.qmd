@@ -23,6 +23,8 @@ Now that we know we can safely do all the normal operations on an ordered dictio
 
 TODO discuss all of those. Group smartly --- first GET and GET RANGE (which is roughly time `get * range_size`), then insert-update-delete, then construct from scratch. All pretty efficient! Maybe find some citation for other common structures' runtimes e.g. B-trees. And... there's really not much else to this section.
 
+There are some bold assumptions being made when we say that the gear hash won’t create many new chunks on insertion. It seems like it could very easily create two new chunks, and then those chunks could create 3 or 4 above them, and it propagates up the tree. This is not thesis-breaking (and e.g. a true sliding window setup might be able to fix this), but it should be noted when we talk about the rolling hash and in the future improvements section.
+
 ## As CRDTs
 
 TODO wording is a bit hard here. This entire thesis we've been creating Prolly Trees as CRDTs. What should I specifically say here, and how should I say it? I want to talk about the different pseudo-dictionary CRDT things we can do, discuss their pros and cons, that sort of thing. If there's something that's not possible, I wanna know that. Anything else?

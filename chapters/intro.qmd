@@ -1,98 +1,90 @@
 # Introduction {.unnumbered}
 
-AAAAAAH too much stuff to do. Things that are stewing in my brain... (will remove when they're put in the right section)
+Final push time! What do I need to do, big-picture? Text-search for CITE, TODO, and that sort of thing.
 
-- Future directions. Should I talk about my ideas that I had for improvements? If so, where? At the end of chapter 3, or a weird small chapter 4, or an appendix, or what?
-- Notation and terminology. So much.
-    - I wanna give formal math-y definition of a chunker, and maybe use the same notation for ranges. How should I notate these? Normal sequence parentheses, big comma/kappa, dotdotdot, function from $\mathbb{N}$, square-bracket set builder, CS array notation... so many ways. Ugh. Also "chunk" or "block" for the created thing?
-    - What about state-based merging? The lattice world calls it a "join" and uses a wedge/`and` symbol; I should get on board with them. Not a hard decision, but I gotta go through and enforce consistency.
-    - Also need a bit of ADT terminology for interface, implementation, and so on. Should I say a "set adt crdt?" No. But a "set crdt" should be understood as an implementation of a set adt that also lends itself to strong eventual consistency.
-- "thesis thesis" --- All the things that I am "contributing" to the world. What should I put in my intro? I have rough thoughts but I'll have to simplify it eventually. General outline...
-    - Distributed systems are cool/important
-    - CRDTs are useful for them
-    - This Prolly Tree thing solves some distributed systems problems (examples in the real world)
-    - Here’s how we can make it more flexible and/or powerful and/or etc, also just look it’s a great thing
+## TODOs
 
-***
+## Making the content "okay"
 
-OLD outline, maybe redo soon. Mostly accurate but not 100%
+### Rework start of Background
 
-1. background
-    a. dist. sys. _(2)_
-        i. define our assumed network model
-            - define my common terminology like "node"
-            - maybe connected in 10s/100s/1000s groups
-            - network may be faulty/flakey but in "fully up" scenario the graph is connected
-        ii. general intro, background
-            - motivating examples like grapevine/email
-            - eventually define _decentralized_ and _peer-to-peer_ with an understanding of why they exist
-        iii. problems with distributed systems
-            - time, network partitions, heterogeneous machines/connections
-        iv. cap theorem
-        v. lamport?
-        vi. ...and any other stuff I need to explain
-    b. crdts _(3)_
-        i. yep all the stuff that I've talked about
-    c. hashing _(2)_
-        i. what it is
-        ii. why it's useful
-        iii. other stuff we can do: hash table, content addressing
-2. construction
-    a. search trees _(1)_
-        i. desirable properties; briefly mention b-trees
-    b. merkle trees _(2)_
-        i. discuss crypto applications, then how it helps us
-    c. content-defined chunking _(2)_
-    d. what the prolly tree actually is _(1)_
-    e. discussion vs mst and others _(1)_
-3. properties
-    a. proofs about read/write runtimes, etc _(1 for MVP)_
-    b. prolly tree as a crdt (incl. when the values are crdts) _(3)_
-        i. it's a key-value set and will have those semantics
-        ii. grow-only with keys as T/F => grow-only set over keys
-        iii. also can have last-writer-wins for values
-        iv. can do tombstones for deletion, but perhaps that makes the tree reconciliation messy
-        v. ...?
-    c. what other existing properties do we wanna talk about? how/when should I meld into my own contributions? _(?)_
-4. improvements and other stuff
-    a. more rigorous asymptotic analysis _(not in MVP)_
-    b. real-world performance studies _(not in MVP)_
-    c. dynamo-like _(not in MVP)_
-    d. send data in op-like way _(not in MVP)_
-    e. (performance of) range tree for array, other data structures (we get JSON) _(not in MVP)_
-    f. improve the cdc system (stuff that Dolt did) _(not in MVP)_
-    g. and so on! _(not in MVP)_
+Some of that content can go into other sections. And I feel like we can just start with the "system" part.
 
+### Add ADT section
+(see my notes & photo of Jim whiteboard from Apr 22)
 
+### Chunking rework
 
-***
+See inline notes.
 
+### Flesh out Properties
 
+Just write more! Write junk and explain it to someone.
+
+### All the glaring TODOs
+
+Yup.
+
+## Making it all great
+
+### Terminology & notation
+
+- join vs merge
+- sequences
+- ADT stuff (need that terminology in CRDTs and )
+- ...?
+
+### Expand shorter paragraphs
+
+- discussion of similar structures at end of construction
+- ?
+
+### Polish Improvements
+
+- reword messy "idk" and "oooh" stuff
+
+### Abstract, Preface, etc
+
+## Making it superduperperfect
+
+### Write more in Improvements
+
+Share even more of my thoughts :D
+
+### Images and diagrams
+
+That would be nice, wouldn't it?
+
+## ACTUAL WRITING
 
 Quick intro and overview of the thesis before we get into proper background. Look, I did stuff! Blah blah blah, quick overview, what I learned and contributed. Anything else useful to know, e.g. how advanced I expect my reader to be.
+General outline...
 
-## Distributed systems
+- Distributed systems are cool/important
+- CRDTs are useful for them
+- This Prolly Tree thing solves some distributed systems problems (examples in the real world)
+- Here’s how we can make it more flexible and/or powerful and/or etc, also just look it’s a great thing
 
+***
+
+<!-- ## story intro -->
+
+Hook for why we care about all this stuff.
 We conceptually cover the problem space of distributed systems, consistency, and motivate with some real-world examples like collaborative document editing.
 
-## CRDTs and stuff
+<!-- ## main overview -->
 
-Their use (motivated by above), cool things that MST did, and some things that could be improved (motivating my work).
+Conceptual overview of what I did.
+CRDTs: their use (motivated by above), cool things about Prolly Trees, and some things that could be improved (motivating my work).
 
-## What I did
+<!-- ## techy overview -->
 
-Not sure yet! Some MST-like structures for other data types, perhaps. And what if the payloads aren't exactly CRDTs, or they need to be manually "flattened" into a final form? (These notes are for me btw.)
+More technical description of what this thesis covers.
 
-## Terminology
+<!-- ## misc notes -->
 
-Idk if this is the right place to put it but I want a place to specify that e.g. node, machine, computer, user, etc all refer to the same thing
-
-## Other info
-
-...not sure what else to put in the intro, but we'll have a better idea once more has been written.
-
-Note: (idk where to put this but) we are not focusing on explicit consensus protocols or anything like that. So no blockchain-style agreeing on the "true" ordering of events.
-
+Notes and assumptions and terminology and notation.
+For example we're not worried about consensus or malicious nodes or something.
 Assumptions of the reader (up to change):
 
 - introductory formal math (?)

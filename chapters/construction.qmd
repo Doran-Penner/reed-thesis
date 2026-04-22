@@ -44,17 +44,6 @@ So from here on out, we'll assume that we have access to a collision-resistant h
 
 With that assumption, hashes let us cheaply check equality. If $H(x) = H(y)$, then $x$ almost always equals $y$. So if two nodes wish to compare their data, they can simply hash the entirety of their data and only share the hash. If the value is the same, then by our above assumption they have the same data and don't need to communicate further. If they don't have the same hash, then they'll need to share the full CRDT's state as usual.
 
-<!--
-TODO ugh I need to get some terminology.
-- A "set" ADT is an unordered collection of unique items. You can insert values and later check if some value is in the set.
-- An "ordered set" is a set where the keys have some ordering. You can thus query a range of values at a time.
-- A "map" ADT is a mapping from keys to values. You can insert (k,v) pairs and then later query by key to get that value (if it was previously stored in the map). Generally treated like a set ADT on the keys with some extra info (the values) attached to each key, and that extra info can be changed.
-- A "dictionary" is another word for this map ADT.
-- An "ordered dictionary" is a dictionary where the keys also have some (total?) ordering, allowing range queries.
-
-Where should I explain an "ordered dictionary?" Maybe in the background section, not sure. Or maybe in the intro to the construction. But somehow I need to explain this.
--->
-
 _Content-addressed storage_ is a database that supports efficient queries via the hash of the desired content. So given a hash $h$, it will return the data $x$ for which $H(x) = h$ (if $x$ was previously put into the database).
 Under the hood, it can be implemented as a dictionary with $(h, x)$ as the key-value pair; but for our purposes we will let other programs deal with the implementation details, and assume we have access to content-addressed storage that correctly retrieves data from its hash.
 
@@ -92,11 +81,25 @@ Prolly Trees represent an ordered dictionary, and we'll use that to create a con
 <!-- TODO don't love that but should move on. -->
 <!-- TODO should I just drop the hard cases? We only care about Prolly Trees. -->
 
-## Rolling hashes
+## Content-defined chunking
+
+<!-- TODO I wanna give formal math-y definition of a chunker, and maybe use the same notation for ranges. How should I notate these? Normal sequence parentheses, big comma/kappa, dotdotdot, function from $\mathbb{N}$, square-bracket set builder, CS array notation... so many ways. Ugh. Also "chunk" or "block" for the created thing? -->
+
+TODO rework this section based on meeting discussion. Instead I will give a high-level idea of what content-defined chunking gives us, then use gear hashing as a simple-but-possibly-flawed example, then say "assume we have access to a good CDC system" or something like that.
+Alsoooo I need to decide on notation for chunking output.
+Just gotta pick something!
+Easiest is maybe... let $S$ be the set of all possible finite input arrays/sequences/whatever (e.g. array of 32-bit integers). Then our content-defined chunker C is defined as
+\begin{align*}
+C ~:\quad S \quad &\to 2^{\mathbb{N}^+} \\
+(s_j)_{j=1}^n &\mapsto I
+\end{align*}
+where the elements of $I$ are indices into the input and $|I| \le n$.
+
+***
 
 <!-- TODO remember Marcus' office discussion. Might be good to work through an example. And I am more confident in my strategy of "here's a simple setup, it gets fancier but just assume that we have some thing which will do chunking." -->
 
-The scheme we just described has a big problem. What if data is added to the start? For example, say our List CRDT serializes as a list of its values and some node adds data to the head of the list. This necessarily changes the hash of the first block in the Merkle tree, but has cascading effects --- all the data shift down the line a bit, meaning that all chunks suddenly have new hashes. So our Merkle tree hash comparison would see that the nodes need to transmit all of their state, even though just a little bit has changed.
+The scheme we just described has a big problem. What if data is added to the start? For example, say our List CRDT serializes as a list of its values and some node adds data to the head of the list. This necessarily changes the hash of the first block in the Merkle tree, but furthermore has cascading effects --- all the data shift down the line a bit, meaning that all chunks suddenly have new hashes. So our Merkle tree hash comparison would see that the nodes need to transmit all of their state, even though just a little bit has changed.
 This doesn't affect correctness, but can ruin our performance gains from using the Merkle tree comparison scheme. We want a way to have the Merkle tree improvements in most cases of data insertion, not just when new data is appended to the end.
 
 <!-- TODO example (with image?) of this issue? -->
@@ -157,7 +160,7 @@ Now we have all the tools we need to construct the final Prolly Tree:
 a collision-resistant hash $H$,
 content-addressed storage,
 and a content-defined chunker $C$.
-When implementing an ordered dictionary with $n$ items, we can represent the state as a sequence of key-value pairs $P = (k_i, v_i)_{i=1}^n$. Then:
+When implementing an ordered dictionary with $n$ items, we can represent the state as a sequence of key-value pairs $P = ((k_i, v_i))_{i=1}^n$. Then:
 
 <!-- TODO should I do a proper Algorithm environment? -->
 1. Run $C$ on $P$, checking for boundaries after the end of each $p_i \in P$ (so we don't break apart the keys or values). This will create a sequence of $m$ blocks $B = (b_j)_{j=1}^m$.
@@ -165,7 +168,7 @@ When implementing an ordered dictionary with $n$ items, we can represent the sta
    1. get the hash of that block $h_j = H(b_j)$,
    2. put $b_j$ in our content-addressable storage,
    3. and pair $h_j$ with the smallest key $k_j$ that was held in that block.
-3. Now we have a new sequence of key-value pairs $P' = (k_j, h_j)_{j=1}^m$ (though the values are hashes). Recurse on $P'$ until there is only one key-hash pair remaining. This is the root of the Prolly Tree.
+3. Now we have a new sequence of key-value pairs $P' = ((k_j, h_j))_{j=1}^m$ (though the values are hashes). Recurse on $P'$ until there is only one key-hash pair remaining. This is the root of the Prolly Tree.
 
 <!-- TODO better wording later. -->
 And that's it!
