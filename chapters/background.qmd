@@ -1,41 +1,17 @@
 # Background
 
-<!-- General background on distributed systems, cap theorem, lamport, crdts, and so on. -->
-
 <!-- TODO: overall, try to have more of a narrative. It's very okay and good to say "we're doing crdts and we'll talk about them later" and then give reasons _why_ we wanna talk about x y or z. -->
 
 ## Distributed systems
 
-TODO: you don't need to be a textbook. Give some kind of explanatory story (possibly in Introduction?) that gets the idea across.
+<!-- TODO define "node" here or in Introduction. Do text search to make sure I don't use the word before I define it. -->
 
-TODO maybe I ignore the story part, since that'll be kinda given in Introduction, and just start right here with the _Distributed and peer-to-peer systems_ section. I can define stuff like node there. Yeah I like this.
-
-<!-- In the modern world of computing, there are many devices connected by some network --- Ethernet, Wi-Fi, telephone line, and so on. Each device is usually doing some amount of work on its own and regardless of other devices. For example, a calculator app doesn't need communication with other devices in order to do its task. But many applications require the network so they can fulfill their task. A weather app needs to get weather data from government agencies or other sources to display the current temperature; a messaging app needs to send and recieve messages to/from other devices. More generally, many programs need to communicate over some connection to other computers. -->
-
-In the modern world of computing, many devices are connected by some network --- Ethernet, Wi-Fi, telephone line, and so on --- and communicate with each other over this network.
-
-TODO more rough intro. Goals:
-
-- terminology (e.g. node, partition)
-- network causes new failures (partial operations, long latency or partition...)
-- explain client/server
-- explain a (distributed) system (here or elsewhere) as a collection of programs (on different machines) that combine to make some kind of overall service. e.g. the internet and so many other examples. It's generally broader than a single application/program but serves the same purpose
-
-<!-- Here, a "system" means some collection of computers on some network that collaborate by each running some part of a larger program. -->
-
-Maybe some of this will end up in the assumed infrastructure.
-
-### Distributed and peer-to-peer systems
-
-<!-- Don't love it but we needed something. Also does this go here or in the above section? Ugh. -->
-<!-- TODO what about the word "service?" I don't love it bc of SaaS connotations but it feels a bit better than this "system" thing. -->
 We will loosely define a _service_ as an overarching container of programs and protocols that does something when put together. A service could just be a single program on a single device, but usually spans multiple programs and computers. For example, the Internet Protocol (IP) is a service that allows computers to reach and communicate with each other even when they're not directly connected.
-<!-- We will define a "system" as one or more programs running on one or more devices connected by some network which collectively act as part of some larger service. -->
 
-<!-- TODO this is bad -->
-A simple service architecture has some machine that other computers make requests to. Think netflix. This is the client-server model (with just one server), where one machine is a server and other machines want something from it or want to do something to it.
+A simple service architecture has some _server_ program(s) that other _client_ programs make requests to. Video streaming is one such service --- a home computer makes requests to e.g. Netflix's servers for content to watch.
+This is called the client-server model.
 
-The client-server model with a single server runs into scaling issues: no computer of today, regardless of how much processing power it has or how much bandwidth its network has, could possibly handle all of the requests that are demanded upon some services (e.g. a single computer serving all Google search results). As such, the work of handling all these requests must be managed amongst multiple computers.
+The client-server model runs into scaling issues with just one server: no computer of today, regardless of how much processing power it has or how much bandwidth its network has, could possibly handle all of the requests that are demanded upon some services (e.g. a single computer serving all Google search results). As such, the work of handling all these requests must be managed amongst multiple computers.
 A _distributed system_ is a service where multiple devices work together to provide some program or service, instead of one machine doing it all. [@distsys-textbook p. 2]
 
 An old example of a distributed system is Grapevine [@grapevine], an early email service. Xerox had local electronic mail servers in its offices, and the workstations were connected to some local server; the servers were also connected to each other via telephone lines. Given this setup, Grapevine was designed to facilitate email getting from one workstation to another regardless of their location.
@@ -49,18 +25,18 @@ They additionally define "pure" peer-to-peer with the additional constraint that
 
 This is a complex definition and already shows the nuances of peer-to-peer systems. Most of the time, peer-to-peer is defined in contrast to a client-server architecture --- instead of marking a computer as either a client that requests data or server that responds to requests, all machines are equal in some sense and can operate as both clients and servers. An example of this is BitTorrent [@sam-thesis], which is used for file sharing: a node both downloads data from other nodes and provides data for upload to other nodes. This provides resilience, reduced load, and increased speed when many devices would otherwise all have to request the data from the same server.
 
-TODO some explanation for why we care about p2p? Sometimes you have to deal with non-hierarchical interactions so it's necessary. Jim says I might be able to just ignore this.
-
-Note that the line between client-server and peer-to-peer gets messy. For example, Dynamo [@dynamo] is a system from Amazon to provide a key-value store. The entire system operates as a server for external clients: a device can connect to some machine in the Dynamo system and ask for the value corresponding to some key. However, amongst the Dynamo servers the protocol is peer-to-peer --- no Dynamo node is structurally prioritized over another.
+Note that the line between client-server and peer-to-peer gets messy. For example, Dynamo [@dynamo] is a service from Amazon to provide a key-value store. The entire system operates as a server for external clients: a device can connect to some machine in the Dynamo system and ask for the value corresponding to some key. However, amongst the Dynamo servers the protocol is peer-to-peer --- no Dynamo node is structurally prioritized over another.
 And the story gets even more complex with topics such as federation, which is somewhere between a fully peer-to-peer system and a client-server system.
+
+<!-- TODO story for why we care about p2p? Come back after Introduction is more fleshed out. -->
 
 ### Challenges with distributed and peer-to-peer systems
 
-<!-- TODO define partition here. -->
-
 Distributed and peer-to-peer systems have many challenges that need to be worked around [@distsys-textbook, p. 30].
-Since the network can fail, there are many problems that plague all distributed systems: messages can be delayed, dropped, corrupted, delivered out-of-order, and duplicated.
+Since the network can fail in inconsistent ways, there are many problems that plague all distributed systems: messages can be delayed, dropped, corrupted, delivered out-of-order, and duplicated.
+A network _partition_ is when there's no path of communication between two sections of devices. For example, a building's machines could all be hard-wired to connect to each other, but the building suddenly loses connection to the wider internet.
 Since network partitions could happen anywhere and at any time, nodes can become instantaneously unreachable, including partway through communication.
+Thus protocols that send data over the network always have to assume that their messages could fail to send, and react accordingly.
 
 And there are additional difficulties associated with peer-to-peer networks.
 In many settings a peer-to-peer system is _open_, meaning that nodes are free to join or leave at any point in time.
@@ -92,139 +68,154 @@ Partition tolerance
 Unfortunately, we cannot have all three of these. This is known as the _CAP theorem_, conjectured in @brewer-conjecture and proven in @brewer-proof. It doesn't matter exactly how the data is stored: as long as any node in the system can make changes to it and can also go offline, you cannot guarantee both consistency and availability in the event of a network partition.
 
 There are problems with the CAP theorem as a tool of analysis for a distributed system; see @kleppmann-cap for discussion of alternative frameworks.
-For one, it relies on a specific definition of consistency --- atomic, linearizable transactions --- and only focuses on a single value to be written. The theorem also says that a system can get both consistency and availability when there is no partition-tolerance; while true, in the real world of distributed systems one always has to design around a network partition in case it occurs.
+For one, the proof relies on a specific definition of consistency --- atomic, linearizable transactions --- and only focuses on a single value to be written. The theorem also says that a system can get both consistency and availability when there is no partition-tolerance; while true, in the real world of distributed systems one always has to design around a network partition in case it occurs. (No distributed system should be designed while ignoring the possibility of a partition.)
 Furthermore, the CAP theorem does not consider latency at all. If all nodes are reachable but it'll take 20 minutes to get updates, is it worth the wait? It depends on the application and the CAP theorem does not address this question.
 But generally speaking, there is usually a tradeoff of availability in distributed systems. Applications that require good availability have to forgo some amount of consistency, whether that's due to latency or partition tolerance.
 And the CAP impossibility means there is a large space of options that applications can choose from depending on their needs.
 
 ### Assumed infrastructure
 
-Do I have an example of this? Maybe in Dynamo they say what they do.
+<!-- TODO anything else? -->
 
-With all of that, there are a ton of different settings and models that distributed systems must operate in. For our purposes...
+With all of that, there are a ton of different settings and models that distributed systems must operate in. For our purposes, we will make the following assumptions about the system we're operating in:
 
-- Non-fully-connected graph, maybe tree structure e.g. 10s/100s/1000s
-- Some kind of gossip network (see what MST references) so any two peers can eventually communicate but not necessarily directly
-- Network can fail & recover, nodes can permanently join and leave
-- Not worried about malicious nodes
-- Somehow they're working together to do something, or just talking to each other and expecting things (e.g. client-server)
+1. We work in a peer-to-peer system. Nodes may permanently join or leave at any time, but we are not concerned with malicious nodes or consensus --- all machines in the network are assumed to be functional and well-intentioned.
+2. The network loosely connects all active nodes. The network may fail, but eventually it will recover and the network graph will be fully connected.
+3. Not all machines will have direct connections with one another, but there is some protocol (such as a gossip or anti-entropy algorithm [@gossip]) to disseminate information across all machines or to talk to any other machine directly by passing messages.
 
 ## Abstract data types
 
+<!-- TODO make this writing better later. -->
+
+Given all that, we want to create a reliable service in this peer-to-peer system. But what does this "service" constitute? Something like collaborative document editing requires service-specific logic, but the underlying tools can be generalized. A simple text document (without any formatting) can be seen as a long list of characters, so it is worth considering more abstract "services" which just provide a common data structure interface.
+Generally, we can think about creating an _abstract data type_ (ADT) in our peer-to-peer system that is accessible and modifiable by any node.
+
+What should a node be able to do? It depends on the interface to the ADT. For example, a queue [@clrs, p. 234] is a data structure that supports two operations: `Enqueue`, which puts a new value into the back of the line, and `Dequeue`, which removes & returns the first item in line. One could use a queue for anything that needs a first-come-first-serve structure (e.g. restaurant orders to fulfill), and it doesn't matter how it's implemented. Under the hood, there could be a linked list storing all the data, or a tree, or anything else --- it doesn't matter as long as the abstract interface is respected. We also can reason about the _abstract state_ of the ADT, which is the state that it represents. If we `Enqueue` the numbers 4, 7, and 2 in that order, then the abstract state is that the queue contains 4, 7, and 2 and the next thing to be `Dequeue`d will be 4. The underlying implementation still may store the data in any which way, but it's useful to discuss the abstract state.
+
+<!-- TODO fix up the "story" once Introduction is written. But for now I'm just gonna state info. -->
+There are a lot of ADTs that we might want to implemenmt in a peer-to-peer system. Something we'll dig more into later is an _ordered dictionary_. This consists of a set of _keys_ (collection without duplicates) that has some ordering, e.g. the keys are numbers and the ordering is "less-than." Each key is additionally attached to some _value_. Dictionaries are also called (key-value) maps since they map keys to values. An ordered dictionary allows the following operations:
+
+<!-- TODO is there a better way of presenting this? -->
+- `val = get(key)`, which (if `key` is in the dictionary) returns that key's value;
+- `vals = get_range(small_key, big_key)` returns all values which have keys in the range `[small_key, big_key]`;
+- `update(key, value)` (if `key` is in the dictionary) sets that key to have a new value;
+- `insert(key, value)` which adds a new key-value pair to the dictionary;
+- `delete(key)` which deletes a key-value pair from the dictionary.
+
+<!-- TODO should I say you can use it as a list? -->
+Ordered dictionaries are very versatile data structures.
+TODO give some example uses.
+A common way to implement them is with binary search trees, but we'll cover implementation in more detail later.
+
 <!--
-TODO ugh I need to get some terminology.
 - A "set" ADT is an unordered collection of unique items. You can insert values and later check if some value is in the set.
 - An "ordered set" is a set where the keys have some ordering. You can thus query a range of values at a time.
 - A "map" ADT is a mapping from keys to values. You can insert (k,v) pairs and then later query by key to get that value (if it was previously stored in the map). Generally treated like a set ADT on the keys with some extra info (the values) attached to each key, and that extra info can be changed.
 - A "dictionary" is another word for this map ADT.
 - An "ordered dictionary" is a dictionary where the keys also have some (total?) ordering, allowing range queries.
-
-Where should I explain an "ordered dictionary?" Maybe in the background section, not sure. Or maybe in the intro to the construction. But somehow I need to explain this.
 -->
-
-<!-- TODO I need a bit of ADT terminology for interface, implementation, and so on. Should I say a "set adt crdt?" No. But a "set crdt" should be understood as an implementation of a set adt that also lends itself to strong eventual consistency. -->
-
-TODO: ADT stuff. I want to somehow, somewhere, discuss the notion of an abstract data type. Meaning I want to say "we're gonna implement an ordered dictionary" and the reader knows that we are implementing a certain interface and that implementation can be in a bajillion different ways. Then I need consistent terminology for it, but that's a future problem. Where and when do I introduce it? What do I say?
-
-**What is it**: briefly explain the notion of an interface. Give brief examples of different implementations of the same interface. Say that we are making an ordered dictionary.
-
-**Where to put it**: maybe this belongs in the background, between distsys and crdts. Then the reader understands the setting and we can use ADT terminology when discussing CRDTs.
-
-I couuuuld start with this stuff. It gives a bit more narrative to the distsys section, at the cost of maybe limiting it a bit. I want to strike a balance between "textbook info about distsys" and "what you need to know for prolly trees." Hm. But I think it needs to be explained before the CRDT section.
-
-**How I say it**: "in this world of distsys we might wanna create some sort of service, e.g. a distributed hash table is something that others care about. Look at this thing called an ordered dictionary, that's pretty cool" or whatever. (If I'm putting it between distsys and crdt.) If at the start, I could talk about services in general? Hm. Not sure.
-
-Yeah I think it flows best when between those two sections. Then we get
-an intro to the area and problems (distsys),
-something we care about doing (ordered dictionary),
-and a neat framework to solve it (crdts).
-
-I would/will need to rework some of the crdt examples and discussion, e.g. the stuff about sets. But I can say "sets are simpler than ordered dictionaries but look they have all these problems." Then in the "even more complex" section instead of graphs I talk about ordered dictionaries. Also as a side note I should add stuff to that section like LWW-registers. I'm okay with my current overview for the sake of explanation, but I also need to cover anything that actually gets used --- and I think I will use LWW registers as an example of how Prolly Trees can be CRDTs.
-
-***
 
 ## CRDTs
 
-TODO: briefly explain an abstract data type (ADT) and say that. e.g. set ADT. That is an important distinction that I am fluent in but should be made explicit.
+TODO rework some of this section given the new ADT terminology.
+I would/will need to rework some of the crdt examples and discussion, e.g. the stuff about sets. But I can say "sets are simpler than ordered dictionaries but look they have all these problems." Then in the "even more complex" section instead of graphs I talk about ordered dictionaries. Also as a side note I should add stuff to that section like LWW-registers. I'm okay with my current overview for the sake of explanation, but I also need to cover anything that actually gets used --- and I think I will use LWW registers as an example of how Prolly Trees can be CRDTs.
 
-TODO add citations to the 2011 Shapiro paper
+One way to implement ADTs in a peer-to-peer system is with a _conflict-free replicated data type_, or CRDT [@shapiro-crdt]. That is
 
-One solution to the CAP impossibility is a _conflict-free replicated data type_, or CRDT. That is
-
-- a _data type_, e.g. number, list, or tree;
+- an abstract _data type_, e.g. number, list, or dictionary;
 - that is _replicated_, where there are multiple copies of the data on different machines;
 - and _conflict-free_, meaning that there is some way of combining copies that always succeeds.
 
-This gets excellent availability and partition-tolerance by just having some local copy of the shared data. Additionally, having many copies means that there are inherent backups to prevent data loss. Instead of getting perfect consistency, we will settle for _strong eventual consistency_: given enough communication between nodes (when the network is up), all nodes eventually agree upon the final version [@eventual-consistency]. In many applications, this is a reasonable tradeoff: git, for example, doesn't require internet connection while working but only to share and retrieve data from others.
+This gets excellent availability and partition tolerance by just having some local copy of the shared data. Additionally, having many copies means that there are inherent backups to prevent data loss.
+This does sacrifice perfect consistency, since (before network communication) it's likely that a node's copy of the data will not have peers' changes.
+Instead, CRDTs settle for _strong eventual consistency_: given enough communication between nodes (when the network is up), all nodes eventually agree upon the final version [@eventual-consistency]. In many applications, this is a reasonable tradeoff: git, for example, doesn't require internet connection while working but only to share and retrieve data from others.
 
-This framework requires a guarantee that different copies of the data will converge to the same value with communication. There are two common ways to ensure this --- either by focusing on the state of the data or the operations applied to it.
+Ensuring strong eventual consistency is the hard part of CRDTs. There must be some way to guarantee that any two replicas will converge to the same value with communication.
+There are two common ways to ensure this: either by focusing on the state of the data or the operations applied to it.
 
 ### State-based
 
-TODO put the actual definition in a definition environment. Also link to textbook "Introduction to Lattices and Order" [@lattices] and use their terminology (the land/wedge notation and the word "join"). And then make sure to use that terminology & notation everywhere.
+<!-- TODO should I have more narrative for these subsections? Methinks not -->
 
-State-based CRDTs ensure strong eventual consistency via a join-semilattice over the states. Let $S$ be the set of all possible states of the replicated data, and $\sqcup : S \times S \to S$ be a binary operation (our "join") on $S$. Then $S$ is a join-semilattice via $\sqcup$ if the operation has the following properties for all $x, y, z \in S$:
+State-based CRDTs ensure strong eventual consistency via a join-semilattice [@lattices] over the states.
 
-1. Associativity: $(x \sqcup y) \sqcup z = x \sqcup (y \sqcup z)$. It doesn't matter what order the join is applied in.
-2. Commutativity: $x \sqcup y = y \sqcup x.$ There's no "sidedness" to the join.
-3. Idempotency: $x \sqcup x = x$. Self-joining does nothing.
+:::{#def-semilattice}
+#### Join-semilattice
+Let $S$ be a set and $\lor : S \times S \to S$ be a binary operation (our "join") on $S$. Then $S$ is a join-semilattice via $\lor$ if the operation has the following properties for all $x, y, z \in S$:
 
-This join operation is also called a least upper bound. If these properties hold, then there is always a way to combine two items; furthermore, this combination is minimal in some sense.
+1. Associativity: $(x \lor y) \lor z = x \lor (y \lor z)$. It doesn't matter what order the join is applied in.
+2. Commutativity: $x \lor y = y \lor x.$ There's no "sidedness" to the join.
+3. Idempotency: $x \lor x = x$. Self-joining does nothing.
+:::
 
-<!-- When these conditions are met, both nodes can take the least upper bound of their state and the other. Since it's idempotent, self-merging won't change anything; since it's commutative, the order doesn't matter; and since it's associative, merging three or more states will come out to be the same no matter which we do first. -->
+<!-- TODO wording -->
+This join operation is also called a least upper bound because it yields a smallest-possible way to combine two elements of a set. If these properties hold, then $\lor$ gives us a minimal way that we can always combine two items of a set.
 
-This gives us strong eventual consistency! Given any two copies of some data, we can merge them via the join operation. No matter the order that this propogates throughout the distributed system, if nodes (without making any new changes) keep joining pair-wise then eventually all will have the same state.
-So if we can define an operation on our data that has these properties, then we have a CRDT.
+This gives us a way to guarantee strong eventual consistency! Given any two copies of some data, we can join them via some defined operation. No matter the order that this propogates throughout the distributed system, if nodes (without making any new changes) keep joining pair-wise then eventually all will have the same state.
+So if we can define an operation on our data that has these properties, then we have a state-based CRDT.
 
-TODO: for narrative, might be good to give example at the top of state-based for motivation. Also I should actually (briefly) prove stuff, not just wave my hands.
-
-<!-- Should I justify these examples? Nah -->
-For a simple example, we can easily make a max-number value with state-based power. If our join is the maximum of two real numbers, then our state space $S = \mathbb{R}$. We can verify that this satisfies all the properties: the maximum of any number with itself is itself, and the maximum function does not care about order of inputs or application.
-We can also easily make a grow-only set by setting $\sqcup = \cup$ (set union) over all sets. Set union is associative, idempotent, and commutative, meaning this is another CRDT.
+For a simple example, we can easily make a max-number value with state-based power. If the state space $S = \mathbb{R}$, then we can define the join as the maximum of its two inputs. We can verify that this satisfies all the properties: the maximum of any number with itself is itself, and the maximum function does not care about order of inputs or application.
+We can also easily make a grow-only set, an unordered collection without duplicates which only allows adding more items.
+Let $\lor = \cup$ (set union) over all sets. Set union is associative, idempotent, and commutative; this means that we get a join-semilattice, meaning this is another CRDT.
+<!-- set of all sets :( -->
 
 ### Op-based
-
-TODO: I'm really not gonna be focusing on the op-based stuff, but it's here for people to know. I should explicitly say that to the reader. Why? Can say it's because it has stronger connectivity requirements (assumes fully connected) but that's not great. Alternatively I can say it in the compare & contrast section.
 
 Operation-based CRDTs achieve strong eventual consistency by requiring that all operations done on the data are commutative: that is, you can apply a collection of operations $a, b, c, \dots$ in any order and the outcome will be the same.
 When this is the case, we also get a CRDT.
 Nodes share changes by sending out the operations they did as soon as they happened; when a node receives an operation, it simply applies that to its data.
 Since we have commutativity, node $A$ doing operation $a$ and then receiving & applying operation $b$ gives the same output as node $B$ doing operation $b$ and then applying the recieved operation $a$.
 
-A simple operation-based CRDT is a number counter with addition (for example a bank account that can be added to or subtracted from). Addition over $\mathbb{R}$ is commutative, so we can represent all operations as $\mathsf{add}(r)$ for some $r \in \mathbb{R}$ and send $r$ to peer nodes. We can also represent a grow-only set using operations: the $\mathsf{add}(s)$ operation which adds an item to a set commutes with all other set additions.
+A simple operation-based CRDT is a number counter with addition (for example a bank account that can be added to or subtracted from). Addition over $\mathbb{R}$ is commutative, so we can represent all operations as `add(r)` for some $r \in \mathbb{R}$ and send $r$ to peer nodes. We can also represent a grow-only set using operations: the `add(x)` operation, which adds an item to a set, commutes with all other set additions.
 
 ### More complex examples
 
-<!-- TODO once "abstract data types" are explained, use that terminology/understanding to word this section a bit better. -->
-We've shown two ways to create a grow-only set. What about a "full" set? Only considering two operations, $\mathsf{add}$ and $\mathsf{remove}$ which operate on one item at a time, we immediately encounter a problem: these are not commutative. To illustrate this, consider the three operations $\mathsf{add}(7), \mathsf{add}(7), \mathsf{remove}(7)$. Since sets have no duplicates, the second $\mathsf{add}$ does nothing, and then the $\mathsf{remove}$ removes the $7$, yielding no overall change. But if we $\mathsf{add}(7), \mathsf{remove}(7), \mathsf{add}(7)$, the $\mathsf{add}$ at the end means there is overall a $7$ added to the set.
+We've shown two ways to create a grow-only set CRDT. How could we implement a set CRDT that also allows for item removal?
+Only considering the two operations `add` and `remove` which operate on one item at a time, we immediately encounter a problem: these are not commutative.
+To illustrate this, consider applying the operations `add(7)`, `add(7)`, and then `remove(7)` in that order.
+Since sets have no duplicates, the second `add` does nothing, and then the `remove` removes the $7$, yielding no overall change after the three operations.
+But if we do `add(7)`, `remove(7)`, and then `add(7)`, the `add` at the end means there is overall a $7$ added to the set.
 
-How can we fix this? It turns out that there is no real way to make a perfect set CRDT due to the above issue. However, we can create reasonable approximations with varying ways to resolve the non-commutativity.
+How can we fix this? It turns out that there is no real way to make a perfect set CRDT due to the above issue. However, we can create CRDTs which do a decent job at approximating a true set ADT [@shapiro-crdt, pp. 21-27].
 
-<!-- TODO reference the Shapiro paper here -->
+One solution is storing two grow-only sets (called a two-phase or 2P-set), one called the "main" set $M$ and one called the "tombstone" set $T$.
+To put an item in the set, add it to $A$ (which is a standard grow-only set). To remove an item, add it to $T$. So the abstract state of the overall 2P-set is $A ~\backslash~ T$.
+This is easy to implement, since it's just two grow-only sets and nodes can transmit both sets' data as usual. However, it doesn't allow for re-adding elements which have already been removed. This could be alleviated to the $n$th degree by having $n$ pairs of added/removed sets in a hierarchy, but that is simply not practical or very useful most of the time.
 
-One solution is storing two grow-only sets (called a two-phase or 2P-set), one called the tombstone set. Once an item is added to the tombstone set, it's treated as no longer in the overall set. So they user-facing set equals $A ~\backslash~ T$, where $A$ is the added set and $T$ is the tombstone set. This is easy to implement, since it's just two grow-only sets; however, it doesn't allow for re-adding elements which have already been removed. This could be alleviated to the $n$th degree by having $n$ pairs of added/removed sets in a hierarchy, but that is simply not practical or very useful most of the time.
+Another solution is to have an operation-based counter on each item. Under the hood an integer is stored for each item observed, and shows the user all items whose counter is greater than zero.
+For operations, it'll translate `add(7)` into incrementing the counter on $7$ by one. Similarly, `remove(7)` will be translated to subtract the $7$s counter by one bring it to $0$.
+This might mean that even on a local copy, `remove(7)` won't actually remove the item from the set. This can be fixed by making the high-level `remove(7)` operation translate to subtracting $x$ from $7$'s counter. And similarly, `add(7)` will have to add enough to make the counter positive in the case that it becomes negative. Even with those changes, this won't always give intuitive semantics --- but it is still _a_ way to implement a CRDT.
 
-Another solution is to have an operation-based counter on each item. Internally the set stores an integer for each item observed, and shows the user all items whose counter is greater than zero.
-For operations, it'll translate $\mathsf{add}(7)$ into incrementing the counter on $7$ by one. Similarly, $\mathsf{remove}(7)$ will be translated to subtract as many as needed from the $7$ counter to bring it to $0$ --- so if the counter is at $3$, then the underlying operation will be to subtract three from the $7$s counter.
-This will not always give desirable, set-like semantics --- a remove operation could feasibly make an item counter negative, meaning an $\mathsf{add}$ wouldn't actually add something to the final represented set. This could be fixed by changing the underlying operation to increment more, but it'll still provide a sometimes-unintuitive experience. It _is_ a way to represent a set as a CRDT though!
-
-Yet another way of getting around the problem is to attach unique identifiers to all items when $\mathsf{add}$ing. We mix this with a 2P-set.
-This means $\mathsf{add}(7)$ internally adds $7_\alpha$ to the added set; then $\mathsf{remove}(7)$ will put all observed $7_*$ items into the tombstone set.
+Yet another way of getting around the problem is to attach unique identifiers to all items when `add`ing. We mix this with a 2P-set.
+This means `add(7)` internally adds $7_\alpha$ to the added set, where $\alpha$ is some unique identifier for that item; then `remove(7)` will put all observed $7_*$ items into the tombstone set.
 With this system, the only underlying operations that don't commute are adding and removing the same item with the same identifier; if we ensure that an application only removes items that it has seen, then all the real-world scenarios commute.
 
-<!-- Maybe blend this with the next section? -->
+Implementing CRDTs gets even more complicated with more complex interfaces. What about a tree CRDT, which cannot have a cycle?
+What about dictionaries, which are more complex than sets because they also attach changeable data to the keys?
+For a lot of ADTs, there is no perfect way to represent them while still getting eventual consistency. However, we can come up with various ways to approximate them which have CRDT guarantees.
 
 ### Compare and contrast
 
-TODO come back to this. Awkward balance & transition from "misc background" to "what we care about for this thesis."
+Awkward balance & transition from "misc background" to "what we care about for this thesis."
 
-TODO: figure out what I want to say in this section and why. I have all this info, but I want to give a little bit of overarching analysis.
+I want to talk about benefits and drawbacks of both approaches. Also need to bring up delta-crdts briefly. Also note that they can emulate each other. I wanna say that both have problems but we're gonna work with state-based.
 
-State-based can only grow. We simulate removal with tombstones. Op-based doesn't have this problem on the surface. But it also assumes a strong network. If a peer is joining for the first time, it needs the full history --- or a current starting state or something, and I'm not 100% convinced that that works.
+<!-- TODO dewit -->
 
-In the original paper, op needs reliable network and maybe fully-connected graph? We don't have that. So need some way of tracking divergence, e.g. version vectors. And may need to keep arbitrarily-old history of operations in the case that a new peer joins or an old peer is gone for a very long time.
+***
 
-<!-- TODO we have to address deltas because in the next section I need to say that we're not doing delta-crdts for xyz reasons -->
-State can only grow. It just keeps joining! Awkward to do something like subtract from a number. Also you gotta send over the entire state for a proper join. Delta crdts address the last point at the cost of more complexity and being kinda hybrid.
+Both can emulate each other!
 
-What about a tree? Briefly explain the tree move, talk about the issues that that faces. What about other data structures? More complex structures tend to have harder semantics for CRDTs to handle.
+State-based can only grow. How do you subtract from a number?
+
+State-based requires sending the entire state for every single join. And since that state will only grow, the cost of joining will increase over time.
+
+Operation-based CRDTs need more infrastructure to function. If messages are dropped or duplicated, the system won't work; so there needs to be some kind of accounting for messages that were received.
+
+What about long network outages or a specific peer leaving for a long time? Operation-based might need to store its operation history, which makes it basically state-based.
+
+What about new nodes joining? State is easy because you just send over any node's current state. Operation needs to send over its current state of the data as well as the "accounting" of what messages it last received from various nodes. It gets messy!
+
+Generally op-based works better with strong active network because minimal data is sent back and forth. State-based works better with less-frequent merges.
+
+TODO mention @delta-crdt.

@@ -115,7 +115,36 @@
 	keywords = {performance, reliability, scalability},
 }
 
-@techreport{shapiro-overview-full,
+@inproceedings{gossip,
+	author = {Demers, Alan and Greene, Dan and Hauser, Carl and Irish, Wes and
+	          Larson, John and Shenker, Scott and Sturgis, Howard and Swinehart,
+	          Dan and Terry, Doug},
+	title = {Epidemic algorithms for replicated database maintenance},
+	year = {1987},
+	isbn = {089791239X},
+	publisher = {Association for Computing Machinery},
+	address = {New York, NY, USA},
+	url = {https://doi.org/10.1145/41840.41841},
+	doi = {10.1145/41840.41841},
+	booktitle = {Proceedings of the Sixth Annual ACM Symposium on Principles of
+	             Distributed Computing},
+	pages = {1–12},
+	numpages = {12},
+	location = {Vancouver, British Columbia, Canada},
+	series = {PODC '87},
+}
+
+@book{clrs,
+	author = {Cormen, Thomas H. and Leiserson, Charles E. and Rivest, Ronald L.
+	          and Stein, Clifford},
+	title = {Introduction to Algorithms},
+	year = {2009},
+	isbn = {0262033844},
+	publisher = {The MIT Press},
+	edition = {3rd. ed},
+}
+
+@techreport{shapiro-crdt,
 	TITLE = {{A comprehensive study of Convergent and Commutative Replicated
 	         Data Types}},
 	AUTHOR = {Shapiro, Marc and Pregui{\c c}a, Nuno and Baquero, Carlos and
@@ -133,35 +162,6 @@
 	PDF = {https://inria.hal.science/inria-00555588v1/file/techreport.pdf},
 	HAL_ID = {inria-00555588},
 	HAL_VERSION = {v1},
-}
-
-@article{lamport-clock,
-	author = {Lamport, Leslie},
-	title = {Time, clocks, and the ordering of events in a distributed system},
-	year = {1978},
-	issue_date = {July 1978},
-	publisher = {Association for Computing Machinery},
-	address = {New York, NY, USA},
-	volume = {21},
-	number = {7},
-	issn = {0001-0782},
-	url = {https://doi.org/10.1145/359545.359563},
-	doi = {10.1145/359545.359563},
-	abstract = {The concept of one event happening before another in a
-	            distributed system is examined, and is shown to define a partial
-	            ordering of the events. A distributed algorithm is given for
-	            synchronizing a system of logical clocks which can be used to
-	            totally order the events. The use of the total ordering is
-	            illustrated with a method for solving synchronization problems.
-	            The algorithm is then specialized for synchronizing physical
-	            clocks, and a bound is derived on how far out of synchrony the
-	            clocks can become.},
-	journal = {Commun. ACM},
-	month = jul,
-	pages = {558–565},
-	numpages = {8},
-	keywords = {multiprocess systems, distributed systems, computer networks,
-	            clock synchronization},
 }
 
 @inproceedings{brewer-conjecture,
@@ -232,6 +232,20 @@
 	author = {Kleppmann, M},
 	year = {2015},
 	keywords = {cs.DC, cs.DB},
+}
+
+@article{delta-crdt,
+	title = {Delta state replicated data types},
+	journal = {Journal of Parallel and Distributed Computing},
+	volume = {111},
+	pages = {162-173},
+	year = {2018},
+	issn = {0743-7315},
+	doi = {https://doi.org/10.1016/j.jpdc.2017.08.003},
+	url = {https://www.sciencedirect.com/science/article/pii/S0743731517302332},
+	author = {Paulo Sérgio Almeida and Ali Shoker and Carlos Baquero},
+	keywords = {Distributed systems, Eventual consistency, State-based, Delta,
+	            Conflict-free replicated data types, CRDT},
 }
 
 @inproceedings{merkle-tree,

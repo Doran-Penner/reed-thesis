@@ -35,6 +35,7 @@ abbrs:
   CAP: Consistency, availability, partition-tolerance
   MST: Merkle search tree
   CDC: Content-defined chunking
+  ADT: Abstract data type
 
 division: Mathematics and Computer Science
 thedivisionof: The Established Interdisciplinary Committee for

@@ -32,6 +32,7 @@ Yup.
 - join vs merge
 - sequences
 - ADT stuff (need that terminology in CRDTs and )
+- use `backticks` or $math$ for variables, pseudocode, etc?
 - ...?
 
 ### Expand shorter paragraphs
