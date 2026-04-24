@@ -117,9 +117,6 @@ A common way to implement them is with binary search trees, but we'll cover impl
 
 ## CRDTs
 
-TODO rework some of this section given the new ADT terminology.
-I would/will need to rework some of the crdt examples and discussion, e.g. the stuff about sets. But I can say "sets are simpler than ordered dictionaries but look they have all these problems." Then in the "even more complex" section instead of graphs I talk about ordered dictionaries. Also as a side note I should add stuff to that section like LWW-registers. I'm okay with my current overview for the sake of explanation, but I also need to cover anything that actually gets used --- and I think I will use LWW registers as an example of how Prolly Trees can be CRDTs.
-
 One way to implement ADTs in a peer-to-peer system is with a _conflict-free replicated data type_, or CRDT [@shapiro-crdt]. That is
 
 - an abstract _data type_, e.g. number, list, or dictionary;
@@ -190,27 +187,22 @@ Yet another way of getting around the problem is to attach unique identifiers to
 This means `add(7)` internally adds $7_\alpha$ to the added set, where $\alpha$ is some unique identifier for that item; then `remove(7)` will put all observed $7_*$ items into the tombstone set.
 With this system, the only underlying operations that don't commute are adding and removing the same item with the same identifier; if we ensure that an application only removes items that it has seen, then all the real-world scenarios commute.
 
-Implementing CRDTs gets even more complicated with more complex interfaces. What about a tree CRDT, which cannot have a cycle?
-What about dictionaries, which are more complex than sets because they also attach changeable data to the keys?
+Implementing CRDTs gets even more complicated with more complex interfaces. What about a tree CRDT, which cannot have a cycle? Extra logic needs to be added to maintain the tree structure when moving subtrees [@kleppmann-move-op].
+What about dictionaries, which are more complex than sets because they also attach changeable data to the keys? We can attach each key to a last-writer-wins register (meaning every operation now has some timestamp) or simply have the register as another grow-only set; both have their benefits and problems.
 For a lot of ADTs, there is no perfect way to represent them while still getting eventual consistency. However, we can come up with various ways to approximate them which have CRDT guarantees.
 
 ### Compare and contrast
 
-Awkward balance & transition from "misc background" to "what we care about for this thesis."
-
-I want to talk about benefits and drawbacks of both approaches. Also need to bring up delta-crdts briefly. Also note that they can emulate each other. I wanna say that both have problems but we're gonna work with state-based.
-
+<!-- Awkward balance & transition from "misc background" to "what we care about for this thesis." -->
 <!-- TODO dewit -->
 
-***
-
-Both can emulate each other!
+Both can emulate each other! Briefly explain why.
 
 State-based can only grow. How do you subtract from a number?
 
-State-based requires sending the entire state for every single join. And since that state will only grow, the cost of joining will increase over time.
-
 Operation-based CRDTs need more infrastructure to function. If messages are dropped or duplicated, the system won't work; so there needs to be some kind of accounting for messages that were received.
+
+State-based requires sending the entire state for every single join. And since that state will only grow, the cost of joining will increase over time. Deltas [@delta-crdt] exist to counteract this, but they start to get op-like infrastructure needs and are a fun state/op hybrid.
 
 What about long network outages or a specific peer leaving for a long time? Operation-based might need to store its operation history, which makes it basically state-based.
 
@@ -218,4 +210,5 @@ What about new nodes joining? State is easy because you just send over any node'
 
 Generally op-based works better with strong active network because minimal data is sent back and forth. State-based works better with less-frequent merges.
 
-TODO mention @delta-crdt.
+<!-- TODO should I say this? It kinda gets said right in the next chapter. -->
+We're gonna do state-based and try to fix some state-based problems.
