@@ -30,9 +30,11 @@ Yup.
 ### Terminology & notation
 
 - join vs merge
-- sequences
-- ADT stuff (need that terminology in CRDTs and )
+- arrays/vectors/sequences, also concatenation
+- ADT stuff (need that terminology in CRDTs and ?)
 - use `backticks` or $math$ for variables, pseudocode, etc?
+- chunk vs block
+- "node" and other distsys words
 - ...?
 
 ### Expand shorter paragraphs

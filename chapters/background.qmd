@@ -134,7 +134,7 @@ There are two common ways to ensure this: either by focusing on the state of the
 
 <!-- TODO should I have more narrative for these subsections? Methinks not -->
 
-State-based CRDTs ensure strong eventual consistency via a join-semilattice [@lattices] over the states.
+State-based CRDTs ensure strong eventual consistency via a join-semilattice [@lattice] over the states.
 
 :::{#def-semilattice}
 #### Join-semilattice
@@ -202,7 +202,7 @@ State-based can only grow. How do you subtract from a number?
 
 Operation-based CRDTs need more infrastructure to function. If messages are dropped or duplicated, the system won't work; so there needs to be some kind of accounting for messages that were received.
 
-State-based requires sending the entire state for every single join. And since that state will only grow, the cost of joining will increase over time. Deltas [@delta-crdt] exist to counteract this, but they start to get op-like infrastructure needs and are a fun state/op hybrid.
+State-based requires sending the entire state for every single join. And since that state will only grow, the cost of joining will increase over time. @delta-crdt created $\delta$-CRDTs to counteract this, but they start to get op-like infrastructure needs and are a fun state/op hybrid.
 
 What about long network outages or a specific peer leaving for a long time? Operation-based might need to store its operation history, which makes it basically state-based.
 
