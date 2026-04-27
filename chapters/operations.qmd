@@ -1,18 +1,26 @@
-# Properties
+# Operations
+<!--
+TODO maybe call this section "Operations?" Could focus it a bit tighter on "doing things to the tree:"
+- hist indep. -> look we can do stuff to the tree
+- runtime -> I wonder how efficiently we can do those things
+- crdt -> well hmm what operations are we actually allowed to do and how does crdt-ness change the meaning of these operations
+-->
 
-So far we've shown that two Prolly Trees can be efficiently compared, 
-
-What goes here? Talk about the Prolly Tree as a way to implement an ordered dictionary which has nice properties, namely efficient comparison. I will need to modify the end of chapter 2 to flow better with this, but that's okay. Perhaps chapter 3 nicely breaks down into these sections...
+So far, we've shown that two Prolly Trees can be efficiently compared to find the key-value pairs that differ between them. This makes Prolly Trees immensely useful for implementing a state-based ordered dictionary CRDT, since they don't need to exchange their entire states after every single modification (usually a big downside of state-based CRDTs).
+Here we discuss what operations you can do on a Prolly Tree once constructed.
 
 ## History independence
 
-Everything we've done so far has been about constructing Prolly Trees from the ground up --- that is, building new trees from scratch given the key-value data. But most tree structures allow updating values, inserting new key-value pairs, and deleting existing key-value pairs without rebuilding the entire tree. How would we do this with the Prolly Tree?
+Everything we've done so far has been about constructing Prolly Trees from the ground up --- that is, building new trees from scratch given the key-value data. But usually, tree data structures allow updating values, inserting new key-value pairs, and deleting existing key-value pairs without rebuilding the entire tree.
+How would we do this with the Prolly Tree? It turns out that we can make granular data changes while still maintaining the Prolly Tree structure.
+<!-- TODO wording -->
 
-TODO give example of updating key to have new value. Walk through the search, modification, and hash+chunk updates all the way through the tree.
+<!-- TODO give example of updating key to have new value. Walk through the search, modification, and hash+chunk updates all the way through the tree. I really wish I had an image :( -->
+TODO example.
 
 <!-- TODO say a bit more after the bolded section as to why it's the same as if we reconstructed from scratch. Also I like bolding stuff but it doesn't _have_ to be like this -->
-The way we do this, **updating a key leads to the exact same Prolly Tree structure as if we had reconstructed the whole thing from just the key-value pairs.**
-The same is true for deleting keys and adding new keys --- we find the leaf to change, add or remove the data, and then recalculate the chunk boundaries & hashes all the way back up the tree.
+The way we do this, adding a new key-value pair leads to the exact same Prolly Tree structure as if we had reconstructed the whole thing from just the key-value pairs.
+The same is true for deleting keys and modifying existing keys' values --- we find the leaf to change, make the modification, and then recalculate the chunk boundaries & hashes all the way back up the tree.
 This is called _history independence_: no matter the order of insertion, deletion, and updates, two Prolly Trees which have the same key-value pairs will have the exact same tree structure which leads to the exact same root hashes.
 This means that we get the same Prolly Tree benefits (efficient comparison of different trees) while still maintaining efficient modification to the data.
 <!-- TODO anything else to say? All I can say is YAAAAY THIS IS SO AWESOME -->

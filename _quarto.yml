@@ -12,7 +12,7 @@ book:
     - index.qmd
     - chapters/background.qmd
     - chapters/construction.qmd
-    - chapters/properties.qmd
+    - chapters/operations.qmd
     - chapters/improvements.qmd
   appendices:
     - chapters/git-revisions.qmd

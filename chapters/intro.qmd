@@ -17,7 +17,7 @@ Some of that content can go into other sections. And I feel like we can just sta
 
 See inline notes.
 
-### Flesh out Properties
+### Flesh out Operations
 
 Just write more! Write junk and explain it to someone.
 
