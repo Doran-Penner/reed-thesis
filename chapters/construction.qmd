@@ -86,10 +86,10 @@ What we did initially with the Merkle tree is fixed-length chunking: draw a divi
 A _content-defined chunker_ $C$ defines a sequence of functions $(C_n)_{n \in \mathbb{N}}$. (This is to make the notation better.)
 Let $S^n$ be the set of all $n$-length arrays on some set $S$ (e.g. 32-bit integers). Then to chunk an array in $S^n$, $C_n$ is defined as
 \begin{align*}
-C_n ~:\quad S^n \quad &\to \{0, 1\}^n \\
+C_n ~:\quad S^n \quad &\to \{\top, \bot\}^n \\
 (s_i)_{i=1}^n &\mapsto (b_i)_{i=1}^n
 \end{align*}
-with the constraint that for all $j \in \mathbb{N}$ where $b_j = 1$,
+with the constraint that for all $j \in \mathbb{N}$ where $b_j = \top$,
 $$
 C_n\Bigl((s_i)_{i=1}^n\Bigr) = C_j\Bigl((s_i)_{i=1}^j\Bigr) ~||~ C_{n-j}\Bigl((s_i)_{i=j+1}^n\Bigr).
 $$
@@ -134,21 +134,21 @@ B-trees are a type of search tree that are heavily used in practice because they
 <!-- TODO I want images that I'm allowed to use :( -->
 <!-- ![Dolt's version of an MST, called a prolly tree.](../figures/tmp-dolt-prolly.jpg) -->
 
-<!-- TODO sequence notation? Hm. Jim suggests array/slice notation, which might be nice. -->
-
 Now we have all the tools we need to construct the final Prolly Tree:
 a collision-resistant hash $H$,
 content-addressed storage,
 and a content-defined chunker $C$.
-When implementing an ordered dictionary with $n$ items, we can represent the state as a sequence of key-value pairs $S = ((k_i, v_i))_{i=1}^n$. Then:
+When implementing an ordered dictionary with $n$ items, we can represent the state as an array of key-value pairs $A = ((k_i, v_i))_{i=1}^n$. Then:
 
 <!-- TODO should I do a proper Algorithm environment? -->
-1. Run $C$ on $S$, checking for boundaries after the end of each $s_i \in S$ (so we don't break apart the keys or values). This will create a sequence of $m$ blocks $B = (b_j)_{j=1}^m$.
-2. Then for each block $b_j \in B$,
-   1. get the hash of that block $h_j = H(b_j)$,
-   2. put $b_j$ in our content-addressable storage,
-   3. and pair $h_j$ with the smallest key $k_j$ that was held in that block.
-3. Now we have a new sequence of key-value pairs $S' = ((k_j, h_j))_{j=1}^m$ (though the values are hashes). Recurse on $S'$ until there is only one key-hash pair remaining. This is the root of the Prolly Tree.
+1. Run our chunker $C$ on the input $A$, checking for boundaries after the end of each $a_i \in A$ (so we don't break apart the keys or values). This will output an array of booleans $B = (b_i)_{i=1}^n$ indicating which pairs are chunk-ending.
+2. Define the chunk-ending indices as $E = \{i ~|~ b_i \in B, b_i = \top\} \cup \{n\}$.
+3. Now we build the chunks and get their hashes. For each index $e_j \in E$:
+   1. Define the $j$th chunk as $c_j = (a_k)_{k=e_{j-1}+1}^{e_j}$, the subarray of $A$ which has its following chunk boundary at $e_j$. (If $j = 1$ then let $e_0$ be 0.)
+   2. Get the hash of that chunk $h_j = H(c_j)$.
+   3. Put $c_j$ in our content-addressable storage.
+   4. Pair $k_{e_j}$, the largest key that was held in that block, with $h_j$.
+4. Concatenate all these new key-hash pairs into a new array $A' = ((k_j, h_j))_{j=1}^{|E|}$. Recurse on $A'$ until there is only one key-hash pair remaining. This is the root of the Prolly Tree.
 
 And that's it!
 We have created a Prolly Tree storing an ordered dictionary and all of its blocks can be accessed by our content-addressable storage.
