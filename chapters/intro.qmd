@@ -29,12 +29,13 @@ Yup.
 
 ### Terminology & notation
 
-- join vs merge
-- arrays/vectors/sequences, also concatenation
+- prefer join over merge
+- generally use array instead of sequence or vector
+- clarify concatenation? (maybe notation definition in Intro)
 - ADT stuff (need that terminology in CRDTs and ?)
 - use `backticks` or $math$ for variables, pseudocode, etc?
-- chunk vs block
-- "node" and other distsys words
+- chunk vs block: leaning towards chunk
+- "node" and other distsys words: maybe put in start of Background?
 - ...?
 
 ### Expand shorter paragraphs

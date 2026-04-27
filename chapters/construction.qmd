@@ -152,7 +152,12 @@ When implementing an ordered dictionary with $n$ items, we can represent the sta
 
 And that's it!
 We have created a Prolly Tree storing an ordered dictionary and all of its blocks can be accessed by our content-addressable storage.
-Similar to a B-tree, we can search for data efficiently by comparing a given key to the stored key-hash pairs in the tree and fetching the relevant blocks. And we use the Merkle tree with content-defined chunking for the best-possible efficiency in state-based comparison.
+
+Similar to a B-tree, we can search for data efficiently.
+To find a key $k$ in the tree, first fetch the root block and compare $k$ to its keys. The smallest $k_x$ such that $k_x \ge k$ will store the subtree where $k$ might be stored; so fetch the block pointed to by $h_x$ (the "value" paired with $k_x$) to get another node for comparison.
+Doing this process down the tree until the leaves will find $k$'s position in the tree and its data if it exists; and the search tree structure means that we get efficient (logathmic) access time.
+
+We also use the Merkle tree with content-defined chunking for good efficiency in state-based comparison.
 To compare states between two nodes, first they exchange root hashes. If they're the same, then the nodes have the same data; otherwise both fetch & exchange the data which their root hash references in the content-addressed storage. Any hashes in that block which are the same are known to be shared by both nodes, so they don't need to continue down those subtrees. Repeat the data block exchanges until both nodes have all blocks that differ from their own tree.
 <!-- TODO anything else to say? -->
 

@@ -1,24 +1,22 @@
 # Operations
-<!--
-TODO maybe call this section "Operations?" Could focus it a bit tighter on "doing things to the tree:"
-- hist indep. -> look we can do stuff to the tree
-- runtime -> I wonder how efficiently we can do those things
-- crdt -> well hmm what operations are we actually allowed to do and how does crdt-ness change the meaning of these operations
--->
 
-So far, we've shown that two Prolly Trees can be efficiently compared to find the key-value pairs that differ between them. This makes Prolly Trees immensely useful for implementing a state-based ordered dictionary CRDT, since they don't need to exchange their entire states after every single modification (usually a big downside of state-based CRDTs).
-Here we discuss what operations you can do on a Prolly Tree once constructed.
+We've shown that two Prolly Trees can be efficiently compared to find the key-value pairs that differ between them. This makes Prolly Trees immensely useful for implementing a state-based ordered dictionary CRDT, since they don't need to exchange their entire states just to reconcile a single small difference (usually a big downside of state-based CRDTs).
+Now we discuss what operations you can do on a Prolly Tree once constructed.
 
 ## History independence
 
-Everything we've done so far has been about constructing Prolly Trees from the ground up --- that is, building new trees from scratch given the key-value data. But usually, tree data structures allow updating values, inserting new key-value pairs, and deleting existing key-value pairs without rebuilding the entire tree.
-How would we do this with the Prolly Tree? It turns out that we can make granular data changes while still maintaining the Prolly Tree structure.
-<!-- TODO wording -->
+<!-- Look we **can** do stuff to the tree! Don't have to reconstruct from scratch. WAHOO -->
+
+Everything we've done so far has been about constructing Prolly Trees from the ground up --- that is, building new trees from scratch given the key-value data. But most tree data structures allow for modification. In a B-tree, you can update keys' values, insert new key-value pairs, and delete existing key-value pairs without rebuilding the entire tree.
+How would we do this with a Prolly Tree? It turns out that we can make granular data changes while still maintaining the Prolly Tree structure.
 
 <!-- TODO give example of updating key to have new value. Walk through the search, modification, and hash+chunk updates all the way through the tree. I really wish I had an image :( -->
-TODO example.
+Say we wish to add a new key-value pair $(k, v)$ to the Prolly Tree. First, search the tree as usual to find where it should be placed.
+After modifying the block to have the new data, we have to recalculate the chunk boundaries and hashes.
+Re-run the content-defined chunker from the start of the current chunk as if we were chunking the entire array. Since there's new data, it's possible that the chunker will draw different boundaries than before. But at some point the chunker will draw a boundary at the same point as in the previous state (or get to the end of the data), and from there onward the old and new chunks will be the exact same.
+For each new chunk, store it and take its hash to put in the parent node. Then recursively do this up the tree, re-chunking and re-hashing changed blocks until the root. And that root hash is the root of the new Prolly Tree!
 
-<!-- TODO say a bit more after the bolded section as to why it's the same as if we reconstructed from scratch. Also I like bolding stuff but it doesn't _have_ to be like this -->
+<!-- TODO say a bit more after the first line? -->
 The way we do this, adding a new key-value pair leads to the exact same Prolly Tree structure as if we had reconstructed the whole thing from just the key-value pairs.
 The same is true for deleting keys and modifying existing keys' values --- we find the leaf to change, make the modification, and then recalculate the chunk boundaries & hashes all the way back up the tree.
 This is called _history independence_: no matter the order of insertion, deletion, and updates, two Prolly Trees which have the same key-value pairs will have the exact same tree structure which leads to the exact same root hashes.
@@ -26,6 +24,8 @@ This means that we get the same Prolly Tree benefits (efficient comparison of di
 <!-- TODO anything else to say? All I can say is YAAAAY THIS IS SO AWESOME -->
 
 ## Operations and runtime
+
+<!-- Now that we can do things, how long do those things take? -->
 
 Now that we know we can safely do all the normal operations on an ordered dictionary, we will analyze how long each operation takes. Note that the random-seeming chunking makes formal analysis difficult, so we will not do any rigorous proofs; but we can get a rough overview of how long different operations will take. The operations we can do on an ordered dictionary are to fetch a single value by key, fetch a range of values by key range, modify a key's value, add a new key-value pair, delete a key-value pair, and construct the tree from scratch.
 
@@ -38,6 +38,8 @@ TODO discuss all of those. Group smartly --- first GET and GET RANGE (which is r
 There are some bold assumptions being made when we say that the gear hash won’t create many new chunks on insertion. It seems like it could very easily create two new chunks, and then those chunks could create 3 or 4 above them, and it propagates up the tree. This is not thesis-breaking (and e.g. a true sliding window setup might be able to fix this), but it should be noted when we talk about the rolling hash and in the future improvements section.
 
 ## As CRDTs
+
+<!-- Wellll CRDTs make that a bit harder. What can we actually do when it's an ordered dict CRDT, and do the "abstractions" (e.g. if we store multiple keys or values) affect that runtime? -->
 
 TODO wording is a bit hard here. This entire thesis we've been creating Prolly Trees as CRDTs. What should I specifically say here, and how should I say it? I want to talk about the different pseudo-dictionary CRDT things we can do, discuss their pros and cons, that sort of thing. If there's something that's not possible, I wanna know that. Anything else?
 
