@@ -10,7 +10,6 @@ Now we discuss what operations you can do on a Prolly Tree once constructed.
 Everything we've done so far has been about constructing Prolly Trees from the ground up --- that is, building new trees from scratch given the key-value data. But most tree data structures allow for modification. In a B-tree, you can update keys' values, insert new key-value pairs, and delete existing key-value pairs without rebuilding the entire tree.
 How would we do this with a Prolly Tree? It turns out that we can make granular data changes while still maintaining the Prolly Tree structure.
 
-<!-- TODO give example of updating key to have new value. Walk through the search, modification, and hash+chunk updates all the way through the tree. I really wish I had an image :( -->
 Say we wish to add a new key-value pair $(k, v)$ to the Prolly Tree. First, search the tree as usual to find where it should be placed.
 After modifying the block to have the new data, we have to recalculate the chunk boundaries and hashes.
 Re-run the content-defined chunker from the start of the current chunk as if we were chunking the entire array. Since there's new data, it's possible that the chunker will draw different boundaries than before. But at some point the chunker will draw a boundary at the same point as in the previous state (or get to the end of the data), and from there onward the old and new chunks will be the exact same.
@@ -18,22 +17,39 @@ For each new chunk, store it and take its hash to put in the parent node. Then r
 
 <!-- TODO say a bit more after the first line? -->
 The way we do this, adding a new key-value pair leads to the exact same Prolly Tree structure as if we had reconstructed the whole thing from just the key-value pairs.
+We re-run the chunker from the start of the modified block and keep going until a new chunk boundary aligns with an old one. From there on out, we know that the chunks will be the exact same as before (due to how the chunker is defined) so we don't need to continue re-chunking.
 The same is true for deleting keys and modifying existing keys' values --- we find the leaf to change, make the modification, and then recalculate the chunk boundaries & hashes all the way back up the tree.
+The final structure of the modified Prolly Tree is the exact same as if it had been reconstructed, and this holds true for any order of modifications.
 This is called _history independence_: no matter the order of insertion, deletion, and updates, two Prolly Trees which have the same key-value pairs will have the exact same tree structure which leads to the exact same root hashes.
-This means that we get the same Prolly Tree benefits (efficient comparison of different trees) while still maintaining efficient modification to the data.
-<!-- TODO anything else to say? All I can say is YAAAAY THIS IS SO AWESOME -->
 
-## Operations and runtime
+All of this makes the Prolly Tree a very useful data structure. We get the benefits we discussed earlier (efficient comparison of different trees), which makes them excellent for implementing state-based CRDTs, and they can be efficiently modified in a similar manner to a B-tree.
+
+## Runtime
 
 <!-- Now that we can do things, how long do those things take? -->
 
-Now that we know we can safely do all the normal operations on an ordered dictionary, we will analyze how long each operation takes. Note that the random-seeming chunking makes formal analysis difficult, so we will not do any rigorous proofs; but we can get a rough overview of how long different operations will take. The operations we can do on an ordered dictionary are to fetch a single value by key, fetch a range of values by key range, modify a key's value, add a new key-value pair, delete a key-value pair, and construct the tree from scratch.
+Now that we know we can safely do all the normal operations on an ordered dictionary, we will discuss each operation's runtime. We'll let $n$ be the number of key-value pairs stored in the Prolly Tree at a given time, and $k \ge 2$ be the average block size created by the content-defined chunker. Note that the random-seeming chunking makes formal analysis difficult, so we will not do any rigorous proofs; but we can get a rough overview of how long different operations will take.
 
-- First the build-from-scratch since we just talked about it and it's not too crazy.
-- Then the read-only operations.
-- Then the modifying operations though those get messy and I gotta incorporate what Jim and Marcus pointed out.
+First, building the tree from scratch (the algorithm at the end of last chapter) has a runtime roughly proportional to $n$. In a single iteration, it takes $\Theta(n)$ time to run the content-defined chunker on the input and hash each block. Afterwards, the new key-hash array has length $\frac{n}k$ on average (since we've created roughly $\frac{n}k$ blocks), so the next round will run in $\Theta(\frac{n}k)$ time. Adding all these up yields $cn + \frac{cn}k + \frac{cn}{k^2} + \dots + c$; this is bounded below by $cn$ and bounded above by $2cn$, so it asymptoticallly simplifies to $\Theta(n)$ time.
 
-TODO discuss all of those. Group smartly --- first GET and GET RANGE (which is roughly time `get * range_size`), then insert-update-delete, then construct from scratch. All pretty efficient! Maybe find some citation for other common structures' runtimes e.g. B-trees. And... there's really not much else to this section.
+As discussed before, finding a single key is $\Theta(\log(n))$ time since the search tree is balanced.
+To get a range of keys, say that $k_1$ and $k_2$ are the lower and upper bounds of the range, and let $m$ be the number of keys in the Prolly Tree which are in that range.
+Then the time to get the range $[k_1, k_2]$ is $\Theta(\log(n) + m)$.
+To see why this is, first note that getting a single key is $\Theta(\log(n))$ and we'll need to output $m$ keys, so we have the lower bound of $\Omega(\log(n) + m)$.
+Furthermore, we can achieve that runtime. TODO come back to this.
+<!-- In the Prolly Tree, there is some node which is the lowest common ancestor of $k_1$ and $k_2$; finding that node takes $O(\log(n))$ time. -->
+<!-- TODO continue another day. I feel like in the worst case...? -->
+<!-- Then the search needs to traverse that subtree to find a subrange of its values. Since there are roughly... -->
+
+The runtime of the modifying operations is harder to analyze. TODO.
+
+***
+
+TODO next:
+
+- The modifying operations though those get messy and I gotta incorporate what Jim and Marcus pointed out.
+- Also talk about tree comparison? Idunno.
+- Maybe cite B-tree runtime for all these things as comparison.
 
 There are some bold assumptions being made when we say that the gear hash won’t create many new chunks on insertion. It seems like it could very easily create two new chunks, and then those chunks could create 3 or 4 above them, and it propagates up the tree. This is not thesis-breaking (and e.g. a true sliding window setup might be able to fix this), but it should be noted when we talk about the rolling hash and in the future improvements section.
 
