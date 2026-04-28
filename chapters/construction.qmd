@@ -72,7 +72,11 @@ And if the hashes are different, the states are different --- but we can find _w
 All of this relies on a standard way to represent and order the data. In some domains, such as tracking modifications to a large file, there is a natural way to do this. But some domains are harder. When implementing a set CRDT, how should its data be represented for the Merkle Tree? Sets don't have inherent order. There needs to be some representation that is unique to the state represented.
 Prolly Trees represent an ordered dictionary, and we'll use that ordering to create a consistent data representation.
 
-## Content-defined chunking
+## Rolling hash functions {#sec-rolling}
+
+TODO this is gonna be reworked with the new sliding window insight, but I'm not sure how much. Talk about this in meeting.
+
+***
 
 The scheme we just described has a big problem. What if data is added to the start? For example, say our List CRDT serializes as a list of its values and some node adds data to the head of the list. This necessarily changes the hash of the first block in the Merkle tree, but furthermore has cascading effects --- all the data shift down the line a bit, meaning that all chunks suddenly have new hashes. So our Merkle tree hash comparison would see that the nodes need to transmit all of their state, even though just a little bit has changed.
 This doesn't affect correctness, but can ruin our performance gains from using the Merkle tree comparison scheme. We want a way to have the Merkle tree improvements in most cases of data insertion, not just when new data is appended to the end.
@@ -80,7 +84,6 @@ This doesn't affect correctness, but can ruin our performance gains from using t
 Generally, _chunking_ is the process of breaking up a large sequence of data into smaller blocks, or chunks.
 What we did initially with the Merkle tree is fixed-length chunking: draw a dividing line every $k$ bytes and those are the blocks. This is a decent deduplication system, but as shown above it doesn't take full advantage of data similarity. _Content-defined chunking_ (CDC) attempts to fix this boundary-shift problem by determining chunk boundaries (when to draw a line between chunks) based on the actual contents being chunked. It doesn't fix the duplication problem entirely, but good CDC is reasonably efficient and reduces the problem when new data is inserted.
 
-<!-- TODO should I just use the bit-string notation like I've done before? Hm. -->
 :::{#def-chunker}
 ### Content-defined chunker
 A _content-defined chunker_ $C$ defines a sequence of functions $(C_n)_{n \in \mathbb{N}}$. (This is to make the notation better.)
@@ -95,9 +98,10 @@ C_n\Bigl((s_i)_{i=1}^n\Bigr) = C_j\Bigl((s_i)_{i=1}^j\Bigr) ~||~ C_{n-j}\Bigl((s
 $$
 :::
 
-For each item in the input, the chunker determines whether to draw a chunk boundary at that point. If it does, then the function resets in a way --- decisions after a boundary are as if the function was run from right after the boundary. Given the output of $C$, TODO just say how we go from "boundary booleans" to "actual blocks" (maybe have example or image).
-This addresses the boundary-shift problem by TODO.
-<!-- TODO explanation/intuition for why this fixes the boundary-shift problem. -->
+For each item in the input, the chunker determines whether to draw a chunk boundary after that point. If it does, then the function resets in a way --- decisions after a boundary are as if the function was run from right after the boundary.
+The "reset constraint" means that if two arrays are the same after some chunk boundary, their following chunk boundaries after that point will be the exact same between them. This partially addresses the chunk-shift problem.
+<!-- TODO better explanation? idk -->
+<!-- TODO image would be good :( -->
 
 <!-- TODO words hard (especially in footnote) -->
 Content-defined chunkers are difficult to model mathematically, as they're usually a very stateful computer algorithm in practice. One way to do CDC is with a Gear hash and a "judgment" function [@ddelta]. This computes a random-seeming (but deterministic) value of a sliding window of data and can efficiently add new bytes to the input.^[This is not a true collision-resistant hash function, but a "pretty random-looking" compromise so we can efficiently add new bytes.]
@@ -108,11 +112,20 @@ g_i &= (g_{i-1} \ll 1) + \textsf{GearTable}[b_i].
 \end{align*}
 Given the Gear hash up to the previous byte, we shift those bits up by one (losing the top bit) and then add some constant from a lookup table called the \textsf{GearTable}. That table is simply a mapping from bytes to randomly-generated integers, constant across all uses of the Gear hash. To determine whether to draw a chunk boundary after byte $i$, the judgment function checks the top $k$ bits of $g_i$; if they're all $1$ then make a chunk boundary and restart the Gear hash after the boundary, otherwise keep going.
 
-As long as the \textsf{GearTable} is randomly created and we're not too unlucky, the values of $H_i$ will be roughly uniform and the chance of the top $k$ bits all being one should be about $\frac1{2^k}$.
+Notably, the Gear hash also has the _sliding window_ property.
+Let $G((b_j))_{j=1}^i$ be equivalent to $g_i$.
+Then for any input array $b_{TODO}$,
+$$
+TODO.
+$$
+
+This means that the output of the rolling hash only depends on some recent window of history and not the entire previous undivided chunk.^[This is stated in @ddelta, but not proven; nevertheless it is true.]
+TODO explain how that makes the boundary-shift problem even less of a problem.
+As long as the \textsf{GearTable} is randomly created and we're not too unlucky, the values of $g_i$ will be roughly uniform and the chance of the top $k$ bits all being one should be about $\frac1{2^k}$.
 So to have chunks of average size $1$KiB, we'd set $k = \log_2(1024) = 10$. 
 TODO explain how this alleviates the chunk-boundary-shift problem.
 
-There are further improvements to this scheme, such as in @fastcdc where the deduplication ratio and distrubution of chunk sizes is greatly improved, but we won't go into the details of modern constructions. All that is important for the Prolly Tree is that we have access to some chunking strategy that is efficient and usually won't cause a cascading effect of chunk boundary changes when data is inserted in the middle of the input.
+There are further improvements to the Gear hash, such as in @fastcdc where the deduplication ratio and distrubution of chunk sizes is greatly improved, but we won't go into the details of modern constructions. All that is important for the Prolly Tree is that we have access to some sliding-window chunking strategy that is efficient and usually won't cause a cascading effect of boundary changes when data is modified.
 In a Prolly tree, we do content-defined chunking on the state to determine what chunks to hash in the Merkle tree.
 Then the chunk boundaries are unlikely to shift much after modifications, meaning that when nodes do the Merkle tree hash comparison there is less redundant data transfer.
 <!-- TODO come back to this wording later -->

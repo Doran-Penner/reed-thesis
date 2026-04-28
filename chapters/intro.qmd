@@ -1,8 +1,54 @@
 # Introduction {.unnumbered}
 
-Final push time! What do I need to do, big-picture? Text-search for CITE, TODO, and that sort of thing.
+Final push time! What do I need to do, big-picture? Text-search for CITE, TODO, and that sort of thing. The stuff in this intro section is mainly notes for myself; look at it if you'd like, but don't look too hard.
 
 ## TODOs
+
+## Gear hash implications
+
+CDC via Gear hashing has two properties:
+
+- sliding window
+- restart after boundary
+
+Does sliding window imply restart after boundary? I feel like yes but I'm not sure. In any case, I suddenly want to change from talking about "content-defined chunking" to talking about rolling hashes. I don't know for sure but that's a thing that I want.
+
+In any case, it means I can make stronger claims about runtimes. Specifically I can say that with high probability, a modification will only change the current block and maybe the next. And then even if we change two chunks, that's two modifications. In the worst case it goes 1 2 3 etc up the tree, and I think we could make a tighter argument but honestly it doesn't matter that much.
+
+Jim says that sum of 1, 2, 3, etc log times is log squared. Sure, why not. But it's definitely not linear.
+
+Also I really do think that it'll be log. Let's see when we get there.
+
+Anyways! No matter if
+
+- the insert runtime is log or log squared,
+- we call section 2.3 "content-defined chunking" or "rolling hashes,"
+- and no matter how we formally define our "chunker" or "rolling hash,"
+
+I want to do my analysis (section 3.2) with the sliding window.
+
+I feel like the easiest way to change it is, when discussing the Gear hash in 2.3, to also state that it has this "sliding window property." This property means that the yes/no boundary choice only depends on a window (of configurable size).
+
+Then at some point I can argue that the sliding window means small differences are unlikely to change the boundaries much...
+
+If we don't draw a new boundary with the modification in the window, then nothing will change for the boundaries. (It will change the chunk hash which will propogate the change upward, but we can make this exact same argument.)
+
+If we do draw a new boundary due to the modification and it's not within window-length of the previous next boundary, we won't mess with that boundary or anything onward. Thus we break a chunk in two (and send two changes upward).
+
+If we draw a new boundary near the old boundary (e.g. two bytes before the end), then we mess with the existing boundary. Now we restart the rolling hash a bit further back than before; it's almost as if we inserted some data at the start of the chunk. We can make this whole argument again recursively. As long as the window width is smaller than the average block size (which it had better be), the chance of this case repeatedly occuring is diminishing. (So it's likely that the number of changed hashes sent upward is small.)
+
+Note that by increasing the chunk size relative to the window width, we dramatically reduce the chance of that last case happening.
+
+I can either make this chunk-shift argument in 2.3 or 3.2. I lean towards 2.3 because it explains why we're even doing this. Then in 3.2, I can use that argument and push it further because of the recursive tree structure.
+
+Trying to formalize definitions...
+
+- A rolling hash is a hash function with the "sliding window" property. (And possibly efficient sliding? But eh.)
+- CDC just outputs boundaries.
+- CDC with "reset" is nice. (Should we just say that CDC-with-resets is normal CDC? I feel like yes.)
+- Does "sliding window" imply the resets property? I think yes, with the caveat that we have to read in enough data to fill the window after a reset. So not really.
+
+Maybe I just define a rolling hash. It's a hash function (mapping from arbitrary-length input space to fixed-length output space) with the sliding window property. Then explain how we can use it to do chunking with a judgment function.
 
 ## Making the content "okay"
 

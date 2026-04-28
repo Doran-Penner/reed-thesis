@@ -165,7 +165,7 @@ Since we have commutativity, node $A$ doing operation $a$ and then receiving & a
 
 A simple operation-based CRDT is a number counter with addition (for example a bank account that can be added to or subtracted from). Addition over $\mathbb{R}$ is commutative, so we can represent all operations as `add(r)` for some $r \in \mathbb{R}$ and send $r$ to peer nodes. We can also represent a grow-only set using operations: the `add(x)` operation, which adds an item to a set, commutes with all other set additions.
 
-### More complex examples
+### More complex examples {#sec-crdt-complex}
 
 We've shown two ways to create a grow-only set CRDT. How could we implement a set CRDT that also allows for item removal?
 Only considering the two operations `add` and `remove` which operate on one item at a time, we immediately encounter a problem: these are not commutative.

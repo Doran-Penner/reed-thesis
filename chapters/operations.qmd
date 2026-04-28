@@ -41,7 +41,7 @@ Furthermore, we can achieve that runtime. TODO come back to this.
 <!-- TODO continue another day. I feel like in the worst case...? -->
 <!-- Then the search needs to traverse that subtree to find a subrange of its values. Since there are roughly... -->
 
-The runtime of the modifying operations is harder to analyze. TODO.
+The runtime of the modifying operations depends on properties of the rolling hash function. TODO update this after writing more in @sec-rolling.
 
 ***
 
@@ -51,9 +51,19 @@ TODO next:
 - Also talk about tree comparison? Idunno.
 - Maybe cite B-tree runtime for all these things as comparison.
 
-There are some bold assumptions being made when we say that the gear hash won’t create many new chunks on insertion. It seems like it could very easily create two new chunks, and then those chunks could create 3 or 4 above them, and it propagates up the tree. This is not thesis-breaking (and e.g. a true sliding window setup might be able to fix this), but it should be noted when we talk about the rolling hash and in the future improvements section.
-
 ## As CRDTs
+
+All of those are direct operations on the Prolly Tree, but when implementing a CRDT the operations get more complex.
+Specifically, we can use the Prolly Tree to implement an ordered dictionary CRDT. This means there is a set of keys and each key is associated with some value; each of these has to obey the semantics of some CRDT.
+
+For the keys, we already covered lots of ways to do set CRDTs in @sec-crdt-complex. The keys could be grow-only, or we could have a simple two-phase set with a tombstone set. The observed-remove set is the most complete in terms of features, but it incurrs additional complexity when the keys have values attached to them.
+TODO say more?
+
+As for the values, we need to store them in a "register" type. The two proposed by @shapiro-crdt are multi-value and last-writer-wins. TODO expand upon that.
+
+TODO feels like there should be more to say here but idk. That's kinda it for my thesis! Besides the next chapter of future directions, that is.
+
+***
 
 <!-- Wellll CRDTs make that a bit harder. What can we actually do when it's an ordered dict CRDT, and do the "abstractions" (e.g. if we store multiple keys or values) affect that runtime? -->
 
