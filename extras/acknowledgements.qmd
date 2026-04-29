@@ -1,3 +1,6 @@
+TODO
+
+<!--
 Sam for thesis template
 
 Advisors for all the help
@@ -6,5 +9,4 @@ Advisors for all the help
 Family & friends for being cool
 
 Yeah
-
-TODO fix this up
+-->

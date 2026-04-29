@@ -1,2 +1,1 @@
-In distributed systems, the need for availability of data combats the need for consistency. CRDTs are a solution that achieves excellent availability and strong eventual consistency, but have their own problems. We explore Prolly Trees as a way to implement an state-based ordered dictionary CRDT which improves the problem of state transfer bandwidth usage.
-TODO that's just okay for now.
+In distributed systems, there is a necessary tradeoff betwen data availability and consistency. CRDTs are a solution that achieves excellent availability and strong eventual consistency, but have problems with state size. We explore Prolly Trees as a way to implement a state-based ordered dictionary CRDT which decreases the communication necessary to join states.

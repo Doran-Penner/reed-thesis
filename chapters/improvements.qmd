@@ -1,51 +1,42 @@
 # Improvements
 
-TODO clean this up someday but not today. Yay I can include it!
-
-Here are various future directions and ways to improve upon the existing schema we just covered. This is less formal and more a collection of ideas that came up during the thesis-writing process.
-
-## Improving the CDC
-
-Dolt already did this, but I can talk a bit about how to make the chunking better.
-This relates a lot to the formal runtime analysis --- maybe a true sliding-window system would yield better analysis and/or performance.
+Here are various ideas for improving and proving more about the Prolly Tree.
+This is less formal and more of a collection for possible future tasks in this area.
 
 ## More rigorous runtime analysis
 
-There was a lot of hand-waving with the runtime analysis of e.g. inserting a new key-value pair. This is partially because the chunking is messy and partially because randomness is hard. Can we do better?
+There was a lot of hand-waving with the runtime analysis of e.g. inserting a new key-value pair. This is because the chunking is messy and pseudorandom, but there is room to improve. It would be nice to have a formal statement of e.g. the probability that a single key-value change modifies 1, 2, or 3 chunks.
+
+<!-- ## Improving the CDC -->
+
+<!-- Dolt already did this, but I can talk a bit about how to make the chunking better. -->
+<!-- This relates a lot to the formal runtime analysis --- maybe a true sliding-window system would yield better analysis and/or performance. -->
 
 ## Real-world performance studies
 
-Generally, how useful is this structure in practice? Are there changes to the construction that make it faster to use?
+Generally, how useful is this structure in practice? Are there changes to the construction that make it faster to use? There are many projects using Polly Trees or some variant thereof, so it can't be that bad --- but it would be interesting to see the actual speed difference between a B-tree and Prolly Tree for lots of random operations.
 
-## Range tree etc
+## Range trees and other data types
 
-Can use Prolly Trees as a range tree (CITE), thus creating an array-like interface.
+We've only covered using the Prolly Tree for an actual ordered dictionary, but such a structure can implement other ADTs. For example, a "range tree" is just a list where the keys are indices and a value is the item at that index. This would be a lot slower than a standard array for reads, but for random writes the Prolly Tree takes logarithmic time instead of an array's linear cost. The Diamond Types library [@diamond-types] is extraordinarily fast compared to existing CRDT libraries and implements a list CRDT using a range tree; this is not a Prolly Tree that needs to deal with chunking and hashing, but nonetheless suggests that this is a potentially-fruitful way to represent lists.
 
-- What are the efficiencies of this? Asymptotically as well as practically. The package `diamond-types` (CITE) uses that structure for a list CRDT so my intuition says it can't be that slow.
+Adding on to that, are there other ADTs that could be implemented as CRDTs with a Prolly Tree or something similar? If we allow putting range-tree lists as values of the Prolly Tree keys and vice versa, we can make JSON. This is possibly not that useful, but who knows!
 
-What about using a Prolly Tree for other large data types like trees, dags, graphs, and so on? Note that "small" data can just be directly hashed which is nice. The important part is the unicity of representation. Can we make a "file?" What does that look like — an array of bytes, a list of strings, a syntax tree based on some grammar, or what?
+## Operation-like data transfer
 
-With key-value map, array, and "small stuff," we have JSON. That's worth mentioning because you can use JSON for pretty much anything --- not efficiently, but you can use it.
+The state-based Prolly Tree comparison is far more efficient in terms of data transfer, but still requires a logarithmic number of round trips between nodes to compare their states. If there are infrequent changes to the state, a node could instead just send what changed to peers and assume that they had the same state previously. Something like...
 
-## Doing op-like things
+1. Node $A$ adds a key-value pair $(k, v)$, which results in the root hash changing from $old$ to $new$.
+2. $A$ sends out the data $(old, k, v)$ to its peers.
+3. A peer $B$ that receives this message compares its root hash to $old$. If they're the same, then $B$ simply adds $(k, v)$ to its Prolly Tree and recalculates the hashes as usual; since the starting hash was the same, $A$ and $B$ will have the same root hash $new$ afterward.
+4. If the hashes were not equal, $B$ signals to $A$ that they have diverged and the two nodes do the full state-based tree comparison like normal.
 
-Is there some way we can do Prolly Tree data transfer in an op-like way, sending over just what changed? Then we could swap between state-based and op-based info sharing depending on context.
+This is an optimistic scenario, but always falls back on standard state-based join if the hash comparison fails so it won't yield invalid joins. This is essentially making the CRDT a hybrid between operation-based and state-based CRDTs, and the operation-based method may work well when the modification frequency is below some threshold.
 
-Ooooh, the op-based system could send the full tree path of what changed (including old and new hashes) and reconciliation could happen fully on the destination. This feels like it reduces the communication latency a lot. Ooooooh.
-Also do we even need the full tree path? Since it's a search tree, we could just send the root hash and the key-value change. Something to consider.
-
-Also we could swap back and forth between the op-based system (send over each change as it happens) and the state-based system (send over root hash and do the full tree comparison every time) depending on speed and divergence and all that.
-
-Idk how important/useful this is, but it still feels like a marginal improvement over full state comparison every time.
-
-## Dynamo-like stuff
+## Dynamo-like sharding
 
 The CRDT setting imagines that all nodes have their own full copy of the data, and the “distributed” part is about how to reconcile different versions. But each node can do whatever it needs to do all on its own.
-
-On the other hand, the Dynamo world imagines that all the nodes are working together in some way, parts of a whole. Each node might store only a few chunks of the whole search tree and queries are always to the whole network.
-
-This is a really interesting contrast; it's a very different model, exchanging replication (and availability) for consistency amongst the group.
-
-What if we don't replicate the Prolly Tree, but instead it's shared amongst peers? That would be really cool to analyze. You don't need trust because everything is hash-based and you can compute the hash yourself to verify.
-
-We don't wanna get too into the details of how Dynamo and such work, but should be able to wave our hands and say "there is existing literature for that stuff." The question then is, "What to Prolly Trees help with here?" Maybe decreased trust, but I would need to do a bit of reading to be sure.
+On the other hand, the Dynamo [@dynamo] world imagines that all the nodes are working together in some way, parts of a whole. Each node might store only a few chunks of the whole search tree (called "sharding") and queries are always to the whole network.
+They're very different models, exchanging replication (and availability) for consistency amongst the group.
+But they cover similar topics, and perhaps there would be benefit in sharing ideas from each. Does the content-defined chunking of the Prolly Tree have any benefit in the sharded setting?
+It's worth looking into.

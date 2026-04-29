@@ -7,7 +7,7 @@ Now we discuss what operations you can do on a Prolly Tree once constructed.
 
 <!-- Look we **can** do stuff to the tree! Don't have to reconstruct from scratch. WAHOO -->
 
-Everything we've done so far has been about constructing Prolly Trees from the ground up --- that is, building new trees from scratch given the key-value data. But most tree data structures allow for modification. In a B-tree, you can update keys' values, insert new key-value pairs, and delete existing key-value pairs without rebuilding the entire tree.
+Everything we've done so far has been about constructing Prolly Trees from the ground up --- that is, building new trees from scratch given the key-value data. But most tree data structures allow for modification. In a B-tree, you can update keys' values, insert new key-value pairs, and delete existing key-value pairs without rebuilding the entire tree [@btree].
 How would we do this with a Prolly Tree? It turns out that we can make granular data changes while still maintaining the Prolly Tree structure.
 
 Say we wish to add a new key-value pair $(k, v)$ to the Prolly Tree. First, search the tree as usual to find where it should be placed.
@@ -15,10 +15,9 @@ After modifying the block to have the new data, we have to recalculate the chunk
 Re-run the content-defined chunker from the start of the current chunk as if we were chunking the entire array. Since there's new data, it's possible that the chunker will draw different boundaries than before. But at some point the chunker will draw a boundary at the same point as in the previous state (or get to the end of the data), and from there onward the old and new chunks will be the exact same.
 For each new chunk, store it and take its hash to put in the parent node. Then recursively do this up the tree, re-chunking and re-hashing changed blocks until the root. And that root hash is the root of the new Prolly Tree!
 
-<!-- TODO say a bit more after the first line? -->
 The way we do this, adding a new key-value pair leads to the exact same Prolly Tree structure as if we had reconstructed the whole thing from just the key-value pairs.
 We re-run the chunker from the start of the modified block and keep going until a new chunk boundary aligns with an old one. From there on out, we know that the chunks will be the exact same as before (due to how the chunker is defined) so we don't need to continue re-chunking.
-The same is true for deleting keys and modifying existing keys' values --- we find the leaf to change, make the modification, and then recalculate the chunk boundaries & hashes all the way back up the tree.
+The same is true for deleting keys and modifying existing keys' values --- we find the leaf to change, make the modification, and then recalculate the chunk boundaries and hashes all the way back up the tree.
 The final structure of the modified Prolly Tree is the exact same as if it had been reconstructed, and this holds true for any order of modifications.
 This is called _history independence_: no matter the order of insertion, deletion, and updates, two Prolly Trees which have the same key-value pairs will have the exact same tree structure which leads to the exact same root hashes.
 
@@ -28,7 +27,7 @@ All of this makes the Prolly Tree a very useful data structure. We get the benef
 
 <!-- Now that we can do things, how long do those things take? -->
 
-Now that we know we can safely do all the normal operations on an ordered dictionary, we will discuss each operation's runtime. We'll let $n$ be the number of key-value pairs stored in the Prolly Tree at a given time, and $k \ge 2$ be the average block size created by the content-defined chunker. Note that the random-seeming chunking makes formal analysis difficult, so we will not do any rigorous proofs; but we can get a rough overview of how long different operations will take.
+Now that we know we can safely do all the normal operations on an ordered dictionary, we will discuss each operation's runtime. We'll let $n$ be the number of key-value pairs stored in the Prolly Tree at a given time, and $k$ be the average block size created by the content-defined chunker. Note that the random-seeming chunking makes formal analysis difficult, so we will not do any rigorous proofs; but we can get a rough overview of how long different operations will take.
 
 First, building the tree from scratch (the algorithm at the end of last chapter) has a runtime roughly proportional to $n$. In a single iteration, it takes $\Theta(n)$ time to run the content-defined chunker on the input and hash each block. Afterwards, the new key-hash array has length $\frac{n}k$ on average (since we've created roughly $\frac{n}k$ blocks), so the next round will run in $\Theta(\frac{n}k)$ time. Adding all these up yields $cn + \frac{cn}k + \frac{cn}{k^2} + \dots + c$; this is bounded below by $cn$ and bounded above by $2cn$, so it asymptoticallly simplifies to $\Theta(n)$ time.
 
@@ -36,45 +35,21 @@ As discussed before, finding a single key is $\Theta(\log(n))$ time since the se
 To get a range of keys, say that $k_1$ and $k_2$ are the lower and upper bounds of the range, and let $m$ be the number of keys in the Prolly Tree which are in that range.
 Then the time to get the range $[k_1, k_2]$ is $\Theta(\log(n) + m)$.
 To see why this is, first note that getting a single key is $\Theta(\log(n))$ and we'll need to output $m$ keys, so we have the lower bound of $\Omega(\log(n) + m)$.
-Furthermore, we can achieve that runtime. TODO come back to this.
-<!-- In the Prolly Tree, there is some node which is the lowest common ancestor of $k_1$ and $k_2$; finding that node takes $O(\log(n))$ time. -->
-<!-- TODO continue another day. I feel like in the worst case...? -->
-<!-- Then the search needs to traverse that subtree to find a subrange of its values. Since there are roughly... -->
+Furthermore, we can achieve that runtime. There is some node which is the lowest common ancestor (in the tree) of $k_1$ and $k_2$; finding that node takes $O(\log(n))$ time.
+Then the search needs to traverse that subtree to find a subrange of its values. This will take roughly $m$ time, since tree traversal of an $m$-size tree takes $\Theta(m)$ time. Thus a range query has runtime $\Theta(\log(n) + m)$.
+<!-- that feels sketchy but we're gonna move on -->
 
-The runtime of the modifying operations depends on properties of the rolling hash function. TODO update this after writing more in @sec-rolling.
+The runtime of the modifying operations depends on the sliding window property of the rolling hash function.
+As argued in @sec-rolling, making a small change to the underlying data will (with high probability) only change one or two chunk boundaries. This means that adding a key will usually change 1-3 hashes in the next layer up of the tree; and since those are all contiguous, the chance of changing chunk boundaries is similar but about the same. This propogates up the tree, meaning that the runtime of adding, deleting, or modifying keys is proportional to $\log(n)$; but there is an extra factor in the cost to re-chunk and draw boundaries, which will be proportional to $k$. Thus single-key modifications have runtime $O(k\log(n))$.
 
-***
-
-TODO next:
-
-- The modifying operations though those get messy and I gotta incorporate what Jim and Marcus pointed out.
-- Also talk about tree comparison? Idunno.
-- Maybe cite B-tree runtime for all these things as comparison.
+Compared to B-trees, these are all good runtimes. B-trees have access and modification time of $\Theta(\log(n))$, and a range query is also $\Theta(\log(n) + m)$. There are additional costs to Prolly Trees since they need to re-do their chunking all the way up the tree. But those costs do not scale with $n$, meaning that they're still efficient even when storing massive amounts of data.
 
 ## As CRDTs
 
 All of those are direct operations on the Prolly Tree, but when implementing a CRDT the operations get more complex.
-Specifically, we can use the Prolly Tree to implement an ordered dictionary CRDT. This means there is a set of keys and each key is associated with some value; each of these has to obey the semantics of some CRDT.
+Specifically, we can use the Prolly Tree to implement an (approximation of an) ordered dictionary ADT as a CRDT. This means there is a set of keys and each key is associated with some value; each of these has to obey the semantics of some CRDT.
 
-For the keys, we already covered lots of ways to do set CRDTs in @sec-crdt-complex. The keys could be grow-only, or we could have a simple two-phase set with a tombstone set. The observed-remove set is the most complete in terms of features, but it incurrs additional complexity when the keys have values attached to them.
-TODO say more?
+For the values, we need to store them in a "register" type. The last-writer-wins register is simple and cheap, but loses information about all previously-set values of the register. Another solution is to just store a grow-only set of all the values (possibly with timestamps), which loses no information but continually grows with every change.
 
-As for the values, we need to store them in a "register" type. The two proposed by @shapiro-crdt are multi-value and last-writer-wins. TODO expand upon that.
-
-TODO feels like there should be more to say here but idk. That's kinda it for my thesis! Besides the next chapter of future directions, that is.
-
-***
-
-<!-- Wellll CRDTs make that a bit harder. What can we actually do when it's an ordered dict CRDT, and do the "abstractions" (e.g. if we store multiple keys or values) affect that runtime? -->
-
-TODO wording is a bit hard here. This entire thesis we've been creating Prolly Trees as CRDTs. What should I specifically say here, and how should I say it? I want to talk about the different pseudo-dictionary CRDT things we can do, discuss their pros and cons, that sort of thing. If there's something that's not possible, I wanna know that. Anything else?
-
-Prolly Trees are an excellent way to implement a state-based ordered dictionary CRDT. They already store an ordered dictionary, and...
-
-Talk about what prolly trees provide as a crdt. Still has state-based crdt issues of e.g. set can only grow. But discuss all the different things it can be and have some examples.
-
-...
-
-We are implementing an ordered dict crdt. But there are many ways to do such a thing! First consider keys. Do we disallow deletion so it's grow-only? Or do we do observed-remove (unique IDs on keys)? But that one gets weird when the keys correspond to values. And what about the values? Depending on the application, could do any CRDT. Could make all values null so we only store keys and get a true grow-only set if that's what we feel like. But generally the values feel like registers. So it'll have to be LWW or multi-value (the latter working better with observed-remove).
-
-Gotta watch out for things which represent the same abstract state but have different internal Prolly states! Tombstones and stuff will get messy; and mixing observed-remove with multi-value register is gonna get nasty real quick. And it's okay if two trees have internal diffs but the abstract state is the same; that's how the tree works. Just gotta make sure there's **one** way to e.g. add a kv pair, so there's not icky mixing between observed-remove set and a multi-value register.
+As for the keys, we already covered lots of ways to do set CRDTs in @sec-crdt-complex. The keys could be grow-only, or we could have a simple two-phase set with a tombstone set. The observed-remove set is the most complete in terms of features, but it incurrs additional complexity when the keys have values attached to them. If two keys $7_\alpha$ and $7_\beta$ are inserted but have different values, what should the abstract state be? With LWW registers the value could just be the value with the newest timestamp, but that's another layer of combining states that isn't directly captured by the CRDT join semantics. And the same goes for maintaining a different grow-only set for each tagged key.
+So Prolly Trees don't solve the grow-only problems with state-based CRDTs. But they do provide a way to implement an approximate ordered dictionary CRDT that is efficient to read from and modify from, and they significantly reduce the cost of joining between two nodes.
