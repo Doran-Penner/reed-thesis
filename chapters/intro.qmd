@@ -4,6 +4,34 @@ Final push time! What do I need to do, big-picture? Text-search for CITE, TODO, 
 
 ## TODOs
 
+## Before submitting
+
+Comment out all of these notes!
+
+Comment out or remove "pre" material like preface and dedication.
+
+Do the last part of the Intro, notation and all that.
+
+Justification for distsys/p2p: also explain the crisis of storing all the data? But I'm not doing any sharding. It's more like a crisis of managing all the distributed changes.
+
+Clean up the ADT section a bit. Use better notation (e.g. no `a_b` func names) and give examples of dictionary usage (amazon inventory and shopping carts). What's a good use of an _ordered_ dictionary? Makes the key search nicer I guess.
+
+Change the state-based example to talk about a last-write-wins register instead of a max-value number. Makes more sense and will lead later into what we do.
+
+Maybe cut out the op-based section entirely and just mention them in the later discussion section (renamed from "compare and contrast"). Also gotta change the "more complex examples" section to not mention ops at all.
+
+That later section will talk about issues with state-based CRDTs, mention deltas and op-based, and explain why we don't want those (require greater synchronization, tracking changes from different nodes, and kinda have to grow infinitely anyways).
+But also I don't need to justify myself too much. (Can briefly mention justification in the start of Construction.)
+
+Redo the rolling hash section. Can use mostly the same words, but change the formal definition to define a (sliding window) rolling hash.
+Then make informal argument that it's unlikely to get a long chain of boundary changes.
+
+Change the Prolly Tree construction algorithm to (a) use the new rolling hash definition and (b) be less formal. I want to be precise but also understandable, and this part is crucial.
+
+Finish 3.2 and 3.3, it'll all be okay. Can give rough arguments if needed. Just have something.
+
+Make chapter 4 a bit nicer. Doesn't need to be fancy, but I want it to be presentable.
+
 ## Gear hash implications
 
 CDC via Gear hashing has two properties:
