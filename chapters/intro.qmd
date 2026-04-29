@@ -107,35 +107,18 @@ That would be nice, wouldn't it?
 
 ## ACTUAL WRITING
 
-Quick intro and overview of the thesis before we get into proper background. Look, I did stuff! Blah blah blah, quick overview, what I learned and contributed. Anything else useful to know, e.g. how advanced I expect my reader to be.
-General outline...
+In the modern world, there are lots of computers communicating over some kind of network. This setting of distributed computer systems, where processes happen asynchronously and messages can be delayed, poses additional challenges. How could you create a collaborative document editor (such as Google Docs) that also works offline?
+You might also want to find some way to combine different versions of the document when the machines reconnect. Is there some way to seamlessly merge two documents that differ just a little bit, or maybe differ a lot?
 
-- Distributed systems are cool/important
-- CRDTs are useful for them
-- This Prolly Tree thing solves some distributed systems problems (examples in the real world)
-- Here’s how we can make it more flexible and/or powerful and/or etc, also just look it’s a great thing
+Conflict-free replicated data types (CRDTs) provide a framework guaranteeing that different versions of some data can be combined.
+That guarantee comes with restrictions on what you can do with the data as well as additional overhead of storage and/or communication.
+We specifically focus on a data structure, called a Prolly Tree, which alleviates some of the CRDT communication overhead when implementing an ordered lookup table.
+Prolly Trees are designed to reduce storage usage when two machines have similar data.
+That makes them very useful for implementing CRDTs.
 
-***
-
-<!-- ## story intro -->
-
-Hook for why we care about all this stuff.
-We conceptually cover the problem space of distributed systems, consistency, and motivate with some real-world examples like collaborative document editing.
-
-<!-- ## main overview -->
-
-Conceptual overview of what I did.
-CRDTs: their use (motivated by above), cool things about Prolly Trees, and some things that could be improved (motivating my work).
-
-<!-- ## techy overview -->
-
-More technical description of what this thesis covers.
-
-<!-- ## misc notes -->
-
-Notes and assumptions and terminology and notation.
-For example we're not worried about consensus or malicious nodes or something.
-Assumptions of the reader (up to change):
+We walk through the background of distributed systems and CRDTs, construct a Prolly Tree in stages, and then show the operations that we can do with a Prolly Tree. We conclude with future ways to improve the scheme.
+The reader is assumed to have introductory knowledge of computer science and formal mathematics, but much of the writing is intended to be understood at a high level without that background.
+TODO terminology, notation, specific assumptions?
 
 - introductory formal math (?)
 - intro graph theory (graphs, trees, DAGs)
