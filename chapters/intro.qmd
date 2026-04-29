@@ -8,8 +8,6 @@ Final push time! What do I need to do, big-picture? Text-search for CITE, TODO, 
 
 Comment out all of these notes!
 
-Comment out or remove "pre" material like preface and dedication.
-
 Do the last part of the Intro, notation and all that.
 
 Justification for distsys/p2p: also explain the crisis of storing all the data? But I'm not doing any sharding. It's more like a crisis of managing all the distributed changes.
