@@ -4,7 +4,7 @@ Final push time! What do I need to do, big-picture? Text-search for CITE, TODO, 
 
 ## TODOs
 
-## Before submitting
+### MVP before submitting
 
 Look at every TODO in every file.
 
@@ -16,104 +16,18 @@ Justification for distsys/p2p: also explain the crisis of storing all the data? 
 
 Clean up the ADT section a bit. Use better notation (e.g. no `a_b` func names) and give examples of dictionary usage (amazon inventory and shopping carts). What's a good use of an _ordered_ dictionary? Makes the key search nicer I guess.
 
-Remove all the content-addressed storage stuff? It's not really important.
+### Remove all the content-addressed storage stuff?
 
-## Gear hash implications
-
-CDC via Gear hashing has two properties:
-
-- sliding window
-- restart after boundary
-
-Does sliding window imply restart after boundary? I feel like yes but I'm not sure. In any case, I suddenly want to change from talking about "content-defined chunking" to talking about rolling hashes. I don't know for sure but that's a thing that I want.
-
-In any case, it means I can make stronger claims about runtimes. Specifically I can say that with high probability, a modification will only change the current block and maybe the next. And then even if we change two chunks, that's two modifications. In the worst case it goes 1 2 3 etc up the tree, and I think we could make a tighter argument but honestly it doesn't matter that much.
-
-Jim says that sum of 1, 2, 3, etc log times is log squared. Sure, why not. But it's definitely not linear.
-
-Also I really do think that it'll be log. Let's see when we get there.
-
-Anyways! No matter if
-
-- the insert runtime is log or log squared,
-- we call section 2.3 "content-defined chunking" or "rolling hashes,"
-- and no matter how we formally define our "chunker" or "rolling hash,"
-
-I want to do my analysis (section 3.2) with the sliding window.
-
-I feel like the easiest way to change it is, when discussing the Gear hash in 2.3, to also state that it has this "sliding window property." This property means that the yes/no boundary choice only depends on a window (of configurable size).
-
-Then at some point I can argue that the sliding window means small differences are unlikely to change the boundaries much...
-
-If we don't draw a new boundary with the modification in the window, then nothing will change for the boundaries. (It will change the chunk hash which will propogate the change upward, but we can make this exact same argument.)
-
-If we do draw a new boundary due to the modification and it's not within window-length of the previous next boundary, we won't mess with that boundary or anything onward. Thus we break a chunk in two (and send two changes upward).
-
-If we draw a new boundary near the old boundary (e.g. two bytes before the end), then we mess with the existing boundary. Now we restart the rolling hash a bit further back than before; it's almost as if we inserted some data at the start of the chunk. We can make this whole argument again recursively. As long as the window width is smaller than the average block size (which it had better be), the chance of this case repeatedly occuring is diminishing. (So it's likely that the number of changed hashes sent upward is small.)
-
-Note that by increasing the chunk size relative to the window width, we dramatically reduce the chance of that last case happening.
-
-I can either make this chunk-shift argument in 2.3 or 3.2. I lean towards 2.3 because it explains why we're even doing this. Then in 3.2, I can use that argument and push it further because of the recursive tree structure.
-
-Trying to formalize definitions...
-
-- A rolling hash is a hash function with the "sliding window" property. (And possibly efficient sliding? But eh.)
-- CDC just outputs boundaries.
-- CDC with "reset" is nice. (Should we just say that CDC-with-resets is normal CDC? I feel like yes.)
-- Does "sliding window" imply the resets property? I think yes, with the caveat that we have to read in enough data to fill the window after a reset. So not really.
-
-Maybe I just define a rolling hash. It's a hash function (mapping from arbitrary-length input space to fixed-length output space) with the sliding window property. Then explain how we can use it to do chunking with a judgment function.
-
-## Making the content "okay"
-
-### Rework start of Background
-
-Some of that content can go into other sections. And I feel like we can just start with the "system" part.
-
-### Add ADT section
-(see my notes & photo of Jim whiteboard from Apr 22)
-
-### Chunking rework
-
-See inline notes.
-
-### Flesh out Operations
-
-Just write more! Write junk and explain it to someone.
+It's not really important for what I'm doing.
 
 ### All the glaring TODOs
 
 Yup.
 
-## Making it all great
-
 ### Terminology & notation
 
-- prefer join over merge
-- generally use array instead of sequence or vector
-- clarify concatenation? (maybe notation definition in Intro)
-- ADT stuff (need that terminology in CRDTs and ?)
 - use `backticks` or $math$ for variables, pseudocode, etc?
-- chunk vs block: leaning towards chunk
 - "node" and other distsys words: maybe put in start of Background?
-- ...?
-
-### Expand shorter paragraphs
-
-- discussion of similar structures at end of construction
-- ?
-
-### Polish Improvements
-
-- reword messy "idk" and "oooh" stuff
-
-### Abstract, Preface, etc
-
-## Making it superduperperfect
-
-### Write more in Improvements
-
-Share even more of my thoughts :D
 
 ### Images and diagrams
 
@@ -133,6 +47,13 @@ That makes them very useful for implementing CRDTs.
 We walk through the background of distributed systems and CRDTs, construct a Prolly Tree in stages, and then show the operations that we can do with a Prolly Tree. We conclude with future ways to improve the scheme.
 The reader is assumed to have introductory knowledge of computer science and formal mathematics, but much of the writing is intended to be understood at a high level without that background.
 Let's get into it!
+
+<!--
+TODO notation section?
+- concatenation
+- natural numbers (+)
+- sequence/array
+-->
 <!-- terminology, notation, specific assumptions? -->
 
 <!-- - introductory formal math (?) -->

@@ -1,6 +1,6 @@
 # Construction
 
-One of the biggest issues with state-based CRDTs is that the entire state needs to be shared in order to merge. This is fine with smaller states such as a register, but if the state is a list with thousands or millions of items it will quickly become prohibitive.
+One of the biggest issues with state-based CRDTs is that the entire state needs to be shared in order to join. This is fine with smaller states such as a register, but if the state is a list with thousands or millions of items it will quickly become prohibitive.
 The problem is addressed by $\delta$-CRDTs, but those require more complex infrastructure and inherit some of the challenges of operation-based CRDTs.
 Can we do better? Prolly trees provide a solution for ordered dictionary CRDTs that embeds information about what changed directly in the data structure itself.
 Here is how to construct one in stages.
