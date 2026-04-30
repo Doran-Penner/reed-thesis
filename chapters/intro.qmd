@@ -18,10 +18,6 @@ Clean up the ADT section a bit. Use better notation (e.g. no `a_b` func names) a
 
 Remove all the content-addressed storage stuff? It's not really important.
 
-Formally define Gear hash and maybe rolling hash too. Fix up that part that has old writing.
-
-Change the Prolly Tree construction algorithm to (a) use the new rolling hash definition and (b) be less formal. I want to be precise but also understandable, and this part is crucial.
-
 Finish 3.2 and 3.3, it'll all be okay. Can give rough arguments if needed. Just have something.
 
 Make chapter 4 a bit nicer. Doesn't need to be fancy, but I want it to be presentable.

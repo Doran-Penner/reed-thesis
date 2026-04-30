@@ -77,62 +77,44 @@ Prolly Trees represent an ordered dictionary, and we'll use that ordering to cre
 
 ## Rolling hash functions {#sec-rolling}
 
-TODO this is gonna be reworked with the new sliding window insight, but I'm not sure how much. Talk about this in meeting.
-
-***
-
 The scheme we just described has a big problem. What if data is added to the start? For example, say our List CRDT serializes as a list of its values and some node adds data to the head of the list. This necessarily changes the hash of the first block in the Merkle tree, but furthermore has cascading effects --- all the data shift down the line a little bit, meaning that all chunks suddenly have new hashes. So our Merkle tree hash comparison would see that the nodes need to transmit all of their state, even though only a small amount of data actually differs.
 This doesn't affect correctness, but can ruin our performance gains from using the Merkle tree comparison scheme. We want a way to have the Merkle tree improvements in most cases of data insertion, not just when new data is appended to the end.
 
 Generally, _chunking_ is the process of breaking up a large sequence of data into smaller blocks, or chunks.
-What we did initially with the Merkle tree is fixed-length chunking: draw a dividing line every $k$ bytes and those are the blocks. This is a decent deduplication system, but as shown above it doesn't take full advantage of data similarity. _Content-defined chunking_ (CDC) attempts to fix this boundary-shift problem by determining chunk boundaries (when to draw a line between chunks) based on the actual contents being chunked. It doesn't fix the duplication problem entirely, but good CDC is reasonably efficient and reduces the problem when new data is inserted.
-A common way to do CDC is with a rolling hash.
+What we did initially with the Merkle tree is fixed-length chunking: draw a dividing line every $k$ bytes and those are the blocks. This is a decent deduplication system, but as shown above it doesn't take full advantage of data similarity. _Content-defined chunking_ (CDC) attempts to fix this boundary-shift problem by determining chunk boundaries (when to draw a line between blocks) based on the actual contents being chunked. It doesn't fix the duplication problem entirely, but good CDC is very efficient and dramatically reduces the problem when new data is inserted.
 
-TODO come back here. Unsure if I want to give definition of a rolling hash in general (and then the Gear hash), or just the Gear hash as an example of a rolling hash and talk informally about the properties, or what. But somehow I'll define the Gear hash and then can move on to the judgment function and average chunk size.
+<!-- :::{#def-rolling-hash} -->
+<!-- ###### Rolling hash -->
+<!-- A _rolling hash_ is a hash function^[This is not a true collision-resistant hash function, but a "pretty random-looking" compromise so we can efficiently add new bytes.] that computes the hash of a sliding window of data. -->
+<!-- Let x, y, z. Then -->
+<!-- $$ -->
+<!-- TODO. -->
+<!-- $$ -->
+<!-- ::: -->
 
-<!-- TODO define -->
-:::{#def-rolling-hash}
-###### Rolling hash
-A _rolling hash_ is a hash function^[This is not a true collision-resistant hash function, but a "pretty random-looking" compromise so we can efficiently add new bytes.] that computes the hash of a sliding window of data.
-Let x, y, z. Then
-$$
-TODO.
-$$
-:::
+A common way to do CDC is with a rolling hash. This is a hash function that is not collision-resistant, but its output is roughly uniformly distributed. The key feature of a rolling hash $R$ is that it computes a _sliding window_ of the data, meaning that the output of $R\Bigl((x_i)_{i=1}^n\Bigr)$ is the same as $R\Bigl((x_i)_{i=n-w+1}^n\Bigr)$ for some window width $w$.
+The sliding window of the rolling hash means that small changes to the data will, with high probability, only affect one or two chunks.
+If position of some changed data is more than $w$ behind the chunk's ending boundary at $x_e$, the decision to draw a boundary after $x_e$ cannot be affected since it's out of the window range. So it's possible that a new chunk boundary will be created in the middle of the existing chunk, or no boundaries will change.
+Now if the changed data position is within $w$ of the ending chunk line, it's possible that it'll change the decision of whether to draw the existing chunk boundary. But by the previous argument about window width, it will not cascade to change the _following_ boundary unless the following block has size less than $w$. This is exceedingly unlikely, and the chance of this happening over and over again (cascading through the entirety of the data) is even more exceedingly unlikely.
+Thus as long as the average block size is significantly larger than the window size (which we can configure to be true), we can confidently say that small changes to the data will only change one or two chunks except with negligible probability.
 
-<!-- TODO words hard (especially in footnote) -->
-Content-defined chunkers are difficult to model mathematically, as they're usually a very stateful computer algorithm in practice. One way to do CDC is with a Gear hash and a "judgment" function [@ddelta]. This computes a random-seeming (but deterministic) value of a sliding window of data and can efficiently add new bytes to the input.^[This is not a true collision-resistant hash function, but a "pretty random-looking" compromise so we can efficiently add new bytes.]
-Notate our input data to be chunked as $(b_i)_{b=1}^n \in B^n$, where $B$ is the set of all bytes. Then $g_i$, the Gear hash up to byte $i$, has the following recursive definition:
+<!-- TODO I want an image :( -->
+
+One common rolling hash is the Gear hash [@ddelta].
+Notate our input data to be chunked as $(x_i)_{b=1}^n \in B^n$, where $B$ is the set of all bytes. Then $g_i$, the Gear hash up to byte $i$, has the following recursive definition:
 \begin{align*}
 g_0 &= 0; \\
-g_i &= (g_{i-1} \ll 1) + \textsf{GearTable}[b_i].
+g_i &= (g_{i-1} \ll 1) + \textsf{GearTable}[x_i] \mod 2^{32}.
 \end{align*}
-Given the Gear hash up to the previous byte, we shift those bits up by one (losing the top bit) and then add some constant from a lookup table called the \textsf{GearTable}. That table is simply a mapping from bytes to randomly-generated integers, constant across all uses of the Gear hash.
+Given the Gear hash up to the previous byte, we shift those bits up by one (losing the top bit) and then add some constant from a lookup table called the \textsf{GearTable}. That table is simply a mapping from bytes to randomly-generated integers, constant across all uses of the Gear hash. Mod it all by $2^{32}$ since the Gear hash operates on 32-bit integers.^[This is indeed a sliding window with width 32. In expanded form, all values more than 32 values behind are multiplied by $2^{32}$, which makes them equal to $0 \mod 32$.]
 
-Notably, the Gear hash also has the _sliding window_ property.
-Let $G((b_j))_{j=1}^i$ be equivalent to $g_i$.
-Then for any input array $b_{TODO}$,
-$$
-TODO.
-$$
-
-***
-
-<!-- TODO consistent notation --- don't use g_i unless that's what I always use -->
 To determine whether to draw a chunk boundary after byte $i$, the Gear hash has a "judgment function" that checks the top $k$ bits of $g_i$. If they're all $1$, then make a chunk boundary and restart the Gear hash after the boundary. Otherwise keep the previous state and keep going until a boundary is found or the end of the input is reached.
 As long as the \textsf{GearTable} is randomly created and we're not too unlucky, the values of $g_i$ will be roughly uniform and the chance of the top $k$ bits all being one should be about $\frac1{2^k}$.
 So to have chunks of average size $1$KiB, we'd set $k = \log_2(1024) = 10$.
 
-<!-- TODO use $w$ for window width in previous paragraphs -->
-The sliding window of the rolling hash means that small changes to the data will, with high probability, only affect one or two chunks.
-If position of some changed data is more than $w$ behind the chunk's ending boundary at $b_e$, the decision to draw a boundary after $b_e$ cannot be affected since it's out of the window range. So it's possible that a new chunk boundary will be created in the middle of the existing chunk, or no boundaries will change.
-Now if the changed data position is within $w$ of the ending chunk line, it's possible that it'll change the decision of whether to draw the existing chunk boundary. But by the previous argument about window width, it will not cascade to change the _following_ boundary unless the following block has size less than $w$. This is exceedingly unlikely, and the chance of this happening over and over again (cascading through the entirety of the data) is exceedingly unlikely.
-Thus as long as the average block size is significantly larger than the window size (which we can configure to be true), we can confidently say that small changes to the data will only change one or two chunks except with negligible probability.
-
 There are further improvements to the Gear hash, such as in @fastcdc where the deduplication ratio and distrubution of chunk sizes is greatly improved, but we won't go into the details of modern constructions. All that is important for the Prolly Tree is that we have access to some sliding-window chunking strategy that is efficient and usually won't cause a cascading effect of boundary changes when data is modified.
 In a Prolly tree, we do content-defined chunking on the state to determine what chunks to hash in the Merkle tree.
 Then the chunk boundaries are unlikely to shift much after modifications, meaning that when nodes do the Merkle tree hash comparison there is less redundant data transfer.
-<!-- TODO come back to this wording later -->
 
 ## Search trees
 
@@ -154,18 +136,15 @@ B-trees are a type of search tree that are heavily used in practice because they
 Now we have all the tools we need to construct the final Prolly Tree:
 a collision-resistant hash $H$,
 content-addressed storage,
-and a content-defined chunker $C$.
+and a sliding-window content-defined chunker $C$.
 When implementing an ordered dictionary with $n$ items, we can represent the state as an array of key-value pairs $A = ((k_i, v_i))_{i=1}^n$. Then:
 
-<!-- TODO should I do a proper Algorithm environment? -->
-1. Run our chunker $C$ on the input $A$, checking for boundaries after the end of each $a_i \in A$ (so we don't break apart the keys or values). This will output an array of booleans $B = (b_i)_{i=1}^n$ indicating which pairs are chunk-ending.
-2. Define the chunk-ending indices as $E = \{i ~|~ b_i \in B, b_i = \top\} \cup \{n\}$.
-3. Now we build the chunks and get their hashes. For each index $e_j \in E$:
-   1. Define the $j$th chunk as $c_j = (a_k)_{k=e_{j-1}+1}^{e_j}$, the subarray of $A$ which has its following chunk boundary at $e_j$. (If $j = 1$ then let $e_0$ be 0.)
-   2. Get the hash of that chunk $h_j = H(c_j)$.
-   3. Put $c_j$ in our content-addressable storage.
-   4. Pair $k_{e_j}$, the largest key that was held in that block, with $h_j$.
-4. Concatenate all these new key-hash pairs into a new array $A' = ((k_j, h_j))_{j=1}^{|E|}$. Recurse on $A'$ until there is only one key-hash pair remaining. This is the root of the Prolly Tree.
+1. Run our chunker $C$ on the input $A$, checking for boundaries after the end of each $a_i \in A$ (so we don't break apart the keys or values). This yields the chunks $(c_j)_{j=1}^m$.
+3. For each chunk $c_j$:
+   1. Get the hash of that chunk $h_j = H(c_j)$.
+   2. Put $c_j$ in our content-addressable storage.
+   3. Pair the largest key that is held in $c_j$ with $h_j$.
+4. Concatenate all these new key-hash pairs into a new array $A' = ((k_j, h_j))_{j=1}^{m}$. Recurse on $A'$ until there is only one key-hash pair remaining. This is the root of the Prolly Tree.
 
 And that's it!
 We have created a Prolly Tree storing an ordered dictionary and all of its blocks can be accessed by our content-addressable storage.
