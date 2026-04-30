@@ -128,11 +128,9 @@ This does sacrifice perfect consistency, since (before network communication) it
 Instead, CRDTs settle for _strong eventual consistency_: given enough communication between nodes (when the network is up), all nodes eventually agree upon the final version [@eventual-consistency]. In many applications, this is a reasonable tradeoff: git, for example, doesn't require internet connection while working but only to share and retrieve data from others.
 
 Ensuring strong eventual consistency is the hard part of CRDTs. There must be some way to guarantee that any two replicas will converge to the same value with communication.
-There are two common ways to ensure this: either by focusing on the state of the data or the operations applied to it.
+One way to ensure this is focused on the state of the ADT.
 
-### State-based
-
-<!-- TODO should I have more narrative for these subsections? Methinks not -->
+### State-based CRDTs
 
 State-based CRDTs ensure strong eventual consistency via a join-semilattice [@lattice] over the states.
 
@@ -146,69 +144,39 @@ Let $S$ be a set and $\lor : S \times S \to S$ be a binary operation (our "join"
 :::
 
 <!-- TODO wording -->
-This join operation is also called a least upper bound because it yields a smallest-possible way to combine two elements of a set. If these properties hold, then $\lor$ gives us a minimal way that we can always combine two items of a set.
+This join operation is also called a _least upper bound_ because it yields a smallest-possible way to combine two elements of a set. If these properties hold, then $\lor$ gives us a minimal way that we can always combine two items of a set.
 
 This gives us a way to guarantee strong eventual consistency! Given any two copies of some data, we can join them via some defined operation. No matter the order that this propogates throughout the distributed system, if nodes (without making any new changes) keep joining pair-wise then eventually all will have the same state.
 So if we can define an operation on our data that has these properties, then we have a state-based CRDT.
 
-For a simple example, we can easily make a max-number value with state-based power. If the state space $S = \mathbb{R}$, then we can define the join as the maximum of its two inputs. We can verify that this satisfies all the properties: the maximum of any number with itself is itself, and the maximum function does not care about order of inputs or application.
-We can also easily make a grow-only set, an unordered collection without duplicates which only allows adding more items.
-Let $\lor = \cup$ (set union) over all sets. Set union is associative, idempotent, and commutative; this means that we get a join-semilattice, meaning this is another CRDT.
-<!-- set of all sets :( -->
-
-### Op-based
-
-Operation-based CRDTs achieve strong eventual consistency by requiring that all operations done on the data are commutative: that is, you can apply a collection of operations $a, b, c, \dots$ in any order and the outcome will be the same.
-When this is the case, we also get a CRDT.
-Nodes share changes by sending out the operations they did as soon as they happened; when a node receives an operation, it simply applies that to its data.
-Since we have commutativity, node $A$ doing operation $a$ and then receiving & applying operation $b$ gives the same output as node $B$ doing operation $b$ and then applying the recieved operation $a$.
-
-A simple operation-based CRDT is a number counter with addition (for example a bank account that can be added to or subtracted from). Addition over $\mathbb{R}$ is commutative, so we can represent all operations as `add(r)` for some $r \in \mathbb{R}$ and send $r$ to peer nodes. We can also represent a grow-only set using operations: the `add(x)` operation, which adds an item to a set, commutes with all other set additions.
+For a simple example, we can make a grow-only set, an unordered collection without duplicates which only allows adding more items.
+Let $\lor = \cup$ (set union) over all sets. Set union is associative, idempotent, and commutative; this means that we get a join-semilattice, meaning this is a CRDT.
+Another state-based CRDT is a last-writer-wins (LWW) register --- a single value which can be set to anything. When written to, the writer attaches a timestamp; when joining, discard the value-timestamp pair with the older timestamp. Timestamp comparison is essentially a max-number comparison (which time is "larger") and the maximum function has the properties necessary to make a join-semilattice.
+Thus LWW registers are state-based CRDTs with the newest-write comparison.
 
 ### More complex examples {#sec-crdt-complex}
 
-We've shown two ways to create a grow-only set CRDT. How could we implement a set CRDT that also allows for item removal?
-Only considering the two operations `add` and `remove` which operate on one item at a time, we immediately encounter a problem: these are not commutative.
-To illustrate this, consider applying the operations `add(7)`, `add(7)`, and then `remove(7)` in that order.
-Since sets have no duplicates, the second `add` does nothing, and then the `remove` removes the $7$, yielding no overall change after the three operations.
-But if we do `add(7)`, `remove(7)`, and then `add(7)`, the `add` at the end means there is overall a $7$ added to the set.
+We've shown that the grow-only set and LWW register ADTs can be made into CRDTs. How could we implement a set CRDT that also allows for item removal?
+Unfortunately, there is no way to do this --- state-based CRDTs always "grow upward" in a fashion, and there's no direct way to remove items. So there's no way to make a true set CRDT.
+However, we can create CRDTs which do a decent job at approximating a true set ADT [@shapiro-crdt, pp. 21-27].
 
-How can we fix this? It turns out that there is no real way to make a perfect set CRDT due to the above issue. However, we can create CRDTs which do a decent job at approximating a true set ADT [@shapiro-crdt, pp. 21-27].
+One solution is to store two grow-only sets, one called the "main" set $M$ and one called the "tombstone" set $T$. This is called a two-phase or 2P-set.
+To put an item in the set, add it to $A$. To remove an item, add it to $T$. So the abstract state of the overall 2P-set is $A ~\backslash~ T$, everything in $A$ and not in $T$.
+This is easy to implement, since it's just two grow-only sets and nodes can transmit both sets' data as usual. However, it doesn't allow for re-adding elements which have already been removed.
+This could be alleviated by having a sequence of $n$ pairs of $A$ and $T$ sets, allowing for adding and removing an item $n$ times, but that is simply not practical or very useful most of the time.
 
-One solution is storing two grow-only sets (called a two-phase or 2P-set), one called the "main" set $M$ and one called the "tombstone" set $T$.
-To put an item in the set, add it to $A$ (which is a standard grow-only set). To remove an item, add it to $T$. So the abstract state of the overall 2P-set is $A ~\backslash~ T$.
-This is easy to implement, since it's just two grow-only sets and nodes can transmit both sets' data as usual. However, it doesn't allow for re-adding elements which have already been removed. This could be alleviated to the $n$th degree by having $n$ pairs of added/removed sets in a hierarchy, but that is simply not practical or very useful most of the time.
+We can make the 2P set more effective by adding a unique identifier to each item when adding it to $A$.
+This means adding the number $7$ internally adds $7_\alpha$ to $A$, where $\alpha$ is some unique identifier for that item; then removing $7$ will put all observed $7_*$ items into the tombstone set. This is called an observed-remove set (OR-set).
+With this system, there's always a way to add or remove an item from the set. It's not perfect, since a node could remove all of its observed instances of $7$ but then join with another node that added another $7$. But those are inevitable difficulties due to asynchronous communication, not the CRDT implementation. Thus the OR-set is a pretty good approximation of a set ADT, at the cost of large growing state.
 
-Another solution is to have an operation-based counter on each item. Under the hood an integer is stored for each item observed, and shows the user all items whose counter is greater than zero.
-For operations, it'll translate `add(7)` into incrementing the counter on $7$ by one. Similarly, `remove(7)` will be translated to subtract the $7$s counter by one bring it to $0$.
-This might mean that even on a local copy, `remove(7)` won't actually remove the item from the set. This can be fixed by making the high-level `remove(7)` operation translate to subtracting $x$ from $7$'s counter. And similarly, `add(7)` will have to add enough to make the counter positive in the case that it becomes negative. Even with those changes, this won't always give intuitive semantics --- but it is still _a_ way to implement a CRDT.
+Implementing ADTs as CRDTs gets even more complicated with more complex interfaces. What about a tree CRDT, which cannot have a cycle? Extra logic needs to be added to maintain the tree structure when moving subtrees [@kleppmann-move-op].
+What about dictionaries, which are more complex than sets because they also attach changeable data to the keys? We can attach each key to an LWW register (meaning every action now has some timestamp) or simply have the register as another grow-only set; both have their benefits and problems.
+For a lot of ADTs, there is no perfect way to implement them as a CRDT while still getting eventual consistency. However, we can come up with various methods of approximating them which do have CRDT guarantees.
 
-Yet another way of getting around the problem is to attach unique identifiers to all items when `add`ing. We mix this with a 2P-set.
-This means `add(7)` internally adds $7_\alpha$ to the added set, where $\alpha$ is some unique identifier for that item; then `remove(7)` will put all observed $7_*$ items into the tombstone set.
-With this system, the only underlying operations that don't commute are adding and removing the same item with the same identifier; if we ensure that an application only removes items that it has seen, then all the real-world scenarios commute.
+### Challenges with state-based CRDTs
 
-Implementing CRDTs gets even more complicated with more complex interfaces. What about a tree CRDT, which cannot have a cycle? Extra logic needs to be added to maintain the tree structure when moving subtrees [@kleppmann-move-op].
-What about dictionaries, which are more complex than sets because they also attach changeable data to the keys? We can attach each key to a last-writer-wins register (meaning every operation now has some timestamp) or simply have the register as another grow-only set; both have their benefits and problems.
-For a lot of ADTs, there is no perfect way to represent them while still getting eventual consistency. However, we can come up with various ways to approximate them which have CRDT guarantees.
+As seen, state-based CRDTs can only grow or risk arbitrarily removing information. How would you make a simple number CRDT which can be added or subtracted from? It's possible [@shapiro-crdt, p. 16] but either takes lots of storage overhead or has unintuitive semantics.
+Another method for ensuring strong eventual consistency, called operation-based CRDTs [@shapiro-crdt, p. 11], works better for some ADTs. However, they have stronger network assumptions and must keep a full history of their operations as well as keep track of when they last synchronized with each other node.
 
-### Compare and contrast
-
-<!-- Awkward balance & transition from "misc background" to "what we care about for this thesis." -->
-<!-- TODO dewit -->
-
-Both can emulate each other! Briefly explain why.
-
-State-based can only grow. How do you subtract from a number?
-
-Operation-based CRDTs need more infrastructure to function. If messages are dropped or duplicated, the system won't work; so there needs to be some kind of accounting for messages that were received.
-
-State-based requires sending the entire state for every single join. And since that state will only grow, the cost of joining will increase over time. @delta-crdt created $\delta$-CRDTs to counteract this, but they start to get op-like infrastructure needs and are a fun state/op hybrid.
-
-What about long network outages or a specific peer leaving for a long time? Operation-based might need to store its operation history, which makes it basically state-based.
-
-What about new nodes joining? State is easy because you just send over any node's current state. Operation needs to send over its current state of the data as well as the "accounting" of what messages it last received from various nodes. It gets messy!
-
-Generally op-based works better with strong active network because minimal data is sent back and forth. State-based works better with less-frequent merges.
-
-<!-- TODO should I say this? It kinda gets said right in the next chapter. -->
-We're gonna do state-based and try to fix some state-based problems.
+Another challenge with state-based CRDTs is that they require transmitting the entire state for every single join. And since that state will usually grow, the cost of joining between two nodes will increase over time. @delta-crdt created $\delta$-CRDTs to counteract this, but those have requirements similar to operation-based CRDTs and essentially act as a hybrid between state- and operation-based methods.
+Instead of moving to these alternative frameworks, we'll focus on alleviating the communication cost of state-based joins.

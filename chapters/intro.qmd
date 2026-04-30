@@ -6,20 +6,15 @@ Final push time! What do I need to do, big-picture? Text-search for CITE, TODO, 
 
 ## Before submitting
 
-Comment out all of these notes!
+Look at every TODO in every file.
 
-Do the last part of the Intro, notation and all that.
+Scan Jim & Marcus' feedback for big things and maybe small things.
+
+Comment out all of these notes!
 
 Justification for distsys/p2p: also explain the crisis of storing all the data? But I'm not doing any sharding. It's more like a crisis of managing all the distributed changes.
 
 Clean up the ADT section a bit. Use better notation (e.g. no `a_b` func names) and give examples of dictionary usage (amazon inventory and shopping carts). What's a good use of an _ordered_ dictionary? Makes the key search nicer I guess.
-
-Change the state-based example to talk about a last-write-wins register instead of a max-value number. Makes more sense and will lead later into what we do.
-
-Maybe cut out the op-based section entirely and just mention them in the later discussion section (renamed from "compare and contrast"). Also gotta change the "more complex examples" section to not mention ops at all.
-
-That later section will talk about issues with state-based CRDTs, mention deltas and op-based, and explain why we don't want those (require greater synchronization, tracking changes from different nodes, and kinda have to grow infinitely anyways).
-But also I don't need to justify myself too much. (Can briefly mention justification in the start of Construction.)
 
 Redo the rolling hash section. Can use mostly the same words, but change the formal definition to define a (sliding window) rolling hash.
 Then make informal argument that it's unlikely to get a long chain of boundary changes.
@@ -144,8 +139,9 @@ That makes them very useful for implementing CRDTs.
 
 We walk through the background of distributed systems and CRDTs, construct a Prolly Tree in stages, and then show the operations that we can do with a Prolly Tree. We conclude with future ways to improve the scheme.
 The reader is assumed to have introductory knowledge of computer science and formal mathematics, but much of the writing is intended to be understood at a high level without that background.
-TODO terminology, notation, specific assumptions?
+Let's get into it!
+<!-- terminology, notation, specific assumptions? -->
 
-- introductory formal math (?)
-- intro graph theory (graphs, trees, DAGs)
-- introductory computer science (trees, runtime)
+<!-- - introductory formal math (?) -->
+<!-- - intro graph theory (graphs, trees, DAGs) -->
+<!-- - introductory computer science (trees, runtime) -->

@@ -23,7 +23,7 @@ Can use Prolly Trees as a range tree (CITE), thus creating an array-like interfa
 
 - What are the efficiencies of this? Asymptotically as well as practically. The package `diamond-types` (CITE) uses that structure for a list CRDT so my intuition says it can't be that slow.
 
-What about using a Prolly Tree for other large data types like trees, dags, graphs, and so on? Note that "small" data can just be directly hashed which is nice. The important part is the unicity of representation. Can we make a "file?" What does that look like — an array of bytes, a list of strings, a syntax tree based on some grammar, or what?
+What about using a Prolly Tree for other large data types like trees, DAGs, graphs, and so on? Note that "small" data can just be directly hashed which is nice. The important part is the unicity of representation. Can we make a "file?" What does that look like — an array of bytes, a list of strings, a syntax tree based on some grammar, or what?
 
 With key-value map, array, and "small stuff," we have JSON. That's worth mentioning because you can use JSON for pretty much anything --- not efficiently, but you can use it.
 

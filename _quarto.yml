@@ -31,11 +31,11 @@ filters:
 # TODO do I want this? if so, remember to update after everything
 abbrs:
   CRDT: Conflict-free replicated data type
-  DAG: Directed acyclic graph
   CAP: Consistency, availability, partition-tolerance
   BST: Binary search tree
   CDC: Content-defined chunking
   ADT: Abstract data type
+  LWW: Last-write-wins
 
 division: Mathematics and Computer Science
 thedivisionof: The Established Interdisciplinary Committee for
