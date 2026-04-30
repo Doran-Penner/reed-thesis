@@ -7,6 +7,7 @@ Here is how to construct one in stages.
 
 ## Hashing and content addressing
 
+Checking if two values are equal means we need to check every bit of both values in the worst case. With lots of data in a a CRDT, this means that two nodes need to transmit their entire states --- this quickly gets expensive and we'd like to have another solution.
 _Hashing_ assigns a mostly-unique tag to data.
 This reduces the communication cost of equality checks, because we only have to compare the hash of the data to see if they're equal.
 
@@ -33,7 +34,8 @@ There have been various attacks on reduced-strength versions of these hash funct
 Even if there were some problem, we could use an additional hash function to supplement the original, swap out SHA-256 for an entirely new hash function with larger output space (like SHA3-512), or do many other things.
 So from here on out, we'll assume that we have access to a collision-resistant hash function $H$ whose output is large enough that if $H(x) = H(y)$ then $x = y$ except with unimaginably small chance.
 
-With that assumption, hashes let us cheaply check equality. If $H(x) = H(y)$, then $x$ almost always equals $y$. So if two nodes wish to compare some data (e.g. whether their state-based CRDT is in the same state), they can simply hash the entirety of their data and only share the hash. If the value is the same, then by our above assumption they have the same data and don't need to communicate further. If they don't have the same hash, then they'll need to share the full CRDT's state as usual.
+With that assumption, hashes let us cheaply check equality. If $H(x) = H(y)$, then $x$ almost always equals $y$. So if two nodes wish to compare some data (e.g. whether their state-based CRDT is in the same state), they can simply hash the entirety of their data and only share the hash. If the value is the same, then by our above assumption they have the same data and don't need to communicate further. If they don't have the same hash, then they'll need to share their full states as usual.
+Thus in the optimistic case where two CRDT states are the same, the nodes only need to transfer a small amount of data.
 <!-- TODO note that this relies on a consistent way to represent the data. -->
 
 <!-- TODO remove this entire section? -->
@@ -41,43 +43,36 @@ _Content-addressed storage_ is a database that supports efficient queries via th
 Under the hood, it might be implemented as a dictionary with $(h, x)$ as the key-value pair; but for our purposes we will let other programs deal with the implementation details, and assume we have access to content-addressed storage that correctly retrieves data from its hash.
 
 <!-- "hashes are also useful in distsys because they provide a concise way to reference data..." TODO -->
-Content addressing is immensely useful in distributed systems because it provides a clear way to concisely reference data. Normal computer programs can do this with pointers, but those reference a location in memory that is specific to the program being run and the device that it's on. A hash is defined by the data it points to and will always be the same, no matter what machine calculates the hash. This means it can be used as a stable, cross-machine reference to a block of data.
-Prolly trees have a lot of data that we want to reference by hash; content addressing means we generally only need to deal with hashes, and can easily get the content when desired.
+Content addressing is immensely useful in distributed systems because it provides a clear way to concisely reference data. Normal computer programs can do this with pointers, but those reference a location in memory that is specific to the program being run and the device that it's on. A hash is a deterministic function of the data which was hashed and is always the same, no matter what machine calculates the hash. This means it can be used as a stable, cross-machine reference to a block of data.
+Using hashes to reference everything makes communication a lot quicker and easier while still remaining unambiguous.
+<!-- Prolly trees have a lot of data that we want to reference by hash; content addressing means we generally only need to deal with hashes, and can easily get the content when desired. -->
 
 ## Merkle trees
 
-What if we have a lot of data to store? Should we take a hash of everything at once? But then if any small part changes, two hashes between nodes will be different and they'll still have to transmit the full data. And if we hash a bunch of data blocks individually, we'll have to manage $n$ individual hashes. There's a better way to organize everything together.
+Just taking a single hash of all the data is optimistic, since usually two states will be different (otherwise there's no point in joining). We can use hashing in a neat way spread out the comparison benefits to blocks of the data.
 
 <!-- TODO Jim has opinions on how I should notate this stuff (with the word "extent" and range notation). -->
 <!-- TODO jim thinks the subscripting notation here is messy and I kinda agree. Should I use range/extent, or sequence, or what? -->
 <!-- TODO is this a place to use sequence notation? -->
 <!-- TODO Marcus says to either give a true general definition or to give an informal definition outside of a #def environment -->
-::: {#def-merkle-tree}
-### Merkle tree
 A _Merkle tree_ is a tree of hash pointers to other hash nodes, ending in leaves of actual data that is verified by the hashes [@merkle-tree].
-To construct a Merkle tree, start with some data (e.g. a very long file). For each data block $x_i$ (e.g. each 1KiB section), compute its hash $h_i = H(x_i)$. Then construct a binary tree from the bottom up, recursively hashing pairs of hashes. For example, the parent of $h_1$ and $h_2$ (denoted $h_{1,2}$) stores $H(h_1||h_2)$, the hash of $h_1$ concatenated with $h_2$. And then its parent $h_{1,2,3,4} = H(h_{1,2}||h_{3,4})$, and so on. Eventually this leads to a single hash, called the root hash.
+To construct a Merkle tree, start with some data (e.g. a very long file). For each data block $x_i$ (e.g. each 1KiB section), compute its hash $h_i = H(x_i)$. Then construct a binary tree from the bottom up, recursively hashing pairs of hashes. For example, the parent of $h_1$ and $h_2$ (denoted $h_{1-2}$) stores $H(h_1||h_2)$, the hash of $h_1$ concatenated with $h_2$. And then its parent $h_{1-4} = H(h_{1-2}||h_{3-4})$, and so on. Eventually this leads to a single hash $h_{1-n} which is the parent of all $n$ leaf hashes, called the root hash.
 Note that taking hashes of hashes in this way maintains collision resistance --- it is still computationally infeasible to find a collision in two Merkle tree root hashes.
-:::
-
-<!-- By Azaghal - Own work, CC0, https://commons.wikimedia.org/w/index.php?curid=18157888 -->
-<!-- ![Merkle tree diagram.](../figures/tmp-wikipedia-merkle-tree.png) -->
 
 <!-- TODO remove all the data representation stuff? -->
-Merkle trees solve our problem of hashing large amounts of data. Assume that our state-based CRDT has some way to represent its current state in an ordered way, e.g. a binary string. Furthermore, assume that this representation is unique for a given state. Then we can construct a Merkle tree on e.g. 1-kibibyte chunks of its data. This is a bit of extra storage, but not much --- we store about two hashes for every 1KiB, which is roughly 6% extra storage space.
-And the benefits are dramatic.
-
-<!-- TODO notation is also a problem here -->
-To explain, say that two nodes $A$ and $B$ wish to compare states. Each constructs a Merkle tree on their data, which for this example has four leaves. Notate $A$'s root hash as $a_{1,2,3,4}$ and $B$'s root hash as $b_{1,2,3,4}$.
+Merkle trees solve our problem of hashing large amounts of data. Assume that our state-based CRDT has some way to represent its current state in an ordered way, e.g. a binary string. Furthermore, assume that this representation is unique for a given state. Then we can construct a Merkle tree on e.g. 1-kibibyte chunks of its data. (This is a bit of extra storage, but not much --- we store about two hashes for every 1KiB, which is roughly 6% extra storage space.)
+This Merkle tree can be used to dramatically reduce the amount of data that two nodes $A$ and $B$ must transfer when joining.
+Each constructs a Merkle tree on their data, which for this example has four leaves. Notate $A$'s root hash as $a_{1-4}$ and $B$'s root hash as $b_{1-4}$.
 Now $A$ and $B$ share their root hashes. If they are the same, then (with overwhelming probability) their data is the same and thus the states are the same.
-And if the hashes are different, the states are different --- but we can find _where_ they differ. If $a_{1,2,3,4} \neq b_{1,2,3,4}$, then $A$ and $B$ can share the next layer's hashes: $a_{1,2}$, $a_{3,4}$, $b_{1,2}$, and $b_{3,4}$. (All of this data lives in content-addressable storage for easy retrieval.) If $a_{1,2} = b_{1,2}$, then that section of the Merkle tree is the same, so we don't need to go further down that path: the Merkle tree structure means that all the data in that subtree is identical. So $A$ and $B$ will only have to compare data in the right subtree where $a_{3,4} \neq b_{3,4}$. This process can recurse all the way down the tree until both nodes have a list of the leaf hashes that differ, which tells them what data they need to actually share. In the worst case, every hash differs between the two nodes and both need to share their entire states. But when only a small amount of data has changed, a Merkle tree means that two nodes may only need to share a small amount of data, which immensely reduces the communication cost of merging states.
+And if the hashes are different, the states are different --- but we can find _where_ they differ. If $a_{1-4} \neq b_{1-4}$, then $A$ and $B$ can share the next layer's hashes: $a_{1-2}$, $a_{3-4}$, $b_{1-2}$, and $b_{3-4}$. (All of this data lives in content-addressable storage for easy retrieval.) If $a_{1-2} = b_{1-2}$, then that section of the Merkle tree is the same, so we don't need to go further down that path: the Merkle tree structure means that all the data in that subtree is identical. So $A$ and $B$ will only have to compare data in the right subtree where $a_{3-4} \neq b_{3-4}$. This process can recurse all the way down the tree until both nodes have a list of the leaf hashes that differ, which tells them what data they need to actually share. In the worst case, every hash differs between the two nodes and both need to share their entire states. But when only a small amount of data has changed, a Merkle tree means that two nodes may only need to share a small amount of data, which immensely reduces the communication cost of merging states.
 
 <!-- TODO remove? -->
 All of this relies on a standard way to represent and order the data. In some domains, such as tracking modifications to a large file, there is a natural way to do this. But some domains are harder. When implementing a set CRDT, how should its data be represented for the Merkle Tree? Sets don't have inherent order. There needs to be some representation that is unique to the state represented.
-Prolly Trees represent an ordered dictionary, and we'll use that ordering to create a consistent data representation.
+We'll eventually be implementing an ordered dictionary CRDT, so we'll use that ordering to create a consistent data representation.
 
 ## Rolling hash functions {#sec-rolling}
 
-The scheme we just described has a big problem. What if data is added to the start? For example, say our List CRDT serializes as a list of its values and some node adds data to the head of the list. This necessarily changes the hash of the first block in the Merkle tree, but furthermore has cascading effects --- all the data shift down the line a little bit, meaning that all chunks suddenly have new hashes. So our Merkle tree hash comparison would see that the nodes need to transmit all of their state, even though only a small amount of data actually differs.
+The scheme we just described has a big problem. What if data is added to the start? For example, say our list CRDT serializes as a list of its values and some node adds data to the head of the list. This necessarily changes the hash of the first block in the Merkle tree, but furthermore has cascading effects --- all the data shift down the line a little bit, meaning that all chunks suddenly have new hashes. So our Merkle tree hash comparison would see that the nodes need to transmit all of their state, even though only a small amount of data actually differs.
 This doesn't affect correctness, but can ruin our performance gains from using the Merkle tree comparison scheme. We want a way to have the Merkle tree improvements in most cases of data insertion, not just when new data is appended to the end.
 
 Generally, _chunking_ is the process of breaking up a large sequence of data into smaller blocks, or chunks.
@@ -112,9 +107,8 @@ To determine whether to draw a chunk boundary after byte $i$, the Gear hash has 
 As long as the \textsf{GearTable} is randomly created and we're not too unlucky, the values of $g_i$ will be roughly uniform and the chance of the top $k$ bits all being one should be about $\frac1{2^k}$.
 So to have chunks of average size $1$KiB, we'd set $k = \log_2(1024) = 10$.
 
-There are further improvements to the Gear hash, such as in @fastcdc where the deduplication ratio and distrubution of chunk sizes is greatly improved, but we won't go into the details of modern constructions. All that is important for the Prolly Tree is that we have access to some sliding-window chunking strategy that is efficient and usually won't cause a cascading effect of boundary changes when data is modified.
-In a Prolly tree, we do content-defined chunking on the state to determine what chunks to hash in the Merkle tree.
-Then the chunk boundaries are unlikely to shift much after modifications, meaning that when nodes do the Merkle tree hash comparison there is less redundant data transfer.
+There are further improvements to the Gear hash, such as in @fastcdc where the deduplication ratio and distrubution of chunk sizes is greatly improved, but we won't go into the details of modern constructions. All that is important for us is that we have access to some sliding-window chunking strategy that is efficient and usually won't cause a cascading effect of boundary changes when data is modified.
+Then when nodes do the Merkle tree hash comparison there is less redundant data transfer.
 
 ## Search trees
 
@@ -125,9 +119,9 @@ To find a key $k$, start at the root and compare $k$ to the root's key. If they'
 
 Generally, search tree nodes can have $n$ keys and $n+1$ children. If a node has two keys and the search key $k$ is not equal to either of them, then $k$ is less than both, greater than both, or between the two values; each of these options can have a child node pointer to continue the search down the tree. In practice, having larger blocks (e.g. a few hundred keys per block) improves performance because computers are better at loading a few large blocks of data instead of many small binary nodes.
 
-Another nice property to have in a search tree is balancing. If the tree is balanced (meaning the children of a node are roughly even between its two subtrees), then operations on a search tree are very efficient --- we get $\Theta(\log(n))$ time to insert, update, and delete in the worst case since each level of the tree we go down will cut the space of nodes considered by a fraction ($\frac12$ for BSTs).
+Another nice property to have in a search tree is balancing. If the tree is balanced (meaning the children of a node are roughly even between its two subtrees), then operations on a search tree are very efficient --- we get $\O(\log(n))$ time to insert, update, and delete in the worst case since each level of the tree we go down will cut the space of nodes considered by a fraction ($\frac12$ for BSTs).
 
-B-trees are a type of search tree that are heavily used in practice because they maintain balance and have large (parameterizable) block size [@btree]. But our modified Merkle tree is also balanced, since all the data is at the same level; and we can configure the CDC to create an average block size. Furthermore, the original Merkle tree construction has binary nodes, but we can use CDC to also determine chunk boundaries of the internal tree nodes, meaning that we get larger block sizes through the entire tree. So we can use the Prolly Tree as a search tree and it will work efficiently.
+B-trees are a type of search tree that are heavily used in practice because they maintain balance and have large (parameterizable) block size [@btree]. But our modified Merkle tree is also balanced, since all the data is at the same level; and we can configure the CDC to create an average block size. Furthermore, the original Merkle tree construction has binary nodes, but we can use CDC to also determine chunk boundaries of the internal tree nodes, meaning that we get larger block sizes through the entire tree. So we can use our constructed Merkle-tree-with-CDC as a search tree and it will work efficiently.
 
 ## Prolly Trees
 <!-- TODO I want images that I'm allowed to use :( -->
@@ -154,7 +148,7 @@ To find a key $k$ in the tree, first fetch the root block and compare $k$ to its
 Doing this process down the tree until the leaves will find $k$'s position in the tree and its data if it exists; and the search tree structure means that we get efficient (logathmic) access time.
 
 We also use the Merkle tree with content-defined chunking for good efficiency in state-based comparison.
-To compare states between two nodes, first they exchange root hashes. If they're the same, then the nodes have the same data; otherwise both fetch & exchange the data which their root hash references in the content-addressed storage. Any hashes in that block which are the same are known to be shared by both nodes, so they don't need to continue down those subtrees. Repeat the data block exchanges until both nodes have all blocks that differ from their own tree.
+To compare states between two nodes, first they exchange root hashes. If they're the same, then the nodes have the same data; otherwise both fetch and exchange the data which their root hash references in the content-addressed storage. Any hashes in that block which are the same are known to be shared by both nodes, so they don't need to continue down those subtrees. Repeat the data block exchanges until both nodes have all blocks that differ from their own tree.
 <!-- TODO anything else to say? -->
 
 ## Comparison of similar structures

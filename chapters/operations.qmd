@@ -18,7 +18,7 @@ For each new chunk, store it and take its hash to put in the parent node. Then r
 <!-- TODO say a bit more after the first line? -->
 The way we do this, adding a new key-value pair leads to the exact same Prolly Tree structure as if we had reconstructed the whole thing from just the key-value pairs.
 We re-run the chunker from the start of the modified block and keep going until a new chunk boundary aligns with an old one. From there on out, we know that the chunks will be the exact same as before (due to how the chunker is defined) so we don't need to continue re-chunking.
-The same is true for deleting keys and modifying existing keys' values --- we find the leaf to change, make the modification, and then recalculate the chunk boundaries & hashes all the way back up the tree.
+The same is true for deleting keys and modifying existing keys' values --- we find the leaf to change, make the modification, and then recalculate the chunk boundaries and hashes all the way back up the tree.
 The final structure of the modified Prolly Tree is the exact same as if it had been reconstructed, and this holds true for any order of modifications.
 This is called _history independence_: no matter the order of insertion, deletion, and updates, two Prolly Trees which have the same key-value pairs will have the exact same tree structure which leads to the exact same root hashes.
 
