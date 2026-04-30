@@ -1,14 +1,13 @@
 # Construction
 
-One of the biggest issues with state-based CRDTs is that the entire state needs to be shared in order to merge. This is fine with smaller states such as a number, but if the state is a list with thousands or millions of items it will quickly become prohibitive.
+One of the biggest issues with state-based CRDTs is that the entire state needs to be shared in order to merge. This is fine with smaller states such as a register, but if the state is a list with thousands or millions of items it will quickly become prohibitive.
 The problem is addressed by $\delta$-CRDTs, but those require more complex infrastructure and inherit some of the challenges of operation-based CRDTs.
 Can we do better? Prolly trees provide a solution for ordered dictionary CRDTs that embeds information about what changed directly in the data structure itself.
 Here is how to construct one in stages.
 
 ## Hashing and content addressing
 
-<!-- TODO come back to this wording. -->
-_Hashing_ assigns a random-seeming but deterministic and mostly-unique tag to data.
+_Hashing_ assigns a mostly-unique tag to data.
 This reduces the communication cost of equality checks, because we only have to compare the hash of the data to see if they're equal.
 
 ::: {#def-hash-func}
@@ -22,25 +21,26 @@ We are interested in functions with small chance of collision.
 
 ::: {#def-collision-resistance}
 ### Collision resistance
-A hash function $H$ is _collision-resistant_ if it is infeasible for any probabilistic polynomial-time algorithm to find a collision in $H$ [@intro-modern-crypto-3rd, p. 168].^[This is an informal definition --- a proper one relies on _keyed_ hash functions (which are academically studied but not relevant to our use) and a definition of probabilistic polynomial-time algorithms. See the textbook for the full treatment.]
+A hash function $H$ is _collision-resistant_ if it is infeasible for any probabilistic polynomial-time algorithm to find a collision in $H$ [@intro-modern-crypto-3rd, p. 168].^[This is an informal definition --- a proper one relies on _keyed_ hash functions (which are not relevant to our use) and a definition of probabilistic polynomial-time algorithms. See the textbook for the full treatment.]
 This implies that its output seems random and is hard to predict or backsolve: given the hash, there's no good way to figure out what input it came from besides just trying a bunch of inputs.
 :::
 
-<!-- TODO make this a footnote? -->
 (A note on terminology: the word "hash" is overloaded. You hash _(verb)_ some input with a hash function _(noun)_ and the output is the hash _(noun)_ of the input.)
 
 There necessarily are collisions in a hash function, even a collision-resistant one: since the output space is finite and the input space is infinite, an infinite class of inputs are pidgeonholed into the same output.
 For our purposes, we'll ignore the chance of collisions. SHA-256, a ubiquitous cryptographic hash function, has $2^{256}$ theoretically-possible outputs and there are no known collisions even after decades of analysis.^[
 There have been various attacks on reduced-strength versions of these hash functions: see @hashcrack1, @hashcrack2, and @hashcrack3 for the state of the art as of writing this.]
-Even if there were a problem, we could use an additional hash function to supplement the original, swap out SHA-256 for an entirely new hash function with larger output space (like SHA3-512), or do many other things.
+Even if there were some problem, we could use an additional hash function to supplement the original, swap out SHA-256 for an entirely new hash function with larger output space (like SHA3-512), or do many other things.
 So from here on out, we'll assume that we have access to a collision-resistant hash function $H$ whose output is large enough that if $H(x) = H(y)$ then $x = y$ except with unimaginably small chance.
 
 With that assumption, hashes let us cheaply check equality. If $H(x) = H(y)$, then $x$ almost always equals $y$. So if two nodes wish to compare some data (e.g. whether their state-based CRDT is in the same state), they can simply hash the entirety of their data and only share the hash. If the value is the same, then by our above assumption they have the same data and don't need to communicate further. If they don't have the same hash, then they'll need to share the full CRDT's state as usual.
 <!-- TODO note that this relies on a consistent way to represent the data. -->
 
+<!-- TODO remove this entire section? -->
 _Content-addressed storage_ is a database that supports efficient queries via the hash of the desired content. So given a hash $h$, it will return the data $x$ for which $H(x) = h$ (if $x$ was previously put into the database).
 Under the hood, it might be implemented as a dictionary with $(h, x)$ as the key-value pair; but for our purposes we will let other programs deal with the implementation details, and assume we have access to content-addressed storage that correctly retrieves data from its hash.
 
+<!-- "hashes are also useful in distsys because they provide a concise way to reference data..." TODO -->
 Content addressing is immensely useful in distributed systems because it provides a clear way to concisely reference data. Normal computer programs can do this with pointers, but those reference a location in memory that is specific to the program being run and the device that it's on. A hash is defined by the data it points to and will always be the same, no matter what machine calculates the hash. This means it can be used as a stable, cross-machine reference to a block of data.
 Prolly trees have a lot of data that we want to reference by hash; content addressing means we generally only need to deal with hashes, and can easily get the content when desired.
 
@@ -51,6 +51,7 @@ What if we have a lot of data to store? Should we take a hash of everything at o
 <!-- TODO Jim has opinions on how I should notate this stuff (with the word "extent" and range notation). -->
 <!-- TODO jim thinks the subscripting notation here is messy and I kinda agree. Should I use range/extent, or sequence, or what? -->
 <!-- TODO is this a place to use sequence notation? -->
+<!-- TODO Marcus says to either give a true general definition or to give an informal definition outside of a #def environment -->
 ::: {#def-merkle-tree}
 ### Merkle tree
 A _Merkle tree_ is a tree of hash pointers to other hash nodes, ending in leaves of actual data that is verified by the hashes [@merkle-tree].
@@ -61,6 +62,7 @@ Note that taking hashes of hashes in this way maintains collision resistance ---
 <!-- By Azaghal - Own work, CC0, https://commons.wikimedia.org/w/index.php?curid=18157888 -->
 <!-- ![Merkle tree diagram.](../figures/tmp-wikipedia-merkle-tree.png) -->
 
+<!-- TODO remove all the data representation stuff? -->
 Merkle trees solve our problem of hashing large amounts of data. Assume that our state-based CRDT has some way to represent its current state in an ordered way, e.g. a binary string. Furthermore, assume that this representation is unique for a given state. Then we can construct a Merkle tree on e.g. 1-kibibyte chunks of its data. This is a bit of extra storage, but not much --- we store about two hashes for every 1KiB, which is roughly 6% extra storage space.
 And the benefits are dramatic.
 
@@ -69,6 +71,7 @@ To explain, say that two nodes $A$ and $B$ wish to compare states. Each construc
 Now $A$ and $B$ share their root hashes. If they are the same, then (with overwhelming probability) their data is the same and thus the states are the same.
 And if the hashes are different, the states are different --- but we can find _where_ they differ. If $a_{1,2,3,4} \neq b_{1,2,3,4}$, then $A$ and $B$ can share the next layer's hashes: $a_{1,2}$, $a_{3,4}$, $b_{1,2}$, and $b_{3,4}$. (All of this data lives in content-addressable storage for easy retrieval.) If $a_{1,2} = b_{1,2}$, then that section of the Merkle tree is the same, so we don't need to go further down that path: the Merkle tree structure means that all the data in that subtree is identical. So $A$ and $B$ will only have to compare data in the right subtree where $a_{3,4} \neq b_{3,4}$. This process can recurse all the way down the tree until both nodes have a list of the leaf hashes that differ, which tells them what data they need to actually share. In the worst case, every hash differs between the two nodes and both need to share their entire states. But when only a small amount of data has changed, a Merkle tree means that two nodes may only need to share a small amount of data, which immensely reduces the communication cost of merging states.
 
+<!-- TODO remove? -->
 All of this relies on a standard way to represent and order the data. In some domains, such as tracking modifications to a large file, there is a natural way to do this. But some domains are harder. When implementing a set CRDT, how should its data be represented for the Merkle Tree? Sets don't have inherent order. There needs to be some representation that is unique to the state represented.
 Prolly Trees represent an ordered dictionary, and we'll use that ordering to create a consistent data representation.
 
@@ -78,30 +81,24 @@ TODO this is gonna be reworked with the new sliding window insight, but I'm not 
 
 ***
 
-The scheme we just described has a big problem. What if data is added to the start? For example, say our List CRDT serializes as a list of its values and some node adds data to the head of the list. This necessarily changes the hash of the first block in the Merkle tree, but furthermore has cascading effects --- all the data shift down the line a bit, meaning that all chunks suddenly have new hashes. So our Merkle tree hash comparison would see that the nodes need to transmit all of their state, even though just a little bit has changed.
+The scheme we just described has a big problem. What if data is added to the start? For example, say our List CRDT serializes as a list of its values and some node adds data to the head of the list. This necessarily changes the hash of the first block in the Merkle tree, but furthermore has cascading effects --- all the data shift down the line a little bit, meaning that all chunks suddenly have new hashes. So our Merkle tree hash comparison would see that the nodes need to transmit all of their state, even though only a small amount of data actually differs.
 This doesn't affect correctness, but can ruin our performance gains from using the Merkle tree comparison scheme. We want a way to have the Merkle tree improvements in most cases of data insertion, not just when new data is appended to the end.
 
 Generally, _chunking_ is the process of breaking up a large sequence of data into smaller blocks, or chunks.
 What we did initially with the Merkle tree is fixed-length chunking: draw a dividing line every $k$ bytes and those are the blocks. This is a decent deduplication system, but as shown above it doesn't take full advantage of data similarity. _Content-defined chunking_ (CDC) attempts to fix this boundary-shift problem by determining chunk boundaries (when to draw a line between chunks) based on the actual contents being chunked. It doesn't fix the duplication problem entirely, but good CDC is reasonably efficient and reduces the problem when new data is inserted.
+A common way to do CDC is with a rolling hash.
 
-:::{#def-chunker}
-### Content-defined chunker
-A _content-defined chunker_ $C$ defines a sequence of functions $(C_n)_{n \in \mathbb{N}}$. (This is to make the notation better.)
-Let $S^n$ be the set of all $n$-length arrays on some set $S$ (e.g. 32-bit integers). Then to chunk an array in $S^n$, $C_n$ is defined as
-\begin{align*}
-C_n ~:\quad S^n \quad &\to \{\top, \bot\}^n \\
-(s_i)_{i=1}^n &\mapsto (b_i)_{i=1}^n
-\end{align*}
-with the constraint that for all $j \in \mathbb{N}$ where $b_j = \top$,
+TODO come back here. Unsure if I want to give definition of a rolling hash in general (and then the Gear hash), or just the Gear hash as an example of a rolling hash and talk informally about the properties, or what. But somehow I'll define the Gear hash and then can move on to the judgment function and average chunk size.
+
+<!-- TODO define -->
+:::{#def-rolling-hash}
+###### Rolling hash
+A _rolling hash_ is a hash function^[This is not a true collision-resistant hash function, but a "pretty random-looking" compromise so we can efficiently add new bytes.] that computes the hash of a sliding window of data.
+Let x, y, z. Then
 $$
-C_n\Bigl((s_i)_{i=1}^n\Bigr) = C_j\Bigl((s_i)_{i=1}^j\Bigr) ~||~ C_{n-j}\Bigl((s_i)_{i=j+1}^n\Bigr).
+TODO.
 $$
 :::
-
-For each item in the input, the chunker determines whether to draw a chunk boundary after that point. If it does, then the function resets in a way --- decisions after a boundary are as if the function was run from right after the boundary.
-The "reset constraint" means that if two arrays are the same after some chunk boundary, their following chunk boundaries after that point will be the exact same between them. This partially addresses the chunk-shift problem.
-<!-- TODO better explanation? idk -->
-<!-- TODO image would be good :( -->
 
 <!-- TODO words hard (especially in footnote) -->
 Content-defined chunkers are difficult to model mathematically, as they're usually a very stateful computer algorithm in practice. One way to do CDC is with a Gear hash and a "judgment" function [@ddelta]. This computes a random-seeming (but deterministic) value of a sliding window of data and can efficiently add new bytes to the input.^[This is not a true collision-resistant hash function, but a "pretty random-looking" compromise so we can efficiently add new bytes.]
@@ -110,7 +107,7 @@ Notate our input data to be chunked as $(b_i)_{b=1}^n \in B^n$, where $B$ is the
 g_0 &= 0; \\
 g_i &= (g_{i-1} \ll 1) + \textsf{GearTable}[b_i].
 \end{align*}
-Given the Gear hash up to the previous byte, we shift those bits up by one (losing the top bit) and then add some constant from a lookup table called the \textsf{GearTable}. That table is simply a mapping from bytes to randomly-generated integers, constant across all uses of the Gear hash. To determine whether to draw a chunk boundary after byte $i$, the judgment function checks the top $k$ bits of $g_i$; if they're all $1$ then make a chunk boundary and restart the Gear hash after the boundary, otherwise keep going.
+Given the Gear hash up to the previous byte, we shift those bits up by one (losing the top bit) and then add some constant from a lookup table called the \textsf{GearTable}. That table is simply a mapping from bytes to randomly-generated integers, constant across all uses of the Gear hash.
 
 Notably, the Gear hash also has the _sliding window_ property.
 Let $G((b_j))_{j=1}^i$ be equivalent to $g_i$.
@@ -119,11 +116,18 @@ $$
 TODO.
 $$
 
-This means that the output of the rolling hash only depends on some recent window of history and not the entire previous undivided chunk.^[This is stated in @ddelta, but not proven; nevertheless it is true.]
-TODO explain how that makes the boundary-shift problem even less of a problem.
+***
+
+<!-- TODO consistent notation --- don't use g_i unless that's what I always use -->
+To determine whether to draw a chunk boundary after byte $i$, the Gear hash has a "judgment function" that checks the top $k$ bits of $g_i$. If they're all $1$, then make a chunk boundary and restart the Gear hash after the boundary. Otherwise keep the previous state and keep going until a boundary is found or the end of the input is reached.
 As long as the \textsf{GearTable} is randomly created and we're not too unlucky, the values of $g_i$ will be roughly uniform and the chance of the top $k$ bits all being one should be about $\frac1{2^k}$.
-So to have chunks of average size $1$KiB, we'd set $k = \log_2(1024) = 10$. 
-TODO explain how this alleviates the chunk-boundary-shift problem.
+So to have chunks of average size $1$KiB, we'd set $k = \log_2(1024) = 10$.
+
+<!-- TODO use $w$ for window width in previous paragraphs -->
+The sliding window of the rolling hash means that small changes to the data will, with high probability, only affect one or two chunks.
+If position of some changed data is more than $w$ behind the chunk's ending boundary at $b_e$, the decision to draw a boundary after $b_e$ cannot be affected since it's out of the window range. So it's possible that a new chunk boundary will be created in the middle of the existing chunk, or no boundaries will change.
+Now if the changed data position is within $w$ of the ending chunk line, it's possible that it'll change the decision of whether to draw the existing chunk boundary. But by the previous argument about window width, it will not cascade to change the _following_ boundary unless the following block has size less than $w$. This is exceedingly unlikely, and the chance of this happening over and over again (cascading through the entirety of the data) is exceedingly unlikely.
+Thus as long as the average block size is significantly larger than the window size (which we can configure to be true), we can confidently say that small changes to the data will only change one or two chunks except with negligible probability.
 
 There are further improvements to the Gear hash, such as in @fastcdc where the deduplication ratio and distrubution of chunk sizes is greatly improved, but we won't go into the details of modern constructions. All that is important for the Prolly Tree is that we have access to some sliding-window chunking strategy that is efficient and usually won't cause a cascading effect of boundary changes when data is modified.
 In a Prolly tree, we do content-defined chunking on the state to determine what chunks to hash in the Merkle tree.

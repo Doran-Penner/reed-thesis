@@ -16,8 +16,9 @@ Justification for distsys/p2p: also explain the crisis of storing all the data? 
 
 Clean up the ADT section a bit. Use better notation (e.g. no `a_b` func names) and give examples of dictionary usage (amazon inventory and shopping carts). What's a good use of an _ordered_ dictionary? Makes the key search nicer I guess.
 
-Redo the rolling hash section. Can use mostly the same words, but change the formal definition to define a (sliding window) rolling hash.
-Then make informal argument that it's unlikely to get a long chain of boundary changes.
+Remove all the content-addressed storage stuff? It's not really important.
+
+Formally define Gear hash and maybe rolling hash too. Fix up that part that has old writing.
 
 Change the Prolly Tree construction algorithm to (a) use the new rolling hash definition and (b) be less formal. I want to be precise but also understandable, and this part is crucial.
 
