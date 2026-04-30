@@ -125,7 +125,7 @@ One way to implement ADTs in a peer-to-peer system is with a _conflict-free repl
 
 This gets excellent availability and partition tolerance by just having some local copy of the shared data. Additionally, having many copies means that there are inherent backups to prevent data loss.
 This does sacrifice perfect consistency, since (before network communication) it's likely that a node's copy of the data will not have peers' changes.
-Instead, CRDTs settle for _strong eventual consistency_: given enough communication between nodes (when the network is up), all nodes eventually agree upon the final version [@eventual-consistency]. In many applications, this is a reasonable tradeoff: git, for example, doesn't require internet connection while working but only to share and retrieve data from others.
+Instead, CRDTs settle for _strong eventual consistency_: given enough communication between nodes (when the network is up), all nodes eventually agree upon the final version [@eventual-consistency]. In many applications, this is a reasonable tradeoff: Git [@pro-git], for example, doesn't require internet connection while working but only to share and retrieve data from others.
 
 Ensuring strong eventual consistency is the hard part of CRDTs. There must be some way to guarantee that any two replicas will converge to the same value with communication.
 One way to ensure this is focused on the state of the ADT.
