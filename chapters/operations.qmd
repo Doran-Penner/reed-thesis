@@ -15,7 +15,6 @@ After modifying the block to have the new data, we have to recalculate the chunk
 Re-run the content-defined chunker from the start of the current chunk as if we were chunking the entire array. Since there's new data, it's possible that the chunker will draw different boundaries than before. But at some point the chunker will draw a boundary at the same point as in the previous state (or get to the end of the data), and from there onward the old and new chunks will be the exact same.
 For each new chunk, store it and take its hash to put in the parent node. Then recursively do this up the tree, re-chunking and re-hashing changed blocks until the root. And that root hash is the root of the new Prolly Tree!
 
-<!-- TODO say a bit more after the first line? -->
 The way we do this, adding a new key-value pair leads to the exact same Prolly Tree structure as if we had reconstructed the whole thing from just the key-value pairs.
 We re-run the chunker from the start of the modified block and keep going until a new chunk boundary aligns with an old one. From there on out, we know that the chunks will be the exact same as before (due to how the chunker is defined) so we don't need to continue re-chunking.
 The same is true for deleting keys and modifying existing keys' values --- we find the leaf to change, make the modification, and then recalculate the chunk boundaries and hashes all the way back up the tree.
@@ -42,8 +41,6 @@ Then the search needs to traverse that subtree to find a subrange of its values.
 
 The runtime of the modifying operations depends on the sliding window property of the rolling hash function.
 As argued in @sec-rolling, making a small change to the underlying data will (with high probability) only change one or two chunk boundaries. This means that adding a key will usually change 1-3 hashes in the next layer up of the tree; and since those are all contiguous, the chance of changing chunk boundaries is similar but about the same. This propogates up the tree, meaning that the runtime of adding, deleting, or modifying keys is proportional to $\log(n)$; but there is an extra factor in the cost to re-chunk and draw boundaries, which will be proportional to $k$. Thus single-key modifications have runtime $O(k\log(n))$.
-
-<!-- TODO talk about tree comparison runtime? -->
 
 Compared to B-trees, these are all good runtimes. B-trees have access and modification time of $\Theta(\log(n))$, and a range query is also $\Theta(\log(n) + m)$. There are additional costs to Prolly Trees since they need to re-do their chunking all the way up the tree. But those costs do not scale with $n$, meaning that they're still efficient even when storing massive amounts of data.
 

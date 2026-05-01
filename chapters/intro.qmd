@@ -2,17 +2,14 @@
 
 <!--
 
-### Remove all the content-addressed storage stuff?
+Remove all the content-addressed storage stuff? It's not really important for what I'm doing.
 
-It's not really important for what I'm doing.
+Images and diagrams would be nice, wouldn't they?
 
-### All the glaring TODOs
-
-Yup.
-
-### Images and diagrams
-
-That would be nice, wouldn't it?
+Maybe add a notation section?
+- concatenation
+- natural numbers (+)
+- sequence/array
 
 -->
 
@@ -28,15 +25,3 @@ That makes them very useful for implementing CRDTs.
 We walk through the background of distributed systems and CRDTs, construct a Prolly Tree in stages, and then show the operations that we can do with a Prolly Tree. We conclude with future ways to improve the scheme.
 The reader is assumed to have introductory knowledge of computer science and formal mathematics, but much of the writing is intended to be understood at a high level without that background.
 Let's get into it!
-
-<!--
-TODO notation section?
-- concatenation
-- natural numbers (+)
-- sequence/array
--->
-<!-- terminology, notation, specific assumptions? -->
-
-<!-- - introductory formal math (?) -->
-<!-- - intro graph theory (graphs, trees, DAGs) -->
-<!-- - introductory computer science (trees, runtime) -->

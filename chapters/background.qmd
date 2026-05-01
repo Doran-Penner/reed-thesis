@@ -1,10 +1,6 @@
 # Background
 
-<!-- TODO: overall, try to have more of a narrative. It's very okay and good to say "we're doing crdts and we'll talk about them later" and then give reasons _why_ we wanna talk about x y or z. -->
-
 ## Distributed systems
-
-<!-- TODO define "node" here or in Introduction. Do text search to make sure I don't use the word before I define it. -->
 
 Computers provide many _services_ to their users.
 A service is a single conceptual thing, such as Google search or an automatic backup program.
@@ -22,7 +18,6 @@ A _peer-to-peer_ system is a special kind of distributed system.
 For the First International Conference on Peer-to-Peer Computing, peer-to-peer is defined as when
 "the participants share a part of their own hardware resources ... These shared resources are necessary to provide the Service ... [and] are accessible by other peers directly, without passing intermediary entities. The participants of such a network are thus ... providers and ... requestors" [@p2p].
 They additionally define "pure" peer-to-peer with the additional constraint that any single node can be removed without impacting service, and the network is "hybrid" otherwise.
-<!-- TODO I don't love this direct quotation but it works for now. And maybe I should just give the entire quote instead of this dotdotdotted version? Come back later. -->
 
 This is a complex definition and already shows the nuances of peer-to-peer systems. Most of the time, peer-to-peer is defined in contrast to a client-server architecture --- instead of marking a computer as either a client that requests data or server that responds to requests, all machines are equal in some sense and can operate as both clients and servers, fetching and modifying data as they choose. An example of this is BitTorrent [@sam-thesis], which is used for file sharing: a node (often called a _peer_ in a peer-to-peer system) both downloads data from peers and provides data for upload to peers. This provides resilience, reduced load, and increased speed when many devices would otherwise all have to request the data from the same server.
 
@@ -74,8 +69,6 @@ And the CAP impossibility means there are lots of options available to applicati
 
 ### Assumed infrastructure
 
-<!-- TODO anything else? -->
-
 With all of that, there are a ton of different settings and models that distributed systems must operate in. For our purposes, we will make the following assumptions about the system we're operating in:
 
 1. We work in a peer-to-peer system. Nodes may permanently join or leave at any time, but we are not concerned with malicious nodes or consensus --- all machines in the network are assumed to be functional and well-intentioned.
@@ -83,8 +76,6 @@ With all of that, there are a ton of different settings and models that distribu
 3. Not all machines will have direct connections with one another, but there is some protocol (such as a gossip or anti-entropy algorithm [@gossip]) to disseminate information across all machines or to talk to any other machine directly by passing messages.
 
 ## Abstract data types
-
-<!-- TODO make this writing better later. -->
 
 We want to create a reliable service in this peer-to-peer system. But what does this service constitute? Something like collaborative document editing requires service-specific logic, but the underlying tools can be generalized. A simple text document (without any formatting) can be seen as a long list of characters, so it is worth considering more abstract services which just provide a common data structure interface.
 Generally, we can think about creating an _abstract data type_ (ADT) in our peer-to-peer system that is accessible and modifiable by any node.
@@ -102,7 +93,6 @@ There are a lot of ADTs that we might want to implemenmt in a peer-to-peer syste
 Ordered dictionaries are very versatile data structures.
 Many large databases use them to more quickly access data, with the key as some unique identifier for a row of data.
 The key order can also be ignored to make it a normal dictionary, which can be used for any kind of lookup table (such as what Dynamo provides).
-<!-- TODO say anything else? -->
 
 ## CRDTs
 
@@ -132,7 +122,6 @@ Let $S$ be a set and $\lor : S \times S \to S$ be a binary operation (our "join"
 3. Idempotency: $x \lor x = x$. Self-joining does nothing.
 :::
 
-<!-- TODO wording -->
 This join operation is also called a _least upper bound_ because it yields a smallest-possible way to combine two elements of a set. If these properties hold, then $\lor$ gives us a minimal way that we can always combine two items of a set.
 
 This gives us a way to guarantee strong eventual consistency! Given any two copies of some data, we can join them via some defined operation. No matter the order that this propogates throughout the distributed system, if nodes (without making any new changes) keep joining pair-wise then eventually all will have the same state.
