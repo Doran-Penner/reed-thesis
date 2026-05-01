@@ -52,18 +52,19 @@ Using hashes to reference everything makes communication a lot quicker and easie
 
 ## Merkle trees
 
-Just taking a single hash of all the data is optimistic, since usually two states will be different (otherwise there's no point in joining). We can use hashing in a neat way spread out the comparison benefits to blocks of the data.
+Just taking a single hash of all the data is optimistic, since usually two states will be different (otherwise there's no point in joining). We can use hashing in a neat way to spread out the comparison benefits to blocks of the data.
 
 <!-- TODO Jim has opinions on how I should notate this stuff (with the word "extent" and range notation). -->
 <!-- TODO jim thinks the subscripting notation here is messy and I kinda agree. Should I use range/extent, or sequence, or what? -->
 <!-- TODO is this a place to use sequence notation? -->
 <!-- TODO Marcus says to either give a true general definition or to give an informal definition outside of a #def environment -->
 A _Merkle tree_ is a tree of hash pointers to other hash nodes, ending in leaves of actual data that is verified by the hashes [@merkle-tree].
-To construct a Merkle tree, start with some data (e.g. a very long file). For each data block $x_i$ (e.g. each 1KiB section), compute its hash $h_i = H(x_i)$. Then construct a binary tree from the bottom up, recursively hashing pairs of hashes. For example, the parent of $h_1$ and $h_2$ (denoted $h_{1-2}$) stores $H(h_1||h_2)$, the hash of $h_1$ concatenated with $h_2$. And then its parent $h_{1-4} = H(h_{1-2}||h_{3-4})$, and so on. Eventually this leads to a single hash $h_{1-n} which is the parent of all $n$ leaf hashes, called the root hash.
+To construct a Merkle tree, start with some data (e.g. a very long file). For each data block $x_i$ (e.g. each 1KiB section), compute its hash $h_i = H(x_i)$. Then construct a binary tree from the bottom up, recursively hashing pairs of hashes. For example, the parent of $h_1$ and $h_2$ (denoted $h_{1-2}$) stores $H(h_1||h_2)$, the hash of $h_1$ concatenated with $h_2$. And then its parent $h_{1-4} = H(h_{1-2}||h_{3-4})$, and so on. Eventually this leads to a single hash $h_{1-n}$ which is the parent of all $n$ leaf hashes, called the root hash.
 Note that taking hashes of hashes in this way maintains collision resistance --- it is still computationally infeasible to find a collision in two Merkle tree root hashes.
 
 <!-- TODO remove all the data representation stuff? -->
 Merkle trees solve our problem of hashing large amounts of data. Assume that our state-based CRDT has some way to represent its current state in an ordered way, e.g. a binary string. Furthermore, assume that this representation is unique for a given state. Then we can construct a Merkle tree on e.g. 1-kibibyte chunks of its data. (This is a bit of extra storage, but not much --- we store about two hashes for every 1KiB, which is roughly 6% extra storage space.)
+
 This Merkle tree can be used to dramatically reduce the amount of data that two nodes $A$ and $B$ must transfer when joining.
 Each maintains a Merkle tree on their data, which for this example has four leaves. Notate $A$'s root hash as $a_{1-4}$ and $B$'s root hash as $b_{1-4}$.
 Now $A$ and $B$ share their root hashes. If they are the same, then (with overwhelming probability) their data is the same and thus the states are the same.
@@ -91,6 +92,7 @@ What we did initially with the Merkle tree is fixed-length chunking: draw a divi
 <!-- ::: -->
 
 A common way to do CDC is with a rolling hash. This is a hash function that is not collision-resistant, but its output is roughly uniformly distributed. The key feature of a rolling hash $R$ is that it computes a _sliding window_ of the data, meaning that the output of $R\Bigl((x_i)_{i=1}^n\Bigr)$ is the same as $R\Bigl((x_i)_{i=n-w+1}^n\Bigr)$ for some window width $w$.
+
 The sliding window of the rolling hash means that small changes to the data will, with high probability, only affect one or two chunks.
 If position of some changed data is more than $w$ behind the chunk's ending boundary at $x_e$, the decision to draw a boundary after $x_e$ cannot be affected since it's out of the window range. So it's possible that a new chunk boundary will be created in the middle of the existing chunk, or no boundaries will change.
 Now if the changed data position is within $w$ of the ending chunk line, it's possible that it'll change the decision of whether to draw the existing chunk boundary. But by the previous argument about window width, it will not cascade to change the _following_ boundary unless the following block has size less than $w$. This is exceedingly unlikely, and the chance of this happening over and over again (cascading through the entirety of the data) is even more exceedingly unlikely.
@@ -104,7 +106,7 @@ Notate our input data to be chunked as $(x_i)_{b=1}^n \in B^n$, where $B$ is the
 g_0 &= 0; \\
 g_i &= (g_{i-1} \ll 1) + \textsf{GearTable}[x_i] \mod 2^{32}.
 \end{align*}
-Given the Gear hash up to the previous byte, we shift those bits up by one (losing the top bit) and then add some constant from a lookup table called the \textsf{GearTable}. That table is simply a mapping from bytes to randomly-generated integers, constant across all uses of the Gear hash. Mod it all by $2^{32}$ since the Gear hash operates on 32-bit integers.^[This is indeed a sliding window with width 32. In expanded form, all values more than 32 values behind are multiplied by $2^{32}$, which makes them equal to $0 \mod 32$.]
+Given the Gear hash up to the previous byte, we shift those bits up by one (losing the top bit) and then add some constant from a lookup table called the \textsf{GearTable}. That table is simply a mapping from bytes to randomly-generated integers, constant across all uses of the Gear hash. Mod it all by $2^{32}$ since the Gear hash operates on 32-bit integers.^[It may not look like it from the definition give, but this is indeed a sliding window with width 32. In expanded form, all values more than 32 values behind are multiplied by $2^{32}$, which makes them equal to $0 \mod 32$.]
 
 To determine whether to draw a chunk boundary after byte $i$, the Gear hash has a "judgment function" that checks the top $k$ bits of $g_i$. If they're all $1$, then make a chunk boundary and restart the Gear hash after the boundary. Otherwise keep the previous state and keep going until a boundary is found or the end of the input is reached.
 As long as the \textsf{GearTable} is randomly created and we're not too unlucky, the values of $g_i$ will be roughly uniform and the chance of the top $k$ bits all being one should be about $\frac1{2^k}$.
@@ -115,14 +117,14 @@ Then when nodes do the Merkle tree hash comparison there is less redundant data 
 
 ## Search trees
 
-We have now created a way to efficiently communicate the difference between two state-based CRDTs. If we have a standard way of representing and ordering the data of the state then we can do CDC on that data to determine where to draw chunk boundaries, construct a Merkle tree of that, and then do hash-based equality checks to figure out what chunks differ between two nodes. Prolly trees are a specialization of all this for search trees.
+We have now created a way to efficiently communicate the difference between two state-based CRDTs. If we have a standard way of representing and ordering the data of the state then we can do CDC on that data to determine where to draw chunk boundaries, construct a Merkle tree of that, and then do hash-based equality checks to figure out what chunks differ between two nodes. It turns out that we can also use this as an effective search tree.
 
 A binary search tree (BST) is a way to implement an ordered dictionary ADT, storing values that can be searched by key. Each node in the BST (starting from the root) has a key, its corresponding value, and two child nodes. The left subtree has keys less than the current node's key; similarly, the right subtree has keys greater than the current node's key.
 To find a key $k$, start at the root and compare $k$ to the root's key. If they're the same, then we're done; if $k$ is greater, then go to the right child; otherwise $k$ is smaller so go to the left child. Repeat until we find the key or get to some node which doesn't have the correct-direction child, meaning that the key does not exist in this tree.
 
 Generally, search tree nodes can have $n$ keys and $n+1$ children. If a node has two keys and the search key $k$ is not equal to either of them, then $k$ is less than both, greater than both, or between the two values; each of these options can have a child node pointer to continue the search down the tree. In practice, having larger blocks (e.g. a few hundred keys per block) improves performance because computers are better at loading a few large blocks of data instead of many small binary nodes.
 
-Another nice property to have in a search tree is balancing. If the tree is balanced (meaning the children of a node are roughly even between its two subtrees), then operations on a search tree are very efficient --- we get $\O(\log(n))$ time to insert, update, and delete in the worst case since each level of the tree we go down will cut the space of nodes considered by a fraction ($\frac12$ for BSTs).
+Another nice property to have in a search tree is balancing. If the tree is balanced (meaning the children of a node are roughly even between its two subtrees), then operations on a search tree are very efficient --- we get $O(\log(n))$ time to insert, update, and delete in the worst case since each level of the tree we go down will cut the space of nodes considered by a fraction ($\frac12$ for BSTs).
 
 B-trees are a type of search tree that are heavily used in practice because they maintain balance and have large (parameterizable) block size [@btree].
 Our modified Merkle tree is also balanced, since all the data is at the same level; and we can configure the CDC to create an average block size. Furthermore, we can use CDC to also determine chunk boundaries of the internal tree nodes, meaning that we get larger block sizes through the entire tree.

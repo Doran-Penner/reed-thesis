@@ -44,7 +44,7 @@ With openness also comes lack of trust --- if any device can join the BitTorrent
 
 Finally, there is no inherent source of truth in peer-to-peer networks. In the traditional clients-and-one-server model, the authoritative copy of data lies with the server. But in a peer-to-peer network where different nodes may have different versions of some data, there's no architectural difference between the two to decide which node is "right."
 
-All of this means that communication between nodes is inherently prone to failure, meaning that it cannot be completely trusted; and there is always the possibility that a node doesn't have the most up-to-date information.
+All of this means that communication between nodes is inherently prone to failure, meaning that it cannot be completely trusted, and there is always the possibility that a node doesn't have the most up-to-date information.
 
 ### CAP theorem
 
@@ -67,7 +67,7 @@ Partition tolerance
 Unfortunately, we cannot have all three of these. This is known as the _CAP theorem_, conjectured in @brewer-conjecture and proven in @brewer-proof. It doesn't matter exactly how the data is stored: as long as any node in the system can make changes to it and can also go offline, you cannot guarantee both consistency and availability in the event of a network partition.
 
 There are problems with the CAP theorem as a tool of analysis for a distributed system; see @kleppmann-cap for discussion of alternative frameworks.
-For one, the proof relies on a specific definition of consistency --- atomic, linearizable transactions --- and only focuses on a single value to be written. The theorem also says that a system can get both consistency and availability when there is no partition-tolerance; while true, in the real world of distributed systems one always has to design around a network partition in case it occurs. (No distributed system should be designed while ignoring the possibility of a partition.)
+For one, the proof relies on a specific definition of consistency --- atomic, linearizable transactions --- and only focuses on a single value to be written. The theorem also says that a system can get both consistency and availability when there is no partition-tolerance; while true, no distributed system should be designed while ignoring the possibility of a partition.
 Furthermore, the CAP theorem does not consider latency at all. If all nodes are reachable but it'll take 20 minutes to get updates, is it worth the wait? It depends on the application and the CAP theorem does not address this question.
 Generally speaking, there is usually a tradeoff associated with higher availability in distributed systems. Applications that require good availability have to forgo some amount of consistency, whether that's due to latency or partition tolerance.
 And the CAP impossibility means there are lots of options available to applications. For e-commerce, maybe it's okay to add something to a cart with the possibility that it's out of stock. But when checking out and actually paying for things, the servers need to all synchronize to make sure that the product is actually available to be sold.
@@ -91,7 +91,7 @@ Generally, we can think about creating an _abstract data type_ (ADT) in our peer
 
 What should a node be able to do? It depends on the interface to the ADT. For example, a queue [@clrs, p. 234] is a data structure that supports two operations: [Enqueue]{.smallcaps}, which puts a new value into the back of the line, and [Dequeue]{.smallcaps}, which removes and returns the first item in line. One could use a queue for anything that needs a first-come, first-serve structure (e.g. Amazon check-outs to confirm), and it doesn't matter how it's implemented. Under the hood, there could be a linked list storing all the data, or a tree, or anything else --- it doesn't matter as long as the abstract interface is respected. We also can reason about the _abstract state_ of the ADT, which is the state that it represents. If we [Enqueue]{.smallcaps}, the numbers 4, 7, and 2 in that order, then the abstract state is that the queue contains 4, 7, and 2 and the next thing to be [Dequeue]{.smallcaps}d will be 4. The underlying implementation still may store the data in any which way, but it's useful to discuss the abstract state.
 
-There are a lot of ADTs that we might want to implemenmt in a peer-to-peer system, but we'll focus on creating an _ordered dictionary_. This consists of a set (collection without duplicates) of _keys_ that has some ordering, e.g. the keys are numbers and the ordering is "less-than." Each key is additionally attached to some _value_. Dictionaries are also called maps or key-value maps since they map keys to values. An ordered dictionary allows the following operations.
+There are a lot of ADTs that we might want to implemenmt in a peer-to-peer system, but we'll focus on creating an _ordered dictionary_. This consists of a set (collection without duplicates) of _keys_ that has some ordering, e.g. the keys are numbers and the ordering is "less-than." Each key is additionally attached to some _value_. Dictionaries are also called maps or key-value maps since they map keys to values. An ordered dictionary allows the following operations:
 
 - [Insert]{.smallcaps}$(k, v)$ adds a new key-value pair to the dictionary.
 - $v :=$ [Get]{.smallcaps}$(k)$ gets the value corresponding to a key (if the key is in the dictionary).
@@ -102,7 +102,7 @@ There are a lot of ADTs that we might want to implemenmt in a peer-to-peer syste
 Ordered dictionaries are very versatile data structures.
 Many large databases use them to more quickly access data, with the key as some unique identifier for a row of data.
 The key order can also be ignored to make it a normal dictionary, which can be used for any kind of lookup table (such as what Dynamo provides).
-TODO say anything else?
+<!-- TODO say anything else? -->
 
 ## CRDTs
 
@@ -116,7 +116,7 @@ This gets excellent availability and partition tolerance by just having some loc
 This does sacrifice perfect consistency, since (before network communication) it's likely that a node's copy of the data will not have peers' changes.
 Instead, CRDTs settle for _strong eventual consistency_: given enough communication between nodes (when the network is up), all nodes eventually agree upon the final version [@eventual-consistency]. In many applications, this is a reasonable tradeoff: Git [@pro-git], for example, doesn't require internet connection while working but only to share and retrieve data from others.
 
-Ensuring strong eventual consistency is the hard part of CRDTs. There must be some way to guarantee that any two replicas will converge to the same value with communication.
+Ensuring strong eventual consistency is the hard part of CRDTs: there must be some way to guarantee that any two replicas will converge to the same value with communication, no matter how similar or different their data is.
 One way to ensure this is focused on the state of the ADT.
 
 ### State-based CRDTs
@@ -155,7 +155,7 @@ This is easy to implement, since it's just two grow-only sets and nodes can tran
 This could be alleviated by having a sequence of $n$ pairs of $A$ and $T$ sets, allowing for adding and removing an item $n$ times, but that is simply not practical or very useful most of the time.
 
 We can make the 2P set more effective by adding a unique identifier to each item when adding it to $A$.
-This means adding the number $7$ internally adds $7_\alpha$ to $A$, where $\alpha$ is some unique identifier for that item; then removing $7$ will put all observed $7_*$ items into the tombstone set. This is called an observed-remove set (OR-set).
+This means adding the number $7$ internally adds $7_\alpha$ to $A$, where $\alpha$ is some unique identifier for that item's addition; then removing $7$ will put all observed $7_*$ items into the tombstone set. This is called an observed-remove set (OR-set).
 With this system, there's always a way to add or remove an item from the set. It's not perfect, since a node could remove all of its observed instances of $7$ but then join with another node that added another $7$. But those are inevitable difficulties due to asynchronous communication, not the CRDT implementation. Thus the OR-set is a pretty good approximation of a set ADT, at the cost of large growing state.
 
 Implementing ADTs as CRDTs gets even more complicated with more complex interfaces. What about a tree CRDT, which cannot have a cycle? Extra logic needs to be added to maintain the tree structure when moving subtrees [@kleppmann-move-op].
@@ -168,4 +168,4 @@ As seen, state-based CRDTs can only grow or risk arbitrarily removing informatio
 Another method for ensuring strong eventual consistency, called operation-based CRDTs [@shapiro-crdt, p. 11], works better for some ADTs. However, they have stronger network assumptions and must keep a full history of their operations as well as keep track of when they last synchronized with each other node.
 
 Another challenge with state-based CRDTs is that they require transmitting the entire state for every single join. And since that state will usually grow, the cost of joining between two nodes will increase over time. @delta-crdt created $\delta$-CRDTs to counteract this, but those have requirements similar to operation-based CRDTs and essentially act as a hybrid between state- and operation-based methods.
-Instead of moving to these alternative frameworks, we'll focus on alleviating the communication cost of state-based joins.
+Instead of using these alternative frameworks, we'll focus on alleviating the communication cost of state-based joins.

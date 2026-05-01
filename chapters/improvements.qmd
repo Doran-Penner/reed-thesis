@@ -28,15 +28,15 @@ The state-based Prolly Tree comparison is far more efficient in terms of data tr
 
 1. Node $A$ adds a key-value pair $(k, v)$, which results in the root hash changing from $old$ to $new$.
 2. $A$ sends out the data $(old, k, v)$ to its peers.
-3. A peer $B$ that receives this message compares its root hash to $old$. If they're the same, then $B$ simply adds $(k, v)$ to its Prolly Tree and recalculates the hashes as usual; since the starting hash was the same, $A$ and $B$ will be at the same state afterward.
+3. A peer $B$ that receives this message compares its root hash to $old$. If they're the same, then $B$ simply adds $(k, v)$ to its Prolly Tree and recalculates the hashes as usual; since the starting hash was the same, $A$ and $B$ will have the same root hash $new$ afterward.
 4. If the hashes were not equal, $B$ signals to $A$ that they have diverged and the two nodes do the full state-based tree comparison like normal.
 
-This is an optimistic scenario, but always falls back on standard state-based join if the hash comparison fails. This is essentially making the CRDT a hybrid between operation-based and state-based CRDTs, and the operation-based method may work well when the modification frequency is below some threshold.
+This is an optimistic scenario, but always falls back on standard state-based join if the hash comparison fails so it won't yield invalid joins. This is essentially making the CRDT a hybrid between operation-based and state-based CRDTs, and the operation-based method may work well when the modification frequency is below some threshold.
 
 ## Dynamo-like sharding
 
 The CRDT setting imagines that all nodes have their own full copy of the data, and the “distributed” part is about how to reconcile different versions. But each node can do whatever it needs to do all on its own.
-On the other hand, the Dynamo [@dynamo] imagines that all the nodes are working together in some way, parts of a whole. Each node might store only a few chunks of the whole search tree (called "sharding") and queries are always to the whole network.
+On the other hand, the Dynamo [@dynamo] world imagines that all the nodes are working together in some way, parts of a whole. Each node might store only a few chunks of the whole search tree (called "sharding") and queries are always to the whole network.
 They're very different models, exchanging replication (and availability) for consistency amongst the group.
 But they cover similar topics, and perhaps there would be benefit in sharing ideas from each. Does the content-defined chunking of the Prolly Tree have any benefit in the sharded setting?
 It's worth looking into.

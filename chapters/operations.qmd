@@ -45,7 +45,7 @@ As argued in @sec-rolling, making a small change to the underlying data will (wi
 
 <!-- TODO talk about tree comparison runtime? -->
 
-Compared to B-trees, these are all good runtimes. B-trees have access and modification time of $\Theta(\log(n))$, and a range query is also $\log(n) + m$. There are additional costs to Prolly Trees since they need to re-do their chunking all the way up the tree. But those costs do not scale with $n$, meaning that they're still efficient even when storing massive amounts of data.
+Compared to B-trees, these are all good runtimes. B-trees have access and modification time of $\Theta(\log(n))$, and a range query is also $\Theta(\log(n) + m)$. There are additional costs to Prolly Trees since they need to re-do their chunking all the way up the tree. But those costs do not scale with $n$, meaning that they're still efficient even when storing massive amounts of data.
 
 ## As CRDTs
 
@@ -54,5 +54,5 @@ Specifically, we can use the Prolly Tree to implement an (approximation of an) o
 
 For the values, we need to store them in a "register" type. The last-writer-wins register is simple and cheap, but loses information about all previously-set values of the register. Another solution is to just store a grow-only set of all the values (possibly with timestamps), which loses no information but continually grows with every change.
 
-As for the keys, we already covered lots of ways to do set CRDTs in @sec-crdt-complex. The keys could be grow-only, or we could have a simple two-phase set with a tombstone set. The observed-remove set is the most complete in terms of features, but it incurrs additional complexity when the keys have values attached to them. If two keys $7_\alpha$ and $7_\beta$ are inserted but have different values, what should the abstract state be? With LWW registers the value could just be the value with the newest timestamp, but that's another layer of combining states that isn't directly captured by the CRDT join semantics.
+As for the keys, we already covered lots of ways to do set CRDTs in @sec-crdt-complex. The keys could be grow-only, or we could have a simple two-phase set with a tombstone set. The observed-remove set is the most complete in terms of features, but it incurrs additional complexity when the keys have values attached to them. If two keys $7_\alpha$ and $7_\beta$ are inserted but have different values, what should the abstract state be? With LWW registers the value could just be the value with the newest timestamp, but that's another layer of combining states that isn't directly captured by the CRDT join semantics. And the same goes for maintaining a different grow-only set for each tagged key.
 So Prolly Trees don't solve the grow-only problems with state-based CRDTs. But they do provide a way to implement an approximate ordered dictionary CRDT that is efficient to read from and modify from, and they significantly reduce the cost of joining between two nodes.
