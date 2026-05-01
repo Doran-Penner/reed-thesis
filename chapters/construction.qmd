@@ -2,7 +2,7 @@
 
 One of the biggest issues with state-based CRDTs is that the entire state needs to be shared in order to join. This is fine with smaller states such as a register, but if the state is a list with thousands or millions of items it will quickly become prohibitive.
 The problem is addressed by $\delta$-CRDTs, but those require more complex infrastructure and inherit some of the challenges of operation-based CRDTs.
-Can we do better? Prolly trees provide a solution for ordered dictionary CRDTs that embeds information about what changed directly in the data structure itself.
+Can we do better? A Prolly Tree is a data structure that provides a solution to this for ordered dictionary CRDTs, embedding information about what changed directly in its structure.
 Here is how to construct one in stages.
 
 ## Hashing and content addressing
@@ -13,8 +13,10 @@ This reduces the communication cost of equality checks, because we only have to 
 
 ::: {#def-hash-func}
 ### Hash function
-A _hash function_ is any function $H : \{0,1\}^* \to \{0,1\}^m$, mapping inputs of arbitrary length to some fixed length $m \in \mathbb{N}^+$. (We can represent all data as a sequence of bits, though will practically consider larger units such as bytes.)
+A _hash function_ is any function $H : \{0,1\}^* \to \{0,1\}^m$, mapping inputs of arbitrary length to some fixed length $m \in \mathbb{N}^+$.
 :::
+
+We can represent all data as a sequence of bits, though will practically consider larger units such as bytes.
 
 A _collision_ in a hash function $H$ is a pair of inputs $x, y \in \{0,1\}^*$ such that $H(x) = H(y)$ but $x \neq y$.
 A very simple hash function could e.g. map all inputs to the output of 0, but that's not very useful.
@@ -23,10 +25,11 @@ We are interested in functions with small chance of collision.
 ::: {#def-collision-resistance}
 ### Collision resistance
 A hash function $H$ is _collision-resistant_ if it is infeasible for any probabilistic polynomial-time algorithm to find a collision in $H$ [@intro-modern-crypto-3rd, p. 168].^[This is an informal definition --- a proper one relies on _keyed_ hash functions (which are not relevant to our use) and a definition of probabilistic polynomial-time algorithms. See the textbook for the full treatment.]
-This implies that its output seems random and is hard to predict or backsolve: given the hash, there's no good way to figure out what input it came from besides just trying a bunch of inputs.
 :::
 
-(A note on terminology: the word "hash" is overloaded. You hash _(verb)_ some input with a hash function _(noun)_ and the output is the hash _(noun)_ of the input.)
+This implies that its output seems random and is hard to predict or backsolve: given the hash, there's no good way to figure out what input it came from besides just trying a bunch of inputs.
+
+A note on terminology: the word "hash" is overloaded. You hash _(verb)_ some input with a hash function _(noun)_ and the output is the hash _(noun)_ of the input.
 
 There necessarily are collisions in a hash function, even a collision-resistant one: since the output space is finite and the input space is infinite, an infinite class of inputs are pidgeonholed into the same output.
 For our purposes, we'll ignore the chance of collisions. SHA-256, a ubiquitous cryptographic hash function, has $2^{256}$ theoretically-possible outputs and there are no known collisions even after decades of analysis.^[
@@ -62,7 +65,7 @@ Note that taking hashes of hashes in this way maintains collision resistance ---
 <!-- TODO remove all the data representation stuff? -->
 Merkle trees solve our problem of hashing large amounts of data. Assume that our state-based CRDT has some way to represent its current state in an ordered way, e.g. a binary string. Furthermore, assume that this representation is unique for a given state. Then we can construct a Merkle tree on e.g. 1-kibibyte chunks of its data. (This is a bit of extra storage, but not much --- we store about two hashes for every 1KiB, which is roughly 6% extra storage space.)
 This Merkle tree can be used to dramatically reduce the amount of data that two nodes $A$ and $B$ must transfer when joining.
-Each constructs a Merkle tree on their data, which for this example has four leaves. Notate $A$'s root hash as $a_{1-4}$ and $B$'s root hash as $b_{1-4}$.
+Each maintains a Merkle tree on their data, which for this example has four leaves. Notate $A$'s root hash as $a_{1-4}$ and $B$'s root hash as $b_{1-4}$.
 Now $A$ and $B$ share their root hashes. If they are the same, then (with overwhelming probability) their data is the same and thus the states are the same.
 And if the hashes are different, the states are different --- but we can find _where_ they differ. If $a_{1-4} \neq b_{1-4}$, then $A$ and $B$ can share the next layer's hashes: $a_{1-2}$, $a_{3-4}$, $b_{1-2}$, and $b_{3-4}$. (All of this data lives in content-addressable storage for easy retrieval.) If $a_{1-2} = b_{1-2}$, then that section of the Merkle tree is the same, so we don't need to go further down that path: the Merkle tree structure means that all the data in that subtree is identical. So $A$ and $B$ will only have to compare data in the right subtree where $a_{3-4} \neq b_{3-4}$. This process can recurse all the way down the tree until both nodes have a list of the leaf hashes that differ, which tells them what data they need to actually share. In the worst case, every hash differs between the two nodes and both need to share their entire states. But when only a small amount of data has changed, a Merkle tree means that two nodes may only need to share a small amount of data, which immensely reduces the communication cost of merging states.
 
@@ -72,7 +75,7 @@ We'll eventually be implementing an ordered dictionary CRDT, so we'll use that o
 
 ## Rolling hash functions {#sec-rolling}
 
-The scheme we just described has a big problem. What if data is added to the start? For example, say our list CRDT serializes as a list of its values and some node adds data to the head of the list. This necessarily changes the hash of the first block in the Merkle tree, but furthermore has cascading effects --- all the data shift down the line a little bit, meaning that all chunks suddenly have new hashes. So our Merkle tree hash comparison would see that the nodes need to transmit all of their state, even though only a small amount of data actually differs.
+The scheme we just described works well sometimes, but it's not perfect. What if data is added to the start? For example, say our list CRDT serializes as a list of its values and some node adds data to the head of the list. This necessarily changes the hash of the first block in the Merkle tree, but furthermore has cascading effects --- all the data shift down the line a little bit, meaning that all chunks suddenly have new hashes. So our Merkle tree hash comparison would see that the nodes need to transmit all of their state, even though only a small amount of data actually differs.
 This doesn't affect correctness, but can ruin our performance gains from using the Merkle tree comparison scheme. We want a way to have the Merkle tree improvements in most cases of data insertion, not just when new data is appended to the end.
 
 Generally, _chunking_ is the process of breaking up a large sequence of data into smaller blocks, or chunks.
@@ -114,18 +117,18 @@ Then when nodes do the Merkle tree hash comparison there is less redundant data 
 
 We have now created a way to efficiently communicate the difference between two state-based CRDTs. If we have a standard way of representing and ordering the data of the state then we can do CDC on that data to determine where to draw chunk boundaries, construct a Merkle tree of that, and then do hash-based equality checks to figure out what chunks differ between two nodes. Prolly trees are a specialization of all this for search trees.
 
-A binary search tree (BST) is a way to implement an ordered dictionary ADT, storing values that can be searched by key. Each node in the BST (starting from the root) has a key, its corresponding value, and two child nodes. All children in the left subtree have keys less than the current node's key; similarly, all children in the right subtree have keys greater than the current node's key.
+A binary search tree (BST) is a way to implement an ordered dictionary ADT, storing values that can be searched by key. Each node in the BST (starting from the root) has a key, its corresponding value, and two child nodes. The left subtree has keys less than the current node's key; similarly, the right subtree has keys greater than the current node's key.
 To find a key $k$, start at the root and compare $k$ to the root's key. If they're the same, then we're done; if $k$ is greater, then go to the right child; otherwise $k$ is smaller so go to the left child. Repeat until we find the key or get to some node which doesn't have the correct-direction child, meaning that the key does not exist in this tree.
 
 Generally, search tree nodes can have $n$ keys and $n+1$ children. If a node has two keys and the search key $k$ is not equal to either of them, then $k$ is less than both, greater than both, or between the two values; each of these options can have a child node pointer to continue the search down the tree. In practice, having larger blocks (e.g. a few hundred keys per block) improves performance because computers are better at loading a few large blocks of data instead of many small binary nodes.
 
 Another nice property to have in a search tree is balancing. If the tree is balanced (meaning the children of a node are roughly even between its two subtrees), then operations on a search tree are very efficient --- we get $\O(\log(n))$ time to insert, update, and delete in the worst case since each level of the tree we go down will cut the space of nodes considered by a fraction ($\frac12$ for BSTs).
 
-B-trees are a type of search tree that are heavily used in practice because they maintain balance and have large (parameterizable) block size [@btree]. But our modified Merkle tree is also balanced, since all the data is at the same level; and we can configure the CDC to create an average block size. Furthermore, the original Merkle tree construction has binary nodes, but we can use CDC to also determine chunk boundaries of the internal tree nodes, meaning that we get larger block sizes through the entire tree. So we can use our constructed Merkle-tree-with-CDC as a search tree and it will work efficiently.
+B-trees are a type of search tree that are heavily used in practice because they maintain balance and have large (parameterizable) block size [@btree].
+Our modified Merkle tree is also balanced, since all the data is at the same level; and we can configure the CDC to create an average block size. Furthermore, we can use CDC to also determine chunk boundaries of the internal tree nodes, meaning that we get larger block sizes through the entire tree.
+Thus our constructed Merkle-tree-with-CDC has the same desirable properties that make B-trees so common, meaning that it should work well if we can somehow use it as a search tree.
 
 ## Prolly Trees
-<!-- TODO I want images that I'm allowed to use :( -->
-<!-- ![Dolt's version of an MST, called a prolly tree.](../figures/tmp-dolt-prolly.jpg) -->
 
 Now we have all the tools we need to construct the final Prolly Tree:
 a collision-resistant hash $H$,

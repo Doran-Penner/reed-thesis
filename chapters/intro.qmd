@@ -1,20 +1,6 @@
 # Introduction {.unnumbered}
 
-Final push time! What do I need to do, big-picture? Text-search for CITE, TODO, and that sort of thing. The stuff in this intro section is mainly notes for myself; look at it if you'd like, but don't look too hard.
-
-## TODOs
-
-### MVP before submitting
-
-Look at every TODO in every file.
-
-Scan Jim & Marcus' feedback for big things and maybe small things.
-
-Comment out all of these notes!
-
-Justification for distsys/p2p: also explain the crisis of storing all the data? But I'm not doing any sharding. It's more like a crisis of managing all the distributed changes.
-
-Clean up the ADT section a bit. Use better notation (e.g. no `a_b` func names) and give examples of dictionary usage (amazon inventory and shopping carts). What's a good use of an _ordered_ dictionary? Makes the key search nicer I guess.
+<!--
 
 ### Remove all the content-addressed storage stuff?
 
@@ -24,16 +10,11 @@ It's not really important for what I'm doing.
 
 Yup.
 
-### Terminology & notation
-
-- use `backticks` or $math$ for variables, pseudocode, etc?
-- "node" and other distsys words: maybe put in start of Background?
-
 ### Images and diagrams
 
 That would be nice, wouldn't it?
 
-## ACTUAL WRITING
+-->
 
 In the modern world, there are lots of computers communicating over some kind of network. This setting of distributed computer systems, where processes happen asynchronously and messages can be delayed, poses additional challenges. How could you create a collaborative document editor (such as Google Docs) that also works offline?
 You might also want to find some way to combine different versions of the document when the machines reconnect. Is there some way to seamlessly merge two documents that differ just a little bit, or maybe differ a lot?

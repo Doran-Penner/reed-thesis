@@ -6,13 +6,14 @@
 
 <!-- TODO define "node" here or in Introduction. Do text search to make sure I don't use the word before I define it. -->
 
-We will loosely define a _service_ as an overarching container of programs and protocols that does something when put together. A service could just be a single program on a single device, but usually spans multiple programs and computers. For example, the Internet Protocol (IP) is a service that allows computers to reach and communicate with each other even when they're not directly connected.
+Computers provide many _services_ to their users.
+A service is a single conceptual thing, such as Google search or an automatic backup program.
+Some services are provided by a single program on a single device, but they often span multiple programs and computers. For example, the Internet Protocol (IP) is a service that allows computers to reach and communicate with each other even when they're not directly connected.
 
-A simple service architecture has some _server_ program(s) that other _client_ programs make requests to. Video streaming is one such service --- a home computer makes requests to e.g. Netflix's servers for content to watch.
+A simple service architecture has some _server_ that other _clients_ send messages to. Netflix provides one such service --- a home computer makes requests to Netflix's servers for content to watch.
 This is called the client-server model.
-
 The client-server model runs into scaling issues with just one server: no computer of today, regardless of how much processing power it has or how much bandwidth its network has, could possibly handle all of the requests that are demanded upon some services (e.g. a single computer serving all Google search results). As such, the work of handling all these requests must be managed amongst multiple computers.
-A _distributed system_ is a service where multiple devices work together to provide some program or service, instead of one machine doing it all. [@distsys-textbook p. 2]
+A _distributed system_ is when multiple devices (often called _nodes_) work together to provide some service, instead of one machine doing it all. [@distsys-textbook p. 2]
 
 An old example of a distributed system is Grapevine [@grapevine], an early email service. Xerox had local electronic mail servers in its offices, and the workstations were connected to some local server; the servers were also connected to each other via telephone lines. Given this setup, Grapevine was designed to facilitate email getting from one workstation to another regardless of their location.
 There were components for email delivery, authenictation, and so on, and each had to deal with its own challenges due to the distributed nature of the system. For example if the dial-up connection between two offices is down, what should the email-fetcher do --- stall until the line is back, or try again in an hour? These are the sorts of problems that come up with unreliable networks.
@@ -23,12 +24,10 @@ For the First International Conference on Peer-to-Peer Computing, peer-to-peer i
 They additionally define "pure" peer-to-peer with the additional constraint that any single node can be removed without impacting service, and the network is "hybrid" otherwise.
 <!-- TODO I don't love this direct quotation but it works for now. And maybe I should just give the entire quote instead of this dotdotdotted version? Come back later. -->
 
-This is a complex definition and already shows the nuances of peer-to-peer systems. Most of the time, peer-to-peer is defined in contrast to a client-server architecture --- instead of marking a computer as either a client that requests data or server that responds to requests, all machines are equal in some sense and can operate as both clients and servers. An example of this is BitTorrent [@sam-thesis], which is used for file sharing: a node both downloads data from other nodes and provides data for upload to other nodes. This provides resilience, reduced load, and increased speed when many devices would otherwise all have to request the data from the same server.
+This is a complex definition and already shows the nuances of peer-to-peer systems. Most of the time, peer-to-peer is defined in contrast to a client-server architecture --- instead of marking a computer as either a client that requests data or server that responds to requests, all machines are equal in some sense and can operate as both clients and servers, fetching and modifying data as they choose. An example of this is BitTorrent [@sam-thesis], which is used for file sharing: a node (often called a _peer_ in a peer-to-peer system) both downloads data from peers and provides data for upload to peers. This provides resilience, reduced load, and increased speed when many devices would otherwise all have to request the data from the same server.
 
-Note that the line between client-server and peer-to-peer gets messy. For example, Dynamo [@dynamo] is a service from Amazon to provide a large lookup table (e.g. "what is this user's shopping cart"). The entire system operates as a server for external clients: a device can connect to some machine in the Dynamo system and ask for the value corresponding to some key. However, amongst the Dynamo servers the protocol is peer-to-peer --- no Dynamo node is structurally prioritized over another.
+Note that the line between client-server and peer-to-peer can be blurred. For example, Dynamo [@dynamo] is a service from Amazon to provide a large lookup table (e.g. "what is this user's shopping cart"). The entire system operates as a server for external clients: a device can connect to some machine in the Dynamo system and ask for the value corresponding to some key. However, amongst the Dynamo servers the protocol is peer-to-peer --- no Dynamo node is structurally prioritized over another.
 <!-- And the story gets even more complex with topics such as federation, which is somewhere between a fully peer-to-peer system and a client-server system. -->
-
-<!-- TODO story for why we care about p2p? Come back after Introduction is more fleshed out. -->
 
 ### Challenges with distributed and peer-to-peer systems
 
@@ -43,7 +42,7 @@ In many settings a peer-to-peer system is _open_, meaning that nodes are free to
 For example, a new user can set up a BitTorrent client and start downloading and uploading files with peers that were already in the system. Similarly, nodes are often free to leave at any time for any reason. This is already true in distributed systems due to a potentially-faulty network, but it's generally assumed that a node will return in an unbounded but finite amount of time; in peer-to-peer systems, there is no guarantee that a node will ever return.
 With openness also comes lack of trust --- if any device can join the BitTorrent system, the system might need to account for weak devices and actively malicious actors.
 
-Finally, there is no inherent source of truth in peer-to-peer networks. In the traditional clients-and-one-server model, the authoritative copy of data lies with the server. But in a peer to peer network where different nodes may have different versions of some data, there's no architectural difference between the two to decide which node is "right."
+Finally, there is no inherent source of truth in peer-to-peer networks. In the traditional clients-and-one-server model, the authoritative copy of data lies with the server. But in a peer-to-peer network where different nodes may have different versions of some data, there's no architectural difference between the two to decide which node is "right."
 
 All of this means that communication between nodes is inherently prone to failure, meaning that it cannot be completely trusted; and there is always the possibility that a node doesn't have the most up-to-date information.
 
@@ -87,33 +86,23 @@ With all of that, there are a ton of different settings and models that distribu
 
 <!-- TODO make this writing better later. -->
 
-Given all that, we want to create a reliable service in this peer-to-peer system. But what does this "service" constitute? Something like collaborative document editing requires service-specific logic, but the underlying tools can be generalized. A simple text document (without any formatting) can be seen as a long list of characters, so it is worth considering more abstract "services" which just provide a common data structure interface.
+We want to create a reliable service in this peer-to-peer system. But what does this service constitute? Something like collaborative document editing requires service-specific logic, but the underlying tools can be generalized. A simple text document (without any formatting) can be seen as a long list of characters, so it is worth considering more abstract services which just provide a common data structure interface.
 Generally, we can think about creating an _abstract data type_ (ADT) in our peer-to-peer system that is accessible and modifiable by any node.
 
-What should a node be able to do? It depends on the interface to the ADT. For example, a queue [@clrs, p. 234] is a data structure that supports two operations: `Enqueue`, which puts a new value into the back of the line, and `Dequeue`, which removes and returns the first item in line. One could use a queue for anything that needs a first-come-first-serve structure (e.g. restaurant orders to fulfill), and it doesn't matter how it's implemented. Under the hood, there could be a linked list storing all the data, or a tree, or anything else --- it doesn't matter as long as the abstract interface is respected. We also can reason about the _abstract state_ of the ADT, which is the state that it represents. If we `Enqueue` the numbers 4, 7, and 2 in that order, then the abstract state is that the queue contains 4, 7, and 2 and the next thing to be `Dequeue`d will be 4. The underlying implementation still may store the data in any which way, but it's useful to discuss the abstract state.
+What should a node be able to do? It depends on the interface to the ADT. For example, a queue [@clrs, p. 234] is a data structure that supports two operations: [Enqueue]{.smallcaps}, which puts a new value into the back of the line, and [Dequeue]{.smallcaps}, which removes and returns the first item in line. One could use a queue for anything that needs a first-come, first-serve structure (e.g. Amazon check-outs to confirm), and it doesn't matter how it's implemented. Under the hood, there could be a linked list storing all the data, or a tree, or anything else --- it doesn't matter as long as the abstract interface is respected. We also can reason about the _abstract state_ of the ADT, which is the state that it represents. If we [Enqueue]{.smallcaps}, the numbers 4, 7, and 2 in that order, then the abstract state is that the queue contains 4, 7, and 2 and the next thing to be [Dequeue]{.smallcaps}d will be 4. The underlying implementation still may store the data in any which way, but it's useful to discuss the abstract state.
 
-<!-- TODO fix up the "story" once Introduction is written. But for now I'm just gonna state info. -->
-There are a lot of ADTs that we might want to implemenmt in a peer-to-peer system. Something we'll dig more into later is an _ordered dictionary_. This consists of a set of _keys_ (collection without duplicates) that has some ordering, e.g. the keys are numbers and the ordering is "less-than." Each key is additionally attached to some _value_. Dictionaries are also called (key-value) maps since they map keys to values. An ordered dictionary allows the following operations:
+There are a lot of ADTs that we might want to implemenmt in a peer-to-peer system, but we'll focus on creating an _ordered dictionary_. This consists of a set (collection without duplicates) of _keys_ that has some ordering, e.g. the keys are numbers and the ordering is "less-than." Each key is additionally attached to some _value_. Dictionaries are also called maps or key-value maps since they map keys to values. An ordered dictionary allows the following operations.
 
-<!-- TODO is there a better way of presenting this? -->
-- `val = get(key)`, which (if `key` is in the dictionary) returns that key's value;
-- `vals = get_range(small_key, big_key)` returns all values which have keys in the range `[small_key, big_key]`;
-- `update(key, value)` (if `key` is in the dictionary) sets that key to have a new value;
-- `insert(key, value)` which adds a new key-value pair to the dictionary;
-- `delete(key)` which deletes a key-value pair from the dictionary.
+- [Insert]{.smallcaps}$(k, v)$ adds a new key-value pair to the dictionary.
+- $v :=$ [Get]{.smallcaps}$(k)$ gets the value corresponding to a key (if the key is in the dictionary).
+- $(v_i)_{i=1}^m :=$ [Get-Range]{.smallcaps}$(k_1, k_2)$ gets all the values corresponding to keys in the range $[k_1, k_2]$.
+- [Update]{.smallcaps}$(k, v)$ sets a key to have a new value.
+- [Delete]{.smallcaps}$(k)$ deletes a key-value pair from the dictionary.
 
-<!-- TODO should I say you can use it as a list? -->
 Ordered dictionaries are very versatile data structures.
-TODO give some example uses.
-A common way to implement them is with binary search trees, but we'll cover implementation in more detail later.
-
-<!--
-- A "set" ADT is an unordered collection of unique items. You can insert values and later check if some value is in the set.
-- An "ordered set" is a set where the keys have some ordering. You can thus query a range of values at a time.
-- A "map" ADT is a mapping from keys to values. You can insert (k,v) pairs and then later query by key to get that value (if it was previously stored in the map). Generally treated like a set ADT on the keys with some extra info (the values) attached to each key, and that extra info can be changed.
-- A "dictionary" is another word for this map ADT.
-- An "ordered dictionary" is a dictionary where the keys also have some (total?) ordering, allowing range queries.
--->
+Many large databases use them to more quickly access data, with the key as some unique identifier for a row of data.
+The key order can also be ignored to make it a normal dictionary, which can be used for any kind of lookup table (such as what Dynamo provides).
+TODO say anything else?
 
 ## CRDTs
 
