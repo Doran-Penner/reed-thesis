@@ -18,9 +18,9 @@ Generally, how useful is this structure in practice? Are there changes to the co
 
 ## Range trees and other data types
 
-We've only covered using the Prolly Tree for an actual ordered dictionary, but such a structure can implement other ADTs. For example, a "range tree" is just a list where the keys are indices and a value is the item at that index. This would be a lot slower than a standard array for reads, but for random writes the Prolly Tree takes logarithmic time instead of an array's linear cost. The Diamond Types library [@diamond-types] is extraordinarily fast compared to existing CRDT libraries and implements a list CRDT using a range tree; this is not a Prolly Tree that needs to deal with chunking and hashing, but nonetheless suggests that this is a potentially-fruitful way to represent lists.
+We've only covered using the Prolly Tree for an actual ordered dictionary, but such a structure can implement other ADTs. For example, a "range tree" is a list implemented by a search tree, where the keys are indices and a value is the item at that index. This is slower than a standard array for reads, but for random writes the Prolly Tree takes logarithmic time instead of an array's linear cost. The Diamond Types library [@diamond-types] is extraordinarily fast compared to existing CRDT libraries and implements a list CRDT using a range tree; this is not a Prolly Tree that needs to deal with chunking and hashing, but nonetheless suggests that this is a potentially-fruitful way to represent lists.
 
-Adding on to that, are there other ADTs that could be implemented as CRDTs with a Prolly Tree or something similar? If we allow putting range-tree lists as values of the Prolly Tree keys and vice versa, we can make JSON. This is possibly not that useful, but who knows!
+Adding on to that, are there other ADTs that could be implemented as CRDTs with a Prolly Tree or something similar? If we allow putting range-tree lists as values of the Prolly Tree keys and vice versa, we can make a CRDT for JSON. It's unknown if this would be used in practice, but JSON is ubiquitous so perhaps this is a useful thing to create.
 
 ## Operation-like data transfer
 

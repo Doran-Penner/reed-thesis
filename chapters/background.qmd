@@ -92,7 +92,7 @@ There are a lot of ADTs that we might want to implemenmt in a peer-to-peer syste
 
 Ordered dictionaries are very versatile data structures.
 Many large databases use them to more quickly access data, with the key as some unique identifier for a row of data.
-The key order can also be ignored to make it a normal dictionary, which can be used for any kind of lookup table (such as what Dynamo provides).
+The key order can also be ignored to make it a normal dictionary, which can be used for any kind of lookup table (such as what Dynamo [@dynamo] provides).
 
 ## CRDTs
 
@@ -138,8 +138,8 @@ We've shown that the grow-only set and LWW register ADTs can be made into CRDTs.
 Unfortunately, there is no way to do this --- state-based CRDTs always "grow upward" in a fashion, and there's no direct way to remove items. So there's no way to make a true set CRDT.
 However, we can create CRDTs which do a decent job at approximating a true set ADT [@shapiro-crdt, pp. 21-27].
 
-One solution is to store two grow-only sets, one called the "main" set $M$ and one called the "tombstone" set $T$. This is called a two-phase or 2P-set.
-To put an item in the set, add it to $A$. To remove an item, add it to $T$. So the abstract state of the overall 2P-set is $A ~\backslash~ T$, everything in $A$ and not in $T$.
+One solution is to store two grow-only sets, one called the "added" set $A$ and one called the "tombstone" set $T$. This is called a two-phase or 2P-set.
+To put an item in the set, add it to $A$. To remove an item, add it to $T$. So the abstract state of the overall 2P-set is $A ~\backslash~ T$, everything in $A$ and not in $T$. (The tombstones mark which items are dead i.e. removed.)
 This is easy to implement, since it's just two grow-only sets and nodes can transmit both sets' data as usual. However, it doesn't allow for re-adding elements which have already been removed.
 This could be alleviated by having a sequence of $n$ pairs of $A$ and $T$ sets, allowing for adding and removing an item $n$ times, but that is simply not practical or very useful most of the time.
 
