@@ -36,9 +36,13 @@ abbrs:
   CRDT: Conflict-free replicated data type
   LWW: Last-write-wins
 
-division: Mathematics and Computer Science
+# a thesis presented to [thedivisionof] [division]
 thedivisionof: The Established Interdisciplinary Committee for
+division: Mathematics and Computer Science
+# approved for the [approvedforthe] \n ([department])
+approvedforthe: Committee
 department: Mathematics and Computer Science
+# (place for advisor(s) to put their signatures)
 advisor: James Fix
 altadvisor: Marcus Robinson
 
