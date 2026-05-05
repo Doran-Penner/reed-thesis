@@ -6,7 +6,7 @@ The revisions of the code I wrote are as follows:
 
 \small
 
-[{{< meta title >}}](https://github.com/Doran-Penner/reed-thesis)
-:   [`{{< meta commitRev >}}`](https://github.com/Doran-Penner/reed-thesis/tree/{{< meta commitRev >}})
+[{{< meta title >}}]({{< meta gitRepoLink >}})
+:   [`{{< meta commitRev >}}`]({{< meta gitTreeLink >}}/{{< meta commitRev >}})
 
 \normalsize

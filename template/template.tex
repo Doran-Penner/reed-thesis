@@ -433,6 +433,11 @@ $if(approvedforthe)$\approvedforthe{$approvedforthe$}$endif$
 \advisor{$advisor$}
 $if(altadvisor)$\altadvisor{$altadvisor$}$endif$
 
+$if(gitTreeLink)$
+\newcommand{\gitTree}{$gitTreeLink$}
+$else$
+\newcommand{\gitTree}{https://www.example.com}
+$endif$
 $if(commitRev)$
 \newcommand{\commitRevRaw}{$commitRev$}
 $else$
@@ -505,7 +510,7 @@ $endif$
 \IfFileExists{./extras/dedication.tex}{\chapter*{Dedication}\input{extras/dedication.tex}}{}
 
 \renewcommand{\footrulewidth}{0.4pt}
-\fancyfoot[LE]{\it Built off of \href{https://github.com/Doran-Penner/reed-thesis/tree/\commitRevRaw}{\commitShortRev}}
+\fancyfoot[LE]{\it Built off of \href{\gitTree/\commitRevRaw}{\commitShortRev}}
 \fancyfoot[RO]{\it Last updated on \commitDate}
 
 $if(linestretch)$

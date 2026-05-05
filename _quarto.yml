@@ -14,12 +14,18 @@ book:
     - chapters/construction.qmd
     - chapters/operations.qmd
     - chapters/improvements.qmd
-  appendices:
-    - chapters/git-revisions.qmd
+  # add if you want a dedicated appendix page for git revisions
+  # (esp. if you have other code that you wrote besides the thesis)
+  # appendices:
+  # - chapters/git-revisions.qmd
 
 bibliography: extras/bibliography.bib
 # for changing citation style or including all bibtex entries
 biblio-style: ieee
+
+# for hyperlinks in the footer and (optional) git-revisions appendix
+gitRepoLink: https://github.com/Doran-Penner/reed-thesis
+gitTreeLink: https://github.com/Doran-Penner/reed-thesis/tree
 
 filters:
   - template/treesitter-highlighting.lua
