@@ -1,12 +1,8 @@
-TODO
-
-<!--
-Sam for thesis template
-
-Advisors for all the help
-(and Erica for bonus help) and my orals readers
-
-Family & friends for being cool
-
-Yeah
--->
+Thank you to Jim and Marcus for advising me along this winding path of a thesis, with all its turns and deadlines and discussions.
+Thank you to Erica for spiritual guidance when this thesis was lost.
+Thank you to Kelly and Candace for choosing to be on an orals board when you had zero background knowledge.
+Thank you to Sam for the thesis template, so I don't need to write everything in \LaTeX.
+Thank you to all of my friends for making this experience what it has been.
+Thank you to all my loved ones for all the support and care.
+And thank you all for listening to me babble about stuff I find interesting.
+We made it!
